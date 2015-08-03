@@ -149,7 +149,7 @@ Drug-response
 Drug-response profiles.
 
 ```{r load_drug_response_data}
-dx = read.delim('data/MMM/NCATS_DxData.txt')
+dx = read.delim('/data/MMM/TXT/NCATS_DxData.txt')
 dx$drug = rownames(dx)
 dx = tbl_df(dx)
 ```

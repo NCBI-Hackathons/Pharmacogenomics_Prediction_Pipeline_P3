@@ -20,6 +20,17 @@ options(stringsAsFactors=FALSE)
 options(knitr.duplicate.label='allow')
 
 rm(list=ls())    # Clean up any existing variables
+
+# Data we need from the AWS instance
+get.data = function(fn){
+    # e.g., "ubuntu@123.45.678"
+    host = Sys.getenv("HOSTSTRING")
+    dir.create(dirname(fn), showWarnings=FALSE)
+    system(paste0("rsync -avr --progress ", host, ':', fn, ' ', fn))
+}
+files.to.download = c('/data/MMM/TXT/HMCL_ensembl74_Counts.txt', '/data/MMM/TXT/NCATS_DxData.txt')
+lapply(files.to.download, get.data)
+
 ```
 
 ```{r load_libraries}
@@ -64,7 +75,7 @@ RNA-Seq
 
 ```{r load_rnaseq}
 #raw_counts = read.table('../raw_data/datHTseq_gene.txt', header=1)
-raw_counts = read.table('../raw_data/HMCL_ensembl74_Counts.txt', header=1)
+raw_counts = read.table('/data/MMM/TXT/HMCL_ensembl74_Counts.txt', header=1)
 #rownames(raw_counts) = raw_counts$UID
 rownames(raw_counts) = raw_counts$GENE_ID
 raw_counts = as.matrix(raw_counts[,-c(1)])
@@ -138,7 +149,7 @@ Drug-response
 Drug-response profiles.
 
 ```{r load_drug_response_data}
-dx = read.delim(gzfile('../raw_data/NCATS_DxData.txt.gz'))
+dx = read.delim('data/MMM/NCATS_DxData.txt')
 dx$drug = rownames(dx)
 dx = tbl_df(dx)
 ```

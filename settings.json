@@ -1,0 +1,6 @@
+{ 
+    "raw" :
+    {
+        "rnaseq_expression" : "/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.txt"
+    }
+}

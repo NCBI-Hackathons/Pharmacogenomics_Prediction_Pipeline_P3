@@ -22,4 +22,9 @@ data:
                 file: /data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv
                 description:
 
+        exome_variants:
+            -
+                file: /data/datasets/filtered/exome_variants/transcripts_per_cell_line.txt
+                description: Transcript counts per cell line
+
 

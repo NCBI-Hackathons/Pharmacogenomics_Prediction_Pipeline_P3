@@ -1,18 +1,10 @@
-targets = {
+targets = [
 
-    'tools/data_qa.html':
-        "reports some QA on data",
-
-    '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv':
-        'zscores by cell line',
-
-    '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv':
-        'summarized zscores (MAD)',
-
-    '/data/datasets/raw/gene_ontology/ensembl_go_mapping.txt':
-        'Ensembl gene to GO term (many to many relations)',
-
-}
+    'tools/data_qa.html',
+    '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
+    '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv',
+    '/data/datasets/raw/gene_ontology/ensembl_go_mapping.txt',
+]
 import os
 from textwrap import dedent
 
@@ -32,8 +24,10 @@ def compile_Rmd(fn):
 def run_R(fn):
     shell("/usr/bin/Rscript {fn}")
 
+
 rule all:
     input: targets.keys()
+
 
 rule rmd:
     input: '{prefix}.Rmd'
@@ -49,6 +43,7 @@ rule compute_zscores:
         '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv'
     run:
         run_R(input[0])
+
 
 rule download_go:
     input: 'tools/generate_ensembl_go_mapping.R'

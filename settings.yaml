@@ -13,6 +13,11 @@ data:
             -
                 path: /data/datasets/raw/exome_variants/
                 description: Variants in each cell line
+        ensg_to_enst:
+            -
+                path: /data/datasets/raw/ensg_to_enst/ensembl_v74_ENSG2ENST.txt
+                description: Mapping file from ensembl transcript id to ensembl gene id
+
     filtered:
         rnaseq_expression:
             -

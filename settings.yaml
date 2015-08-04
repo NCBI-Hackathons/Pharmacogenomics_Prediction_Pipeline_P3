@@ -1,37 +1,32 @@
 data:
     raw:
         rnaseq_expression:
-            -
                 file: /data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.txt
                 description: description place holder
 
         gene_ontology:
-            -
                 file: /data/datasets/raw/gene_ontology/ensembl_go_mapping.tab
                 description: description
+
         exome_vcfs:
-            -
                 path: /data/datasets/raw/exome_variants/
                 description: Variants in each cell line
+        
         ensg_to_enst:
-            -
                 file: /data/datasets/raw/ensg_to_enst/ensembl_v74_ENSG2ENST.txt
                 description: Mapping file from ensembl transcript id to ensembl gene id
 
     filtered:
         rnaseq_expression:
-            -
-                file: /data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv
-                description:
-            -
                 file: /data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv
                 description:
 
         exome_variants:
-            -
+            transcript_per_cell_line:
                 file: /data/datasets/filtered/exome_variants/transcripts_per_cell_line.txt
                 description: Transcript counts per cell line
 
+            gene_per_cell_line:
                 file: /data/datasets/filtered/exome_variants/genes_per_cell_line.txt
                 description: Gene counts per cell line
 

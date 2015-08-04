@@ -1,8 +1,8 @@
 from settings import  SettingsParser
 
 conf = SettingsParser()
-transcript_counts_file = conf.settings['data']['filtered']['exome_variants'][0]['file']
-mapping_file = conf.settings['data']['raw']['ensg_to_enst'][0]['file']
+transcript_counts_file = conf.settings['data']['filtered']['exome_variants']['transcripts_per_cell_line']['file']
+mapping_file = conf.settings['data']['raw']['ensg_to_enst']['file']
 transcript_to_gene = { line.strip().split()[1]:line.strip().split()[0] for line in open(mapping_file,'r').readlines()}
 
 with open(transcript_counts_file,'r') as fh:

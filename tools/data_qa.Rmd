@@ -1,0 +1,192 @@
+---
+title: Multiple Myeloma Drug Response Raw Data
+date: 2015/08/03
+---
+
+Overview
+========
+
+Setup
+=====
+
+```{r knitr_settings, include=FALSE}
+library('knitr')
+opts_knit$set(progress=FALSE, verbose=TRUE)
+opts_chunk$set(fig.width=1080/96,
+               fig.height=1080/96,
+               dpi=96)
+options(digits=4)
+options(stringsAsFactors=FALSE)
+options(knitr.duplicate.label='allow')
+
+rm(list=ls())    # Clean up any existing variables
+
+# Data we need from the AWS instance
+get.data = function(fn){
+    # e.g., "ubuntu@123.45.678"
+    host = Sys.getenv("HOSTSTRING")
+    dir.create(dirname(fn), showWarnings=FALSE)
+    system(paste0("rsync -avr --progress ", host, ':', fn, ' ', fn))
+}
+files.to.download = c('/data/MMM/TXT/HMCL_ensembl74_Counts.txt', '/data/MMM/TXT/NCATS_DxData.txt')
+lapply(files.to.download, get.data)
+
+```
+
+```{r load_libraries}
+library('corpcor')
+library('dplyr')
+library('gplots')
+library('ggplot2')
+library('hpgltools')
+library('RColorBrewer')
+```
+
+```{r helper_functions}
+#' Compute singular value decomposition
+#'
+#' https://github.com/kokrah/cbcbSEQ/
+#'
+#' @param x matrix of genes by sample (ie. the usual data matrix)
+#' @return returns a list of svd components v and d
+#' @export
+makeSVD = function(x){
+  x = as.matrix(x)
+  s = fast.svd(x - rowMeans(x))
+  
+  v = s$v
+  rownames(v) = colnames(x)
+  
+  s = list(v=v, d=s$d)
+  return(s)
+}
+
+# Counts-per-million (CPM)
+cpm = function (x) {
+    sweep(x, 2, colSums(x), '/') * 1E6
+}
+```
+
+Raw Data
+========
+
+RNA-Seq
+-------
+
+```{r load_rnaseq}
+#raw_counts = read.table('../raw_data/datHTseq_gene.txt', header=1)
+raw_counts = read.table('/data/MMM/TXT/HMCL_ensembl74_Counts.txt', header=1)
+#rownames(raw_counts) = raw_counts$UID
+rownames(raw_counts) = raw_counts$GENE_ID
+raw_counts = as.matrix(raw_counts[,-c(1)])
+
+sample_ids = colnames(raw_counts)
+
+# Cell line metadata
+# http://www.keatslab.org/projects/mm-cell-line-characterization/cell-line-characterization-status
+#il6_dependent = c('OH2', 'ALMC-2', 'PE1', 'ANBL-6', 'PCM-6', 'ALMC-1')
+il6_dependent = c('OH2_PLB', 'ALMC2_DJ', 'PE1_PLB', 'ANBL6_DJ2', 'PCM6_Riken', 'ALMC1_DJ')
+
+sample_metadata = data.frame(
+    cell_line=sample_ids,
+    il6_dependent=sample_ids %in% il6_dependent
+)
+
+# color by IL-6 inclusion
+il6_colors = ifelse(sample_metadata$il6_dependent, 'red', 'blue')
+```
+
+### Sample sizes
+
+```{r rnaseq_sample_sizes}
+hpgl_libsize(raw_counts, design=design, scale=FALSE)
+```
+
+### Cell line trends
+
+#### PCA
+
+```{r cell_lines}
+svd_result = makeSVD(raw_counts)
+
+pc_variance = round((svd_result$d^2) / sum(svd_result$d^2) * 100, 2)
+xl = sprintf("PC1 (%.2f%% variance)", pc_variance[1])
+yl = sprintf("PC2 (%.2f%% variance)", pc_variance[2])
+
+pca_data = data.frame(PC1=svd_result$v[,1], PC2=svd_result$v[,2],
+                      il6=il6_colors,
+                      cell_line=sample_ids)
+
+plt = ggplot(pca_data, aes(PC1, PC2, color=il6)) +
+    geom_point(stat="identity") +
+    geom_text(aes(label=cell_line), angle=45, size=4,vjust=2) +
+    xlab(xl) + ylab(yl) +
+    ggtitle(sprintf("PCA: RNA-Seq")) +
+    theme(axis.ticks=element_blank(), axis.text.x=element_text(angle=-90))
+plot(plt)
+```
+
+#### Heatmap
+
+```{r rnaseq_heatmaps}
+# RNA-Seq Cell line heatmap
+heatmap.2(cor(raw_counts), trace="none",
+          col=redgreen(75), colRow=NA, main="Cell line RNA-Seq (Raw)",
+          ColSideColors=il6_colors,
+          margins=c(12,8))
+
+# RNA-Seq Cell line heatmap (log2-CPM)
+log2cpm_counts = log2(cpm(raw_counts) + 0.5)
+heatmap.2(cor(log2cpm_counts), trace="none",
+          col=redgreen(75), labRow=NA, main="Cell line RNA-Seq (log2-CPM)",
+          ColSideColors=il6_colors,
+          margins=c(12,8))
+```
+
+Drug-response
+-------------
+
+Drug-response profiles.
+
+```{r load_drug_response_data}
+dx = read.delim('/data/MMM/TXT/NCATS_DxData.txt')
+dx$drug = rownames(dx)
+dx = tbl_df(dx)
+```
+
+### PCA
+
+```{r cell_line}
+dx_data = as.matrix(dx %>% select(starts_with('DATA'), TAUC))
+
+# PCA
+svd_result = makeSVD(t(dx_data))
+
+pc_variance = round((svd_result$d^2) / sum(svd_result$d^2) * 100, 2)
+xl = sprintf("PC1 (%.2f%% variance)", pc_variance[1])
+yl = sprintf("PC2 (%.2f%% variance)", pc_variance[2])
+
+pca_data = data.frame(drug=rownames(dx),
+                      PC1=svd_result$v[,1], PC2=svd_result$v[,2],
+                      target=dx$TARGET)
+
+plt = ggplot(pca_data, aes(PC1, PC2, color=target)) +
+    geom_point(stat="identity") +
+    xlab(xl) + ylab(yl) +
+    ggtitle(sprintf("PCA: Drug Response")) +
+    theme(axis.ticks=element_blank(), axis.text.x=element_text(angle=-90))
+plot(plt)
+
+# Heatmap
+#heatmap.2(cor(dx_data), trace="none",
+#          col=redgreen(75), labRow=NA, main="Drug response profiles",
+#          margins=c(12,8))
+```
+
+System information
+==================
+
+```{r sysinfo}
+sessionInfo()
+```
+

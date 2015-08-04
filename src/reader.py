@@ -5,14 +5,15 @@ import csv
 class Reader(object):
     """
     This is an abstract class and not to be used as is.
+    Expects the text files start with a header
     """
-    HEADER=[]
     INPUT_DELIMITER='\t'
     OUTPUT_DELIMITER='\t'
     
     def __init__(self):
         self._filename=None
         self._filehandle=None
+        self._header=None
 
     @property
     def filename(self):
@@ -34,16 +35,22 @@ class Reader(object):
         else:
             self._filehandle = open(self._filename)
             return self._filehandle
+    
+    @property
+    def header(self):
+        if self._header is None:
+            self._header = self.filehandle.next().strip().split(self.INPUT_DELIMITER)
+        return self._header
 
     def is_valid_fieldname(self, feild):
-        if feild in self.HEADER:
+        if feild in self.header:
             return True
         return False
 
     def get_dictreader(self):
         rows =  csv.DictReader(self.filehandle,
                               delimiter=self.INPUT_DELIMITER,
-                              fieldnames=self.HEADER)
+                              fieldnames=self.header)
         return rows
 
     def extract_data(self, fieldnames):
@@ -68,10 +75,14 @@ class Reader(object):
             print("{}".format(self.OUTPUT_DELIMITER.join(r)))
 
 
-COLUMNS = ['GENE_ID','ALMC1_DJ','ALMC2_DJ','AMO1_DSMZ','ANBL6_DJ2','ARD_JJKsccE7','ARP1_JJKsccF8','CAG_JJKsccG6','COLO677_DSMZ','Delta47_JCRB','DP6_DJ','EJM_DSMZ','FLAM76_JCRB','FR4_PLB','H1112_PLB','INA6_PLB','JIM1_ECACC','JIM3_ECACC','JJN3_DSMZ','JK6L_PLB','JMW1_PLB','Karpas25_ECACC','Karpas417_ECACC','Karpas620_DSMZ','Karpas929_ECACC','KAS61_DJ','KHM11_PLB','KHM1B_JCRB','KMM1_JCRB','KMS11_JCRBadh','KMS11_JCRBsus','KMS11_JPN','KMS12BM_JCRB','KMS12PE_JCRB','KMS18_PLB','KMS20_JCRB','KMS21BM_JCRB','KMS26_JCRB','KMS27_JCRB','KMS28BM_JCRB','KMS28PE_JCRB','KMS34_JCRB','KP6_DJ','L363_DSMZ','LP1_DSMZ','MM1R_ATCC','MM1S_ATCC','MMM1_PLB','MOLP2_DSMZ','MOLP8_DSMZ','NCIH929_DSMZ','OCIMY1_PLB','OCIMY5_PLB','OCIMY7_PLB','OH2_PLB','OPM1_PLB','OPM2_DSMZ','PCM6_Riken','PE1_PLB','PE2_PLB','RPMI8226_ATCC','SKMM1_PLB','SKMM2_DSMZ','U266_ATCC','UTMC2_PLB','VP6_DJ','XG1_PLB','XG2_PLB','XG6_PLB','XG7_PLB']
-FILENAME='/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.txt'
+class RnaSeqExpressionReader(Reader):
+    INPUT_DELIMITER=','
 
-r = Reader()
-r.HEADER = COLUMNS
+class EnsemblToGOMappings(Reader):
+    INPUT_DELIMITER='\t'
+
+FILENAME='/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
+r = RnaSeqExpressionReader()
 r.filename=FILENAME
-r.extract_to_file(fieldnames=['GENE_ID','SKMM2_DSMZ'],output_file='delme')
+print r.header
+r.extract_to_stdout(fieldnames=['GENE_ID','SKMM2_DSMZ'])

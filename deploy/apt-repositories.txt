@@ -1,0 +1,1 @@
+deb http://cran.r-project.org/bin/linux/ubuntu trusty/

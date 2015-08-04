@@ -22,8 +22,12 @@ def compile_Rmd(fn):
     shell("rm {0}".format(fout.name))
 
 
-def run_R(fn):
-    shell("/usr/bin/Rscript {fn}")
+def run_R(fn, log=None):
+    if log is not None:
+        log = " > {0} 2> {0}".format(log)
+    else:
+        log = ""
+    shell("/usr/bin/Rscript {fn} {log}")
 
 
 rule all:

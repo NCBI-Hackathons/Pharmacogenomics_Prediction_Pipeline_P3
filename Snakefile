@@ -3,7 +3,7 @@ targets = [
     'tools/data_qa.html',
     '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
     '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv',
-    '/data/datasets/raw/gene_ontology/ensembl_go_mapping.txt',
+    '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab',
 ]
 import os
 from textwrap import dedent
@@ -26,7 +26,7 @@ def run_R(fn):
 
 
 rule all:
-    input: targets.keys()
+    input: targets
 
 
 rule rmd:
@@ -47,6 +47,6 @@ rule compute_zscores:
 
 rule download_go:
     input: 'tools/generate_ensembl_go_mapping.R'
-    output: '/data/datasets/raw/gene_ontology/ensembl_go_mapping.txt'
+    output: '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab'
     run:
         run_R(input[0])

@@ -4,6 +4,7 @@ targets = [
     '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
     '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv',
     '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab',
+    '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv',
 ]
 import os
 from textwrap import dedent
@@ -50,3 +51,13 @@ rule download_go:
     output: '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab'
     run:
         run_R(input[0])
+
+
+rule rnaseq_data_prep:
+    input:
+        rscript='tools/rnaseq_data_preparation.R',
+        infile='/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
+    output:
+        '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
+    run:
+        run_R(input.rscript)

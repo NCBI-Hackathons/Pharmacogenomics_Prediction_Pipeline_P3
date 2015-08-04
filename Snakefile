@@ -1,3 +1,13 @@
+# vim: ft=python
+
+"""
+
+"""
+
+import os
+from textwrap import dedent
+
+
 targets = [
 
     'tools/data_qa.html',
@@ -5,9 +15,8 @@ targets = [
     '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv',
     '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab',
     '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv',
+    '/data/datasets/combined/gene_ontology/go_term_zscores.csv',
 ]
-import os
-from textwrap import dedent
 
 
 def compile_Rmd(fn):
@@ -65,3 +74,14 @@ rule rnaseq_data_prep:
         '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
     run:
         run_R(input.rscript)
+
+
+rule go_term_processing:
+    input:
+        rscript='tools/go_term_analysis.R',
+        zscores='/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
+        go_mapping='/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab',
+    output: '/data/datasets/combined/gene_ontology/go_term_zscores.csv'
+    log: 'tools/go_term_analysis.R.log'
+    run:
+        run_R(input.rscript, log)

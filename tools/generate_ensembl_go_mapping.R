@@ -11,6 +11,9 @@
 ###############################################################################
 library('Homo.sapiens')
 
+# Output filepath
+outfile = '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab'
+
 # Create mapping
 go_terms = AnnotationDbi::select(Homo.sapiens, keytype='ENSEMBL',
                           keys=keys(Homo.sapiens, keytype='ENSEMBL'),
@@ -26,5 +29,5 @@ gene_go_mapping = unique(go_terms[complete.cases(go_terms),])
 
 # Save output
 write.table(gene_go_mapping, quote=FALSE, sep='\t', 
-            row.names=FALSE, file='../ref_data/ensembl_go_mapping.txt')
+            row.names=FALSE, file=outfile)
 

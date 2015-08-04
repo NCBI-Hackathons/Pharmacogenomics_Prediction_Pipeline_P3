@@ -23,9 +23,8 @@ library('preprocessCore')
 infile  = '/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
 outfile = '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
 
-raw_counts = read.table(infile, header=1)
-rownames(raw_counts) = raw_counts$GENE_ID
-raw_counts = as.matrix(raw_counts[,-c(1)])
+# Load raw count matrix
+raw_counts = read.csv(infile, row.names=1)
 
 # Sample IDs
 sample_ids = colnames(raw_counts)
@@ -53,7 +52,7 @@ cpm = function (x) {
 }
 
 # Log2-CPM
-log2_cpm_counts = log2(cpm(raw_counts) + 0.5)
+log2_cpm_counts = as.matrix(log2(cpm(raw_counts) + 0.5))
 
 # Quantile normalized log2-CPM
 log2_cpm_qnorm_counts = normalize.quantiles(log2_cpm_counts)

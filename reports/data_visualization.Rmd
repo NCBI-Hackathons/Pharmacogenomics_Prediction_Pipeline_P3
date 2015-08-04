@@ -1,10 +1,19 @@
 ---
-title: Multiple Myeloma Drug Response Raw Data
-date: 2015/08/03
+title: Multiple Myeloma Drug Response Data Visualization
+output:
+  knitrBootstrap::bootstrap_document:
+    theme: flatly
 ---
+
+<div style='font-size:36px';>Multiple Myeloma Drug Response Data Visualization</div>
 
 Overview
 ========
+
+The purpose of this file is to explore some of the basic properties of the
+various raw and processed data files used in this analysis. This may be helpful
+to catch artifacts and outliers in the data as well as to detect possible
+trends and groupings within the data.
 
 Setup
 =====
@@ -20,18 +29,8 @@ options(stringsAsFactors=FALSE)
 options(knitr.duplicate.label='allow')
 
 rm(list=ls())    # Clean up any existing variables
-
-# Data we need from the AWS instance
-get.data = function(fn){
-    # e.g., "ubuntu@123.45.678"
-    host = Sys.getenv("HOSTSTRING")
-    dir.create(dirname(fn), showWarnings=FALSE)
-    system(paste0("rsync -avr --progress ", host, ':', fn, ' ', fn))
-}
-files.to.download = c('/data/MMM/TXT/HMCL_ensembl74_Counts.txt', '/data/MMM/TXT/NCATS_DxData.txt')
-lapply(files.to.download, get.data)
-
 ```
+
 
 ```{r load_libraries}
 library('corpcor')
@@ -61,9 +60,21 @@ makeSVD = function(x){
   return(s)
 }
 
+#
 # Counts-per-million (CPM)
+#
 cpm = function (x) {
     sweep(x, 2, colSums(x), '/') * 1E6
+}
+
+#
+# Data we need from the AWS instance
+#
+get_data = function(filepath){
+    # e.g., "ubuntu@123.45.678"
+    host = Sys.getenv("HOSTSTRING")
+    dir.create(dirname(filepath), recursive=TRUE, showWarnings=FALSE)
+    system(paste0("rsync -avr --progress ", host, ':', filepath, ' ', filepath))
 }
 ```
 
@@ -73,18 +84,17 @@ Raw Data
 RNA-Seq
 -------
 
-```{r load_rnaseq}
-#raw_counts = read.table('../raw_data/datHTseq_gene.txt', header=1)
-raw_counts = read.table('/data/MMM/TXT/HMCL_ensembl74_Counts.txt', header=1)
-#rownames(raw_counts) = raw_counts$UID
-rownames(raw_counts) = raw_counts$GENE_ID
-raw_counts = as.matrix(raw_counts[,-c(1)])
+```{r download_raw_counts}
+rnaseq_input = '/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
+lapply(rnaseq_input, get_data)
+```
 
+```{r load_rnaseq}
+raw_counts = as.matrix(read.csv(rnaseq_input, header=1, row.names=1))
 sample_ids = colnames(raw_counts)
 
 # Cell line metadata
 # http://www.keatslab.org/projects/mm-cell-line-characterization/cell-line-characterization-status
-#il6_dependent = c('OH2', 'ALMC-2', 'PE1', 'ANBL-6', 'PCM-6', 'ALMC-1')
 il6_dependent = c('OH2_PLB', 'ALMC2_DJ', 'PE1_PLB', 'ANBL6_DJ2', 'PCM6_Riken', 'ALMC1_DJ')
 
 sample_metadata = data.frame(
@@ -148,8 +158,13 @@ Drug-response
 
 Drug-response profiles.
 
+```{r download_raw_drug_response_data}
+drug_response_input = '/data/datasets/raw/drug_response/NCATS_DxData.txt'
+lapply(drug_response_input, get_data)
+```
+
 ```{r load_drug_response_data}
-dx = read.delim('/data/MMM/TXT/NCATS_DxData.txt')
+dx = read.delim(drug_response_input)
 dx$drug = rownames(dx)
 dx = tbl_df(dx)
 ```

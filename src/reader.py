@@ -10,8 +10,8 @@ class Reader(object):
     INPUT_DELIMITER='\t'
     OUTPUT_DELIMITER='\t'
     
-    def __init__(self):
-        self._filename=None
+    def __init__(self, filename=None):
+        self._filename=filename
         self._filehandle=None
         self._header=None
 
@@ -81,8 +81,12 @@ class RnaSeqExpressionReader(Reader):
 class EnsemblToGOMappings(Reader):
     INPUT_DELIMITER='\t'
 
-FILENAME='/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
-r = RnaSeqExpressionReader()
-r.filename=FILENAME
-print r.header
-r.extract_to_stdout(fieldnames=['GENE_ID','SKMM2_DSMZ'])
+class ExomeVariantReader(Reader):
+    INPUT_DELIMITER='\t'
+
+# Usage
+#FILENAME='/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
+#r = RnaSeqExpressionReader()
+#r.filename=FILENAME
+#print r.header
+#r.extract_to_stdout(fieldnames=['GENE_ID','SKMM2_DSMZ'])

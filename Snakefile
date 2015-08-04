@@ -17,7 +17,7 @@ targets = [
     '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv',
     '/data/datasets/combined/gene_ontology/go_term_zscores.csv',
     '/data/datasets/raw/msig_db/c2.cp.v5.0.ensembl.tab',
-
+    '/data/datasets/combined/msig_db/msig_db_zscores.csv',
 ]
 
 
@@ -95,3 +95,13 @@ rule msigdb_preprocessing:
     output: '/data/datasets/raw/msig_db/c2.cp.v5.0.ensembl.tab'
     run:
         shell('python {input.pyscript}')
+
+rule msigdb_processing:
+    input:
+        rscript='tools/msigdb_analysis.R',
+        ensembl_msigdb='/data/datasets/raw/msig_db/c2.cp.v5.0.ensembl.tab'
+    output: '/data/datasets/combined/msig_db/msig_db_zscores.csv'
+    log: 'tools/msigdb_analysis.R.log'
+    run:
+        run_R(input.rscript, log)
+

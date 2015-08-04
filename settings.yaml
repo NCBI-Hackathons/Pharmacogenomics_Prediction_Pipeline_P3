@@ -6,3 +6,6 @@
         "gene_ontology" :
             "file" : "/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab"
             "description" : "description"
+        "exome_vcfs" :
+            "path" : "/data/datasets/raw/exome_variants/"
+            "description" : "Variants in each cell line"

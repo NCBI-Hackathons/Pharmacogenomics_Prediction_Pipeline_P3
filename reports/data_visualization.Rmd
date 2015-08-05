@@ -1,11 +1,11 @@
 ---
-title: Multiple Myeloma Drug Response Data Visualization
+title: Pharmacogenomics Prediction Pipeline (P3)
 output:
   knitrBootstrap::bootstrap_document:
     theme: flatly
 ---
 
-<div style='font-size:36px';>Multiple Myeloma Drug Response Data Visualization</div>
+<div style='font-size:36px';>Pharmacogenomics Prediction Pipeline (P3) Data Visualization</div>
 
 Overview
 ========
@@ -292,6 +292,15 @@ plt = ggplot(pca_data, aes(PC1, PC2, color=il6)) +
     ggtitle(sprintf("PCA: RNA-Seq Z-scores")) +
     theme(axis.ticks=element_blank(), axis.text.x=element_text(angle=-90))
 plot(plt)
+```
+
+Drug response AC-50s
+--------------------
+
+```{r drug_response_ac50}
+infile  = "/data/datasets/filtered/drug_response/iAC50_filtered.csv"
+boxplot(ngs_table) 
+boxplot(t(ngs_table))
 ```
 
 System information

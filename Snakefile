@@ -21,7 +21,11 @@ targets = [
 
 # The main targets are the regression outputs.
 DRUG_RESPONSES = "/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
-for line in open(DRUG_RESPONSES):
+import pandas
+
+for drug_id in pandas.read_table(DRUG_RESPONSES, sep=',', index_col=0).index:
+    if i == 10:
+        break
     targets.append(
         '/data/datasets/final/regression/SuperLearner/{0}.RData'.format(line.split()[0])
     )
@@ -115,8 +119,8 @@ rule superlearner:
     input:
         rnaseq="/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv",
         drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
-    output: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.RData'
+    output: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.RData"
     params: rscript='tools/prediction_algorithm_analysis.R'
-    log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log'
+    log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log"
     run:
         run_R(params.rscript, log)

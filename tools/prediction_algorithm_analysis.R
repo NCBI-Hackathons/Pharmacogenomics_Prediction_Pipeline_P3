@@ -10,10 +10,12 @@ if(length(args) != 1) stop("script requires 1 input, the compound SID")
 
 drugSID <- args[1]
 
+library(methods)
 library(SuperLearner)
 library(glmnet)
 library(randomForest)
 
+.libPaths()
 sessionInfo()
 # set seed?
 # set.seed(742015)

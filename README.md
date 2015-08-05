@@ -64,16 +64,19 @@ Format: Tab-deliminated
 Multi-sample matrix file of raw Ht-Seq Counts
 Format: Tab-deliminated
 Structure: 
+
+```
 Gene_ID	Sample1	Sample2	SampleN
 ENSG001	10	40	58
 ENSG002	497	91	1784
+```
 
 **Somatic Mutations Data**
 
 Single sample matrix files
 Format: Tab-deliminated
-Column Headers
-NEED SIMPLE COLUMN HEADERS
+- Column Headers
+- NEED SIMPLE COLUMN HEADERS
 
 
 Data Sources

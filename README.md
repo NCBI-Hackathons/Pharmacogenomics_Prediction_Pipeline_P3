@@ -75,7 +75,10 @@ ENSG002	497	91	1784
 
 Single sample matrix files
 - Format: Tab-deliminated
-- Column Headers
+- Column Headers (Proccessed Column is 19, header is required but specific header values are not required)) 
+```
+#CHROM	POS	ID	REF	ALT	1000G	COSMIC	DB	NHLBI	EFF[*].EFFECT	EFF[*].IMPACT	EFF[*].FUNCLASS	EFF[*].CODON	EFF[*].AA	EFF[*].AA_LEN	EFF[*].GENE	EFF[*].BIOTYPE	EFF[*].CODING	EFF[*].TRID	EFF[*].RANK	GEN[0].AD[0]	GEN[0].AD[1]	GEN[0].DP
+```
 - NEED SIMPLE COLUMN HEADERS
 
 

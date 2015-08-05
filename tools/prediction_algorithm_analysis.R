@@ -50,13 +50,13 @@ if(nrow(drugDat_sub) == 0) stop("input compound SID not in data")
 ### also line up cell lines in same rows
 tdrugDat_sub <- as.data.frame(t(drugDat_sub[, -1]))
 colnames(tdrugDat_sub) <- drugSID # use SID as name
-tgeneDat_sub <- as.data.frame(t(geneDat_sub[, colnames(drugDat_sub[, -1])]))
-colnames(tgeneDat_sub) <- geneDat_sub[, 1]
+tgeneDat <- as.data.frame(t(geneDat[, colnames(drugDat[, -1])]))
+colnames(tgeneDat) <- geneDat[, 1]
 
 # check cell lines match
-if(nrow(tgeneDat_sub) < 5) stop("less than 5 cell line names match between the compound data and the feature data")
+if(nrow(tgeneDat) < 5) stop("less than 5 cell line names match between the compound data and the feature data")
 
-if(!all.equal(rownames(tgeneDat_sub), rownames(tdrugDat_sub))) stop("Cell Line order doesn't agree between compound matrix and feature matrix") # should be TRUE
+if(!all.equal(rownames(tgeneDat), rownames(tdrugDat_sub))) stop("Cell Line order doesn't agree between compound matrix and feature matrix") # should be TRUE
 
 ### put together prediction algorithms
 ### some a built in, but can create custom algorithms and incorporate
@@ -75,12 +75,12 @@ SL.library <- c("SL.randomForest", "SL.glmnet", "SL.mean") # add algorithms here
 
 
 Y <- tdrugDat_sub[, 1]
-X <- tgeneDat_sub[!is.na(Y), ]
+X <- tgeneDat[!is.na(Y), ]
 Y <- Y[!is.na(Y)] # check for missing outcomes and remove
 print(drugSID)
 print(Y)
 N <- length(Y)
-out_SL <- SuperLearner(Y= Y, X = X, newX = tgeneDat_sub, SL.library = SL.library, verbose = FALSE, cvControl = list(V = N))
+out_SL <- SuperLearner(Y= Y, X = X, newX = tgeneDat, SL.library = SL.library, verbose = FALSE, cvControl = list(V = N))
 save(out_SL, file = file.path(paste0(regression_ouput_dir, "/outSL_", drugSID, ".RData")))
 print(out_SL)
 

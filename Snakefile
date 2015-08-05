@@ -26,7 +26,6 @@ for drug_id in df.SID:
         '/data/datasets/final/regression/SuperLearner/exome_variants/outSL_{0}.RData'.format(drug_id)
     )
 print(targets)
-1/0
 def compile_Rmd(fn):
     with open(os.path.basename(fn) + '.driver', 'w') as fout:
         fout.write(dedent(
@@ -107,7 +106,7 @@ rule variant_summary:
         pyscript='src/variant_summary.py',
         raw_annotations='/data/datasets/raw/exome_variants/'
     output: 
-        snp_effect_per_cell_line='/data/datasets/filtered/exome_variants/snp_effect_per_cell_line.txt'
+        snp_effect_per_cell_line='/data/datasets/filtered/exome_variants/snp_effect_per_cell_line.txt',
         snp_impact_per_cell_line='/data/datasets/filtered/exome_variants/snp_impact_per_cell_line.txt'
     run:
         shell('python {input.pyscript}')
@@ -141,7 +140,7 @@ rule msigdb_processing:
 
 rule superlearner:
     input:
-        drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
+        drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv",
         features="/data/datasets/filtered/exome_variants/genes_per_cell_line-count-filtered.txt"
     output: "/data/datasets/final/regression/SuperLearner/exome_variants/outSL_{drug_id}.RData"
     params: rscript='tools/prediction_algorithm_analysis.R'

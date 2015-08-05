@@ -43,3 +43,8 @@ RUN for x in $(cat /tmp/r-github-packages.txt /tmp/); do \
 RUN R -e "source('http://bioconductor.org/biocLite.R');"\
          "biocLite(c('preprocessCore', 'sva', 'genefilter', 'Homo.sapiens'), suppressUpdates=TRUE);"
 
+# Create directory for data
+RUN mkdir /data
+
+# Clone P3 repo
+RUN git clone https://github.com/DCGenomics/multiple_myeloma_rnaseq_drug_response_hackathon_v002

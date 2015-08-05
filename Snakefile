@@ -7,7 +7,6 @@
 import os
 from textwrap import dedent
 
-
 targets = [
 
     'tools/data_qa.html',
@@ -20,6 +19,16 @@ targets = [
     '/data/datasets/combined/msig_db/msig_db_zscores.csv',
 ]
 
+# The main targets are the regression outputs.
+DRUG_RESPONSES = "/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
+import pandas
+
+for drug_id in pandas.read_table(DRUG_RESPONSES, sep=',', index_col=0).index:
+    if i == 10:
+        break
+    targets.append(
+        '/data/datasets/final/regression/SuperLearner/{0}.RData'.format(line.split()[0])
+    )
 
 def compile_Rmd(fn):
     with open(os.path.basename(fn) + '.driver', 'w') as fout:
@@ -121,3 +130,13 @@ rule msigdb_processing:
     run:
         run_R(input.rscript, log)
 
+
+rule superlearner:
+    input:
+        rnaseq="/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv",
+        drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
+    output: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.RData"
+    params: rscript='tools/prediction_algorithm_analysis.R'
+    log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log"
+    run:
+        run_R(params.rscript, log)

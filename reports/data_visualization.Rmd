@@ -21,8 +21,8 @@ Setup
 ```{r knitr_settings, include=FALSE}
 library('knitr')
 opts_knit$set(progress=FALSE, verbose=TRUE)
-opts_chunk$set(fig.width=1080/96,
-               fig.height=1080/96,
+opts_chunk$set(fig.width=1920/96,
+               fig.height=1920/96,
                dpi=96)
 options(digits=4)
 options(stringsAsFactors=FALSE)
@@ -91,15 +91,14 @@ lapply(rnaseq_input, get_data)
 
 ```{r load_rnaseq}
 raw_counts = as.matrix(read.csv(rnaseq_input, header=1, row.names=1))
-sample_ids = colnames(raw_counts)
 
 # Cell line metadata
 # http://www.keatslab.org/projects/mm-cell-line-characterization/cell-line-characterization-status
 il6_dependent = c('OH2_PLB', 'ALMC2_DJ', 'PE1_PLB', 'ANBL6_DJ2', 'PCM6_Riken', 'ALMC1_DJ')
 
 sample_metadata = data.frame(
-    cell_line=sample_ids,
-    il6_dependent=sample_ids %in% il6_dependent
+    cell_line=colnames(raw_counts),
+    il6_dependent=colnames(raw_counts) %in% il6_dependent
 )
 
 # color by IL-6 inclusion
@@ -125,7 +124,7 @@ yl = sprintf("PC2 (%.2f%% variance)", pc_variance[2])
 
 pca_data = data.frame(PC1=svd_result$v[,1], PC2=svd_result$v[,2],
                       il6=il6_colors,
-                      cell_line=sample_ids)
+                      cell_line=sample_metadata$cell_line)
 
 plt = ggplot(pca_data, aes(PC1, PC2, color=il6)) +
     geom_point(stat="identity") +
@@ -136,7 +135,17 @@ plt = ggplot(pca_data, aes(PC1, PC2, color=il6)) +
 plot(plt)
 ```
 
-#### Heatmap
+#### Heatmap (Raw counts)
+
+```{r raw_counts_heatmap}
+plot(density(raw_counts))
+
+heatmap.2(raw_counts, trace="none", dendrogram='column', labRow=NA,
+          col=redgreen(75), colRow=NA, main="Raw RNA-Seq counts",
+          ColSideColors=il6_colors, margins=c(12,8))
+```
+
+#### Heatmap (Cell line correlation)
 
 ```{r rnaseq_heatmaps}
 # RNA-Seq Cell line heatmap
@@ -196,6 +205,93 @@ plot(plt)
 #heatmap.2(cor(dx_data), trace="none",
 #          col=redgreen(75), labRow=NA, main="Drug response profiles",
 #          margins=c(12,8))
+```
+
+Filtered Data
+=============
+
+Normalized RNA-Seq
+------------------
+
+RNA-Seq samples have been processed to:
+
+1. Remove outlier samples
+2. Remove low-count genes
+3. CPM transform
+4. Log2 transform
+5. Quantile normalize
+
+```{r download_normed_counts}
+rnaseq_input = '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
+rnaseq_zscores = '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv'
+lapply(c(rnaseq_input, rnaseq_zscores), get_data)
+```
+
+### Heatmap
+
+```{r normalized_rnaseq}
+normed_counts = as.matrix(read.csv(rnaseq_input, row.names=1))
+
+# Sample metadata 
+sample_metadata = data.frame(
+    cell_line=colnames(normed_counts),
+    il6_dependent=colnames(normed_counts) %in% il6_dependent
+)
+
+# color by IL-6 inclusion
+il6_colors = ifelse(sample_metadata$il6_dependent, 'red', 'blue')
+
+# RNA-Seq Cell line heatmap (Normalized with low-count genes filtered)
+heatmap.2(cor(normed_counts), trace="none",
+          col=redgreen(75), colRow=NA, main="Cell line RNA-Seq (Filtered & Normalized)",
+          ColSideColors=il6_colors,
+          margins=c(12,8))
+```
+
+Cell line differential expression (Z-scores)
+--------------------------------------------
+
+#### Heatmap
+
+```{r rnaseq_zscores, fig.width=1080/96, fig.height=1920/96}
+# RNA-Seq z-scores
+zscores = as.matrix(read.csv(rnaseq_zscores, row.names=1))
+
+plot(density(zscores))
+
+# Clip outliers to improve color scale
+zscores_clipped = pmin(pmax(zscores, -10), 10)
+
+# Clipped z-scores
+plot(density(zscores_clipped))
+
+heatmap.2(zscores_clipped, trace="none",
+          dendrogram='column', labRow=NA,
+          col=redgreen(75), colRow=NA, main="Normalized RNA-Seq Z-scores",
+          ColSideColors=il6_colors,
+          margins=c(12,8))
+```
+
+#### PCA
+
+```{r rnaseq_zscores_pca}
+svd_result = makeSVD(zscores)
+
+pc_variance = round((svd_result$d^2) / sum(svd_result$d^2) * 100, 2)
+xl = sprintf("PC1 (%.2f%% variance)", pc_variance[1])
+yl = sprintf("PC2 (%.2f%% variance)", pc_variance[2])
+
+pca_data = data.frame(PC1=svd_result$v[,1], PC2=svd_result$v[,2],
+                      il6=il6_colors,
+                      cell_line=sample_metadata$cell_line)
+
+plt = ggplot(pca_data, aes(PC1, PC2, color=il6)) +
+    geom_point(stat="identity") +
+    geom_text(aes(label=cell_line), angle=45, size=4,vjust=2) +
+    xlab(xl) + ylab(yl) +
+    ggtitle(sprintf("PCA: RNA-Seq Z-scores")) +
+    theme(axis.ticks=element_blank(), axis.text.x=element_text(angle=-90))
+plot(plt)
 ```
 
 System information

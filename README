@@ -1,3 +1,0 @@
-etc/ (Config files/parameters used by third party tools)
-src/ (Python code to glue all the pieces)
-tools/ (Bash, r miscellaneous scripts)

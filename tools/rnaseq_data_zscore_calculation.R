@@ -13,16 +13,13 @@
 # 
 # 1. calculate median and MAD by row (gene-wise)
 # 2. calculate z-scores by row 
-# 3. filter rows with NA or Inf values (Median == | MAD == 0)
+# 3. filter rows with NA or Inf values (Median == -1 | MAD == 0)
 # 4. Save z-score and z-score estimates in separate files
-#
+# 5. Quantile normalization 
 #
 ###############################################################################
 
-rm(list=ls())
-setwd('/data/datasets/filtered/rnaseq_expression')
-
-fil = list.files(patt='Counts_normalized.csv')
+fil = list.files('/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv')
 dat = read.csv(fil, row=1)
 med = apply(dat,1, median)
 MAD = apply(dat,1, mad)

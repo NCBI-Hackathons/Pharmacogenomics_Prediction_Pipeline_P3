@@ -74,9 +74,8 @@ system, and can be easily parallelized to run across multiple CPUs.
 
 **Requirements**
 
-The `deploy` directory contains requirements files for Python, R, and Ubuntu. These requirements have been included in the Docker container (@TODO link here) The accompanying `Dockerfile` shows the setup to be performed (using the Bioconductor Docker container as a base), but
-- Python (2.7+)
-- R (3.2+)
+The `deploy` directory contains requirements files for Python, R, and Ubuntu. These requirements have been included in the Docker container (@TODO link here) The accompanying `Dockerfile` shows the setup to be performed (using the Bioconductor Docker container as a base) and the container will be eventually provided on docker hub.
+
 
 Usage
 -----

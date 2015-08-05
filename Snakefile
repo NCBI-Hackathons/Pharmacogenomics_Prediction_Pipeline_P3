@@ -99,7 +99,7 @@ rule go_term_processing:
 
 rule variants_transcript_summary:
     input:
-        pyscript='src/exome_vcfs_to_transcript_summary.py',
+        pyscript='src/variants_transcript_summary.py',
         raw_annotations='/data/datasets/raw/exome_variants/'
     output: '/data/datasets/filtered/exome_variants/transcripts_per_cell_line.txt'
     run:

@@ -4,7 +4,7 @@ Overview
 Contents
 ========
 
-- **exome_vcfs_to_transcript_summary.py** - Script parses annotated variant
+- **variants_transcript_summary.py** - Script parses annotated variant
   files and outputs transcript counts per cell line. 
 - **replace_transcriptid_with_geneid.py** - Replace ensembl transcript id with
   gene id.

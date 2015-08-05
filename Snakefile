@@ -22,11 +22,7 @@ targets = [
 # The main targets are the regression outputs.
 DRUG_RESPONSES = "/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
 import pandas
-i = 0
 for drug_id in pandas.read_table(DRUG_RESPONSES, sep=',', index_col=0).index:
-    i += 1
-    if i == 11:
-        break
     targets.append(
         '/data/datasets/final/regression/SuperLearner/outSL_{0}.RData'.format(drug_id)
     )
@@ -141,5 +137,5 @@ rule superlearner:
     log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log"
     shell:
         '''
-        /usr/bin/Rscript {params.rscript} {wildcards.drug_id}
+        /usr/bin/Rscript {params.rscript} {wildcards.drug_id} > {log} 2> {log}
         '''

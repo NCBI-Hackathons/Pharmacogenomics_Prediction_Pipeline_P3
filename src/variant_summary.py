@@ -7,6 +7,8 @@ from reader import ExomeVariantReader
 
 conf = SettingsParser()
 exome_annotation_files = conf.settings['data']['raw']['exome_vcfs']['path']
+snp_impact_counts_file =  conf.settings['data']['filtered']['exome_variants']['snp_impact_per_cell_line']['file']
+snp_effect_counts_file =  conf.settings['data']['filtered']['exome_variants']['snp_effect_per_cell_line']['file']
 
 files = glob.glob(os.path.join(exome_annotation_files, "*.txt"))
 
@@ -74,7 +76,7 @@ for annofile in files:
         effect_counter.insert(r['EFF[*].EFFECT'],cell_line)
         impact_counter.insert(r['EFF[*].IMPACT'],cell_line)
 effect_counter.write_data_to_file(feature_name='SNP_EFFECT',
-                                  filename='/data/datasets/filtered/exome_variants/snp_effect_per_cell_line.txt')
+                                  filename=snp_effect_counts_file)
 impact_counter.write_data_to_file(feature_name='SNP_IMPACT', 
-                                  filename='/data/datasets/filtered/exome_variants/snp_impact_per_cell_line.txt')
+                                  filename=snp_impact_counts_file)
 

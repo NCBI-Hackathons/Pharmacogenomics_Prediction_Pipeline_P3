@@ -51,6 +51,34 @@ snakemake
 
 This will start the build...
 
+Input Data Files
+----------------
+
+**Copy Number file**
+
+Standard multi-sample segmentation file (.seg)
+Format: Tab-deliminated
+
+**RNA Seq Data**
+
+Multi-sample matrix file of raw Ht-Seq Counts
+Format: Tab-deliminated
+Structure: 
+
+```
+Gene_ID	Sample1	Sample2	SampleN
+ENSG001	10	40	58
+ENSG002	497	91	1784
+```
+
+**Somatic Mutations Data**
+
+Single sample matrix files
+Format: Tab-deliminated
+- Column Headers
+- NEED SIMPLE COLUMN HEADERS
+
+
 Data Sources
 ------------
 

@@ -102,6 +102,17 @@ rule variants_transcript_summary:
     run:
         shell('python {input.pyscript} > {output}')
 
+rule variant_summary:
+    input:
+        pyscript='src/variant_summary.py',
+        raw_annotations='/data/datasets/raw/exome_variants/'
+    output: 
+        snp_effect_per_cell_line='/data/datasets/filtered/exome_variants/snp_effect_per_cell_line.txt'
+        snp_impact_per_cell_line='/data/datasets/filtered/exome_variants/snp_impact_per_cell_line.txt'
+    run:
+        shell('python {input.pyscript}')
+
+
 rule ensembl_transcripid_to_geneid:
     input:
         pyscript='src/replace_transcriptid_with_geneid.py',

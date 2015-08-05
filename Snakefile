@@ -6,27 +6,26 @@
 
 import os
 from textwrap import dedent
+import pandas
 
 targets = [
 
-    'tools/data_qa.html',
-    '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
-    '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv',
-    '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab',
-    '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv',
-    '/data/datasets/combined/gene_ontology/go_term_zscores.csv',
-    '/data/datasets/raw/msig_db/c2.cp.v5.0.ensembl.tab',
-    '/data/datasets/combined/msig_db/msig_db_zscores.csv',
+    #'tools/data_qa.html',
+    #'/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
+    #'/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv',
+    #'/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab',
+    #'/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv',
+    #'/data/datasets/combined/gene_ontology/go_term_zscores.csv',
+    #'/data/datasets/raw/msig_db/c2.cp.v5.0.ensembl.tab',
+    #'/data/datasets/combined/msig_db/msig_db_zscores.csv',
 ]
 
-# The main targets are the regression outputs.
-DRUG_RESPONSES = "/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
-import pandas
-for drug_id in pandas.read_table(DRUG_RESPONSES, sep=',', index_col=0).index:
+df = pandas.read_table('/data/datasets/raw/metadata/sample_drugs_for_quick_testing.csv', sep=',')
+for drug_id in df.SID:
     targets.append(
-        '/data/datasets/final/regression/SuperLearner/outSL_{0}.RData'.format(drug_id)
+        '/data/datasets/final/regression/SuperLearner/exome_variants/outSL_{0}.RData'.format(drug_id)
     )
-
+print(targets)
 def compile_Rmd(fn):
     with open(os.path.basename(fn) + '.driver', 'w') as fout:
         fout.write(dedent(
@@ -102,6 +101,17 @@ rule variants_transcript_summary:
     run:
         shell('python {input.pyscript} > {output}')
 
+rule variant_summary:
+    input:
+        pyscript='src/variant_summary.py',
+        raw_annotations='/data/datasets/raw/exome_variants/'
+    output: 
+        snp_effect_per_cell_line='/data/datasets/filtered/exome_variants/snp_effect_per_cell_line.txt',
+        snp_impact_per_cell_line='/data/datasets/filtered/exome_variants/snp_impact_per_cell_line.txt'
+    run:
+        shell('python {input.pyscript}')
+
+
 rule ensembl_transcripid_to_geneid:
     input:
         pyscript='src/replace_transcriptid_with_geneid.py',
@@ -130,12 +140,12 @@ rule msigdb_processing:
 
 rule superlearner:
     input:
-        rnaseq="/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv",
-        drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
-    output: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.RData"
+        drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv",
+        features="/data/datasets/filtered/exome_variants/genes_per_cell_line-count-filtered.txt"
+    output: "/data/datasets/final/regression/SuperLearner/exome_variants/outSL_{drug_id}.RData"
     params: rscript='tools/prediction_algorithm_analysis.R'
     log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log"
     shell:
         '''
-        /usr/bin/Rscript {params.rscript} {wildcards.drug_id} > {log} 2> {log}
+        /usr/bin/Rscript {params.rscript} {wildcards.drug_id} {input.features} $(dirname {output}) > {log} 2> {log}
         '''

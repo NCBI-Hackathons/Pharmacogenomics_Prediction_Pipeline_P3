@@ -14,6 +14,7 @@ library(SuperLearner)
 library(glmnet)
 library(randomForest)
 
+sessionInfo()
 # set seed?
 # set.seed(742015)
 
@@ -78,12 +79,12 @@ SL.library <- c("SL.randomForest", "SL.glmnet", "SL.mean") # add algorithms here
 Y <- tdrugDat_sub[, 1]
 X <- tgeneDat_sub[!is.na(Y), ]
 Y <- Y[!is.na(Y)] # check for missing outcomes and remove
+print(Y)
 N <- length(Y)
-out_SL <- SuperLearner(Y= Y, X = X, newX = tgeneDat_sub, SL.library = SL.library, verbose = FALSE, cvControl = list(V = N))
+out_SL <- SuperLearner(Y= Y, X = X, newX = tgeneDat_sub, SL.library = SL.library, verbose = TRUE, cvControl = list(V = N))
 save(out_SL, file = file.path(paste0(regression_ouput_dir, "/outSL_", drugSID, ".RData")))
 print(out_SL)
 
-sessionInfo()
 Sys.time()
 
 # ### can compute LOOCV R-squared values

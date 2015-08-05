@@ -97,6 +97,22 @@ rule go_term_processing:
     run:
         run_R(input.rscript, log)
 
+rule variants_transcript_summary:
+    input:
+        pyscript='src/exome_vcfs_to_transcript_summary.py',
+        raw_annotations='/data/datasets/raw/exome_variants/'
+    output: '/data/datasets/filtered/exome_variants/transcripts_per_cell_line.txt'
+    run:
+        shell('python {input.pyscript} > {output}')
+
+rule ensembl_transcripid_to_geneid:
+    input:
+        pyscript='src/replace_transcriptid_with_geneid.py',
+        raw_annotations='/data/datasets/filtered/exome_variants/transcripts_per_cell_line.txt'
+    output: '/data/datasets/filtered/exome_variants/genes_per_cell_line.txt'
+    run:
+        shell('python {input.pyscript} > {output}')
+
 rule msigdb_preprocessing:
     input:
         pyscript='tools/process_msigdb.py',

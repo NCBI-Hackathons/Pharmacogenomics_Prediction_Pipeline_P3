@@ -45,7 +45,7 @@ Cell lines were treated in 1,536-well plates and drug response data is calculate
 Biological annotation:
 Additional features for each cell line were defined using publically available pathway annotation tools (i.e. GO Ontology, MSigDB, ConsensusPathDB, snpeff annotation).
 
-![data flow diagram](https://raw.githubusercontent.com/DCGenomics/Pharmacogenomics_Prediction_Pipeline_P3/master/doc/image/20131204173330.png)
+![data flow diagram](https://raw.githubusercontent.com/DCGenomics/Pharmacogenomics_Prediction_Pipeline_P3/master/doc/architecture_20150804.png)
 
 TODO
 ----

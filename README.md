@@ -1,6 +1,8 @@
 Pharmacogenomics Predicting Pipeline (P3)
 =========================================
 GOAL:  Predict drug sensitivity utilizing second-generation sequencing data and biological annotation (gene ontology, pathways, etc.), in vitro high-throughput drug screening data.
+![workflow](docs/architecture_20150804.png)
+
 
 Overview
 --------

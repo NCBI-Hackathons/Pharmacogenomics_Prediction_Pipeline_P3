@@ -6,6 +6,21 @@ Overview
 
 @TODO
 
+TODO
+----
+
+- Update project name (change to "D3")
+- Rename Github repo
+- Move scripts from `tools` to `src` and normalize names, e.g.
+    `datatype_function.R`
+- Normalize data file names and extensions:
+    - `csv` comma-separated
+    - `tab` tab-delimited
+- Normalize orientation of intermediate file matrices (e.g. always have cell
+    lines for columns, genes for row, etc.)
+- Create an example config and move all filenames to configuration file
+    (exclude actual config from repo with .gitignore)
+
 Installation
 ------------
 

@@ -1,54 +1,50 @@
 ## R script for compound sensitivity prediction
 
-# example: Rscript prediction_algorithm_analysis.R "NCGC00013226-15"
+# example: Rscript prediction_algorithm_analysis.R "NCGC00013226-15" "/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv" "/data/datasets/final/regression/SuperLearner"
+# args
+# 1) SID for compound
+# 2) feature input matrix path and file
+# 3) output directory
+
 Sys.time()
 getwd()
 
 ### the location (can be a full path, or place in wd) of the bam file:
 args <- commandArgs(trailingOnly = TRUE)
-if(length(args) != 1) stop("script requires 1 input, the compound SID")
+if(length(args) != 3) stop("script requires 3 inputs, the compound SID, the input feature matrix file, and the output directory")
 
 drugSID <- args[1]
+feature_input <- args[2] 
+regression_ouput_dir <- args[3]
 
+library(methods)
 library(SuperLearner)
 library(glmnet)
 library(randomForest)
 
+.libPaths()
 sessionInfo()
 # set seed?
 # set.seed(742015)
 
 ## input data sources
-rnaseq_input <- "/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv"
 drug_response_input <- "/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
 
-## output dir, move as appropriate
-regression_ouput_dir <- "/data/datasets/final/regression/SuperLearner"
 
 ## load data
 drugDat <- read.csv(drug_response_input, stringsAsFactors = FALSE)
 colnames(drugDat)[1] <- "SID"
 
-geneDat <- read.csv(rnaseq_input, stringsAsFactors = FALSE) # first row is ensembl gene ID
-colnames(geneDat)[1] <- "EnsemblGene" # add variable name to genes
-
-# dim(drugDat)
-# dim(geneDat)
-# setdiff(colnames(drugDat), colnames(geneDat))
-# setdiff(colnames(geneDat), colnames(drugDat))
+geneDat <- read.csv(feature_input, stringsAsFactors = FALSE) # first row is ensembl gene ID
+colnames(geneDat)[1] <- "Feature" # add variable name to feature data.frame
 
 
-## filtering features
-### remove any compounds?
-# DrugRange <- apply(drugDat[, -1], 1, function(xx) diff(range(xx, na.rm = TRUE)))
+### filtering features should be done outside this code now
 
+# grab single compound vector
 drugDat_sub <- drugDat[drugDat$SID == drugSID, ] # select single compound
 if(nrow(drugDat_sub) == 0) stop("input compound SID not in data")
 
-### filter genes?
-geneSD <- apply(geneDat[, colnames(drugDat)[-1]], 1, sd, na.rm = TRUE)
-sum(geneSD > 2) # using 2 as example, may want to lower threshold
-geneDat_sub <- geneDat[which(geneSD > 2), ]
 
 ### transpose data to cell lines are rows and featuers are columns
 ### also line up cell lines in same rows
@@ -58,7 +54,9 @@ tgeneDat_sub <- as.data.frame(t(geneDat_sub[, colnames(drugDat_sub[, -1])]))
 colnames(tgeneDat_sub) <- geneDat_sub[, 1]
 
 # check cell lines match
-all.equal(rownames(tgeneDat_sub), rownames(tdrugDat_sub)) # should be TRUE
+if(nrow(tgeneDat_sub) < 5) stop("less than 5 cell line names match between the compound data and the feature data")
+
+if(!all.equal(rownames(tgeneDat_sub), rownames(tdrugDat_sub))) stop("Cell Line order doesn't agree between compound matrix and feature matrix") # should be TRUE
 
 ### put together prediction algorithms
 ### some a built in, but can create custom algorithms and incorporate
@@ -79,9 +77,10 @@ SL.library <- c("SL.randomForest", "SL.glmnet", "SL.mean") # add algorithms here
 Y <- tdrugDat_sub[, 1]
 X <- tgeneDat_sub[!is.na(Y), ]
 Y <- Y[!is.na(Y)] # check for missing outcomes and remove
+print(drugSID)
 print(Y)
 N <- length(Y)
-out_SL <- SuperLearner(Y= Y, X = X, newX = tgeneDat_sub, SL.library = SL.library, verbose = TRUE, cvControl = list(V = N))
+out_SL <- SuperLearner(Y= Y, X = X, newX = tgeneDat_sub, SL.library = SL.library, verbose = FALSE, cvControl = list(V = N))
 save(out_SL, file = file.path(paste0(regression_ouput_dir, "/outSL_", drugSID, ".RData")))
 print(out_SL)
 

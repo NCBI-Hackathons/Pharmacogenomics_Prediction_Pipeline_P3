@@ -22,12 +22,9 @@ targets = [
 # The main targets are the regression outputs.
 DRUG_RESPONSES = "/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
 import pandas
-
 for drug_id in pandas.read_table(DRUG_RESPONSES, sep=',', index_col=0).index:
-    if i == 10:
-        break
     targets.append(
-        '/data/datasets/final/regression/SuperLearner/{0}.RData'.format(line.split()[0])
+        '/data/datasets/final/regression/SuperLearner/outSL_{0}.RData'.format(drug_id)
     )
 
 def compile_Rmd(fn):
@@ -138,5 +135,7 @@ rule superlearner:
     output: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.RData"
     params: rscript='tools/prediction_algorithm_analysis.R'
     log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log"
-    run:
-        run_R(params.rscript, log)
+    shell:
+        '''
+        /usr/bin/Rscript {params.rscript} {wildcards.drug_id} > {log} 2> {log}
+        '''

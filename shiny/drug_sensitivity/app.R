@@ -30,10 +30,10 @@ cell_lines = colnames(drug_data)
 
 # Testing -- for now, only show options for 1000 most variable genes
 variances = rowVars(as.matrix(gene_expr))
-var_cutoff = as.numeric(quantile(variances, 0.99))
+var_cutoff = as.numeric(quantile(variances, 0.95))
 gene_choices = rownames(gene_expr)[variances > var_cutoff]
 
-drug_choices = rownames(drug_data)[1:10]
+drug_choices = rownames(drug_data)
 
 #
 # Server

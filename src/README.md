@@ -10,3 +10,5 @@ Contents
   gene id.
 - **settings.py** - Class to interact with the settings yaml file.
 - **reader.py** - Class to read txt files.
+- **variant_summary.py** - Summarize snpeff SNPEFFECT and SNPIMPACT variants
+  per cell line.

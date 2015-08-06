@@ -1,11 +1,11 @@
 ---
-title: Multiple Myeloma Drug Response Data Visualization
+title: Pharmacogenomics Prediction Pipeline (P3)
 output:
   knitrBootstrap::bootstrap_document:
     theme: flatly
 ---
 
-<div style='font-size:36px';>Multiple Myeloma Drug Response Data Visualization</div>
+<div style='font-size:36px';>Pharmacogenomics Prediction Pipeline (P3) Data Visualization</div>
 
 Overview
 ========
@@ -29,6 +29,9 @@ options(stringsAsFactors=FALSE)
 options(knitr.duplicate.label='allow')
 
 rm(list=ls())    # Clean up any existing variables
+
+# Use rsync to copy data over when needed?
+rsync_missing_data = FALSE
 ```
 
 
@@ -70,7 +73,7 @@ cpm = function (x) {
 #
 # Data we need from the AWS instance
 #
-get_data = function(filepath){
+get_data = function(filepath) {
     # e.g., "ubuntu@123.45.678"
     host = Sys.getenv("HOSTSTRING")
     dir.create(dirname(filepath), recursive=TRUE, showWarnings=FALSE)
@@ -86,7 +89,9 @@ RNA-Seq
 
 ```{r download_raw_counts}
 rnaseq_input = '/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
-lapply(rnaseq_input, get_data)
+if (rsync_missing_data) {
+    lapply(rnaseq_input, get_data)
+}
 ```
 
 ```{r load_rnaseq}
@@ -140,9 +145,10 @@ plot(plt)
 ```{r raw_counts_heatmap}
 plot(density(raw_counts))
 
-heatmap.2(raw_counts, trace="none", dendrogram='column', labRow=NA,
-          col=redgreen(75), colRow=NA, main="Raw RNA-Seq counts",
-          ColSideColors=il6_colors, margins=c(12,8))
+# Disabling for now to speed things up...
+#heatmap.2(raw_counts, trace="none", dendrogram='column', labRow=NA,
+#          col=redgreen(75), colRow=NA, main="Raw RNA-Seq counts",
+#          ColSideColors=il6_colors, margins=c(12,8))
 ```
 
 #### Heatmap (Cell line correlation)
@@ -169,7 +175,9 @@ Drug-response profiles.
 
 ```{r download_raw_drug_response_data}
 drug_response_input = '/data/datasets/raw/drug_response/NCATS_DxData.txt'
-lapply(drug_response_input, get_data)
+if (rsync_missing_data) {
+    lapply(drug_response_input, get_data)
+}
 ```
 
 ```{r load_drug_response_data}
@@ -224,7 +232,9 @@ RNA-Seq samples have been processed to:
 ```{r download_normed_counts}
 rnaseq_input = '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
 rnaseq_zscores = '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv'
-lapply(c(rnaseq_input, rnaseq_zscores), get_data)
+if (rsync_missing_data) {
+    lapply(c(rnaseq_input, rnaseq_zscores), get_data)
+}
 ```
 
 ### Heatmap
@@ -292,6 +302,16 @@ plt = ggplot(pca_data, aes(PC1, PC2, color=il6)) +
     ggtitle(sprintf("PCA: RNA-Seq Z-scores")) +
     theme(axis.ticks=element_blank(), axis.text.x=element_text(angle=-90))
 plot(plt)
+```
+
+Drug response AC-50s
+--------------------
+
+```{r drug_response_ac50}
+infile  = "/data/datasets/filtered/drug_response/iAC50_filtered.csv"
+ac50 = read.csv(infile, row.names=1)
+boxplot(ac50) 
+boxplot(t(ac50))
 ```
 
 System information

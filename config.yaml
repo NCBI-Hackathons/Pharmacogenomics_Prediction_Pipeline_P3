@@ -1,0 +1,9 @@
+features_to_use: [go, normed_counts]
+features:
+    go:
+        snakefile: features/gene_ontology.snakefile
+        output: tmp_go_term_zscores.csv
+
+    normed_counts:
+        snakefile: features/normed_counts.snakefile
+        output: /data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv

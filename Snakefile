@@ -25,7 +25,9 @@ for drug_id in df.SID:
     targets.append(
         '/data/datasets/final/regression/SuperLearner/exome_variants/outSL_{0}.RData'.format(drug_id)
     )
-print(targets)
+    targets.append(
+        '/data/datasets/final/regression/SuperLearner/outSL_{0}.RData'.format(drug_id)
+    )
 def compile_Rmd(fn):
     with open(os.path.basename(fn) + '.driver', 'w') as fout:
         fout.write(dedent(
@@ -72,15 +74,15 @@ rule download_go:
     run:
         run_R(input[0])
 
-
-rule rnaseq_data_prep:
-    input:
-        rscript='tools/rnaseq_data_preparation.R',
-        infile='/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
-    output:
-        '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
-    run:
-        run_R(input.rscript)
+if 0:
+    rule rnaseq_data_prep:
+        input:
+            rscript='tools/rnaseq_data_preparation.R',
+            infile='/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
+        output:
+            '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
+        run:
+            run_R(input.rscript)
 
 
 rule go_term_processing:
@@ -143,6 +145,17 @@ rule superlearner:
         drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv",
         features="/data/datasets/filtered/exome_variants/genes_per_cell_line-count-filtered.txt"
     output: "/data/datasets/final/regression/SuperLearner/exome_variants/outSL_{drug_id}.RData"
+    params: rscript='tools/prediction_algorithm_analysis.R'
+    log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log"
+    shell:
+        '''
+        /usr/bin/Rscript {params.rscript} {wildcards.drug_id} {input.features} $(dirname {output}) > {log} 2> {log}
+        '''
+rule superlearner2:
+    input:
+        drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv",
+        features="/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv"
+    output: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.RData"
     params: rscript='tools/prediction_algorithm_analysis.R'
     log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log"
     shell:

@@ -5,14 +5,18 @@
 #
 # Generates a gene / GO term mapping
 #
+# Usage:
+#
+#    Rscript generate_ensembl_go_mapping.R {output file}
+#
 # Keith Hughitt
 # 2015/08/03
 #
 ###############################################################################
 library('Homo.sapiens')
 
-# Output filepath
-outfile = '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab'
+args = commandArgs(TRUE)
+outfile = args[1]
 
 # Create mapping
 go_terms = AnnotationDbi::select(Homo.sapiens, keytype='ENSEMBL',

@@ -4,8 +4,12 @@
 import pandas as pd
 import os
 import mygene
+import sys
+
 mg = mygene.MyGeneInfo()
-infile = '/data/datasets/raw/msig_db/c2.cp.v5.0.entrez.gmt'
+
+infile = sys.argv[1]
+outfile = sys.argv[2]
 
 gene_to_pathway = []
 for line in open(infile):

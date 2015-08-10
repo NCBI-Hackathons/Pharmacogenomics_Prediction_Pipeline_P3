@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 
+"""
+Convert msigdb Entrez accessions to Ensembl. Since there are some one-to-many
+mappings of entrez to ensembl, we repeat those rows so one row corresponds to
+one Ensembl ID.
+
+MSIG requires a confirmation page, so its download cannot be well automated. So
+here we expect the presence of the already-downloaded file.
+
+This downloaded file has an awkward format: pathway name, url, followed by an
+arbitrary number of Entrez IDs annotated for that pathway. This script uses the
+MyGene.info service to lookup entrez to ensemble IDs, and then creates an
+output file mapping Ensembl accession to pathway.
+"""
+
 # Ryan Dale 2015/8/4
 import pandas as pd
 import os
@@ -20,34 +34,28 @@ for line in open(infile):
 
 df = pd.DataFrame(gene_to_pathway, columns=['entrez_id', 'pathway'])
 
-lookup_file = '/data/datasets/metadata/entrez_to_ensembl'
-if not os.path.exists(os.path.dirname(lookup_file)):
-    os.makedirs(os.path.dirname(lookup_file))
+# Use MyGene.info to get lookup
+res = mg.querymany(
+    list(df.entrez_id.unique()),
+    scope='entrezgene',
+    species='human',
+    fields='ensembl.gene',
+    as_dataframe=True
+)
 
-if not os.path.exists(lookup_file):
-    res = mg.querymany(
-        list(df.entrez_id.unique()),
-        scope='entrezgene',
-        species='human',
-        fields='ensembl.gene',
-        as_dataframe=True
-    )
-    res.to_csv(lookup_file, sep='\t')
-res = pd.read_table(lookup_file)
-
-df.index = df['entrez_id'].astype(int)
-res.index = res['query']
+# Important to convert the incoming dataframe's index to int; otherwise it
+# won't join with the MyGene.info results which are int.
+df.index = df['entrez_id']
 res.index.name = 'entrez_id'
 
 joined = df.join(res).dropna(subset=['ensembl.gene'])
+
 # There are some one-to-many mappings of entrez to ensembl. So repeat them.
-with open('/data/datasets/raw/msig_db/c2.cp.v5.0.ensembl.tab', 'w') as fout:
+with open(outfile, 'w') as fout:
     for _, row in joined.iterrows():
-        if not isinstance(row['ensembl.gene'], list):
+        if isinstance(row['ensembl.gene'], unicode):
             ens = [row['ensembl.gene']]
         else:
             ens = row['ensembl.gene']
         for eg in ens:
             fout.write('\t'.join([eg, row['pathway']]) + '\n')
-
-

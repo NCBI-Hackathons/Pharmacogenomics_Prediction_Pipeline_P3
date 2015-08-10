@@ -1,4 +1,3 @@
-features_to_use: [go, normed_counts]
 # Top-level data dir
 prefix: example_data
 
@@ -23,10 +22,24 @@ Rscript: /usr/lib/R/bin/Rscript
 #       - interdependencies between feature snakefiles can be handled by using
 #         the snakemake directive "include:"
 features:
+
+    msigdb:
+        snakefile: features/msigdb.snakefile
+        output: "{prefix}/test_msigdb.csv"
     go:
         snakefile: features/gene_ontology.snakefile
-        output: tmp_go_term_zscores.csv
+        output: "{prefix}/test_go.csv"
+
+    cpdb:
+        snakefile: features/cpdb.snakefile
+        output: "{prefix}/test_cpdb.csv"
 
     normed_counts:
         snakefile: features/normed_counts.snakefile
-        output: /data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv
+        output: "{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv"
+
+    zscores:
+        snakefile: features/zscores.snakefile
+        output:
+            - "{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv"
+            - "{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv"

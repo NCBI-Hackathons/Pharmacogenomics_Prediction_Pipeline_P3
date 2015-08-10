@@ -1,4 +1,5 @@
 # vim: ft=python
+import pandas as pd
 
 rule download_go:
     output: '{prefix}/raw/gene_ontology/ensembl_go_mapping.tab'
@@ -9,11 +10,14 @@ rule download_go:
 
 rule go_term_processing:
     input:
-        rscript='tools/go_term_analysis.R',
-        zscores='/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
-        go_mapping='/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab',
+        zscores='{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
+        go_mapping='{prefix}/raw/gene_ontology/ensembl_go_mapping.tab',
     output: config['features']['go']['output']
-    log: 'tools/go_term_analysis.R.log'
     run:
-        run_R(input.rscript, log)
+        dfs = pipeline_helpers.pathway_scores_from_zscores(
+            pd.read_csv(str(input.zscores), index_col=0),
+            pd.read_table(str(input.go_mapping), index_col=0),
+            'GO'
+        )
 
+        dfs.T.to_csv(output[0])

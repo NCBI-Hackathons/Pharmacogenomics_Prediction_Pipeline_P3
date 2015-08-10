@@ -29,3 +29,6 @@ SIS
 spls
 stepPlr
 sva
+snow
+snowfall
+foreach

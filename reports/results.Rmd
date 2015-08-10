@@ -1,0 +1,67 @@
+---
+title: Pharmacogenomics Prediction Pipeline (P3) - NCBI Hackathon Results
+output:
+  knitrBootstrap::bootstrap_document:
+    theme: flatly
+---
+
+<div style='font-size:36px';>Pharmacogenomics Prediction Pipeline (P3) - NCBI Hackathon Results</div>
+
+```{r knitr_settings, include=FALSE}
+library('knitr')
+opts_knit$set(progress=FALSE, verbose=TRUE)
+opts_chunk$set(fig.width=800/96,
+               fig.height=800/96,
+               dpi=96)
+options(digits=4)
+options(stringsAsFactors=FALSE)
+options(knitr.duplicate.label='allow')
+
+rm(list=ls())    # Clean up any existing variables
+
+# Use rsync to copy data over when needed?
+rsync_missing_data = FALSE
+```
+
+```{r}
+library(SuperLearner)
+library(randomForest)
+library(Homo.sapiens)
+library(glmnet)
+```
+
+```{r process_results}
+input_dir = '/data/datasets/final/regression/SuperLearner/exome_variants'
+
+# given a list of ensembl IDs, convert to gene symbol.
+tosymbol = function(ensembl){
+    select(Homo.sapiens, keys=ensembl, keytype="ENSEMBL", columns=c('SYMBOL'))$SYMBOL
+}
+
+drug_ids = c('NCGC00345789-01', 'NCGC00346485-01', 'NCGC00346698-01',
+             'NCGC00262604-01', 'NCGC00346460-02', 'NCGC00346453-01',
+             'NCGC00345793-01', 'NCGC00187482-03', 'NCGC00263109-02',
+             'NCGC00159455-04', 'NCGC00345784-01', 'NCGC00250399-01')
+
+drug_response_input = "/data/datasets/filtered/drug_response/iLAC50_filtered.csv"
+```
+
+```{r results}
+for (result in list.files(input_dir)) {
+    # load results for a single drug
+    load(file.path(input_dir, result))
+    print(result)
+
+    # print results
+    print(out_SL)
+    print(out_SL$fitLibrary$SL.randomForest_All$object)
+
+    # variable importance plot
+    rforest = out_SL$fitLibrary$SL.randomForest_All$object
+    rforest$varNames = tosymbol(rforest$varNames)
+
+    varImpPlot(out_SL$fitLibrary$SL.randomForest_All$object, n.var = 10)
+}
+
+
+```

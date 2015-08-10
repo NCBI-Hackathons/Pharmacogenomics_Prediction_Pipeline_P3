@@ -1,4 +1,27 @@
 features_to_use: [go, normed_counts]
+# Top-level data dir
+prefix: example_data
+
+# List of feature sets to use while training. Anything selected here must be
+# configured below.
+features_to_use: [go, normed_counts, zscores, msigdb, cpdb]
+
+# Explicitly defines path to Rscript to avoid conflict with other existing
+# installations
+Rscript: /usr/lib/R/bin/Rscript
+
+# Each set of features:
+#   - has a unique name that can be used in the "features_to_use" list
+#
+#   - has one or more output files, which must be of the general format:
+#       - rows = features
+#       - columns = samples
+# 
+#   - has a snakefile responsible for creating the output file.
+#       - paths in these snakefiles should be relative to the runall.snakefile
+#         since they are included verbatim.
+#       - interdependencies between feature snakefiles can be handled by using
+#         the snakemake directive "include:"
 features:
     go:
         snakefile: features/gene_ontology.snakefile

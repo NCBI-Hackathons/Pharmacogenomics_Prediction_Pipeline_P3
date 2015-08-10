@@ -1,16 +1,4 @@
 # vim: ft=python
-rule compute_zscores:
-    input: '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
-    output: 
-        '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
-        '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv'
-    shell:
-        """
-        Rscript tools/rnaseq_data_zscore_calculation.R \
-                {input} \
-                {output[0]} \
-                {output[1]}
-        """
 
 rule download_go:
     input: 'tools/generate_ensembl_go_mapping.R'

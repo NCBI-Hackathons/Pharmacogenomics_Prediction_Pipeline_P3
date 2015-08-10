@@ -1,10 +1,21 @@
-# vim: ft=python
 import yaml
+from tools import pipeline_helpers
+import os
+import pandas
+from textwrap import dedent
+
 config = yaml.load(open('config.yaml'))
 feature_targets = []
-for name, cfg in config['features'].items():
+for name in config['features_to_use']:
+    cfg = config['features'][name]
     workflow.include(cfg['snakefile'])
-    feature_targets.append(cfg['output'])
+    outputs = cfg['output']
+    if not isinstance(outputs, list):
+        outputs = [outputs]
+    for output in outputs:
+        feature_targets.append(output.format(prefix=config['prefix']))
+
+Rscript = config['Rscript']
 
 def run_R(fn, log=None):
     if log is not None:
@@ -15,3 +26,5 @@ def run_R(fn, log=None):
 
 rule all_features:
     input: feature_targets
+
+# vim: ft=python

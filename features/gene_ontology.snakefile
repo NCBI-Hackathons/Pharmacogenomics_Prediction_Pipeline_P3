@@ -1,10 +1,11 @@
 # vim: ft=python
 
 rule download_go:
-    input: 'tools/generate_ensembl_go_mapping.R'
-    output: '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab'
-    run:
-        run_R(input[0])
+    output: '{prefix}/raw/gene_ontology/ensembl_go_mapping.tab'
+    shell:
+        """
+        {Rscript} tools/generate_ensembl_go_mapping.R {output}
+        """
 
 rule go_term_processing:
     input:

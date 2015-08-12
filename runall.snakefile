@@ -17,6 +17,8 @@ for name in config['features_to_use']:
     for output in outputs:
         feature_targets.append(output.format(prefix=config['prefix']))
 
+samples = [i.strip() for i in open(config['samples'])]
+
 Rscript = config['Rscript']
 
 def run_R(fn, log=None):

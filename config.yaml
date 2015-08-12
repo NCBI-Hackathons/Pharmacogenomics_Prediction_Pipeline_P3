@@ -5,6 +5,8 @@ prefix: example_data
 # configured below.
 features_to_use: [go, normed_counts, zscores, msigdb, cpdb]
 
+samples: celllines.txt
+
 # Explicitly defines path to Rscript to avoid conflict with other existing
 # installations
 Rscript: /usr/lib/R/bin/Rscript

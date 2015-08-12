@@ -9,7 +9,7 @@ samples: celllines.txt
 
 # Explicitly defines path to Rscript to avoid conflict with other existing
 # installations
-Rscript: /usr/lib/R/bin/Rscript
+Rscript: Rscript
 
 # Each set of features:
 #   - has a unique name that can be used in the "features_to_use" list
@@ -27,18 +27,18 @@ features:
 
     msigdb:
         snakefile: features/msigdb.snakefile
-        output: "{prefix}/test_msigdb.csv"
+        output: "{prefix}/filtered/msigdb.csv"
     go:
         snakefile: features/gene_ontology.snakefile
-        output: "{prefix}/test_go.csv"
+        output: "{prefix}/filtered/go.csv"
 
     cpdb:
         snakefile: features/cpdb.snakefile
-        output: "{prefix}/test_cpdb.csv"
+        output: "{prefix}/filtered/cpdb.csv"
 
     normed_counts:
         snakefile: features/normed_counts.snakefile
-        output: "{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv"
+        output: "{prefix}/filtered/rnaseq_expression/counts_matrix_normalized.csv"
 
     zscores:
         snakefile: features/zscores.snakefile

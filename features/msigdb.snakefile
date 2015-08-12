@@ -12,7 +12,7 @@ rule msigdb_processing:
     run:
         dfs = pipeline_helpers.pathway_scores_from_zscores(
             pd.read_csv(str(input.zscores), index_col=0),
-            pd.read_table(str(input.msig_mapping), index_col=0),
+            pd.read_table(str(input.msig_mapping), names=['ENSMEBL', 'PATHWAY'], index_col=0),
             'PATHWAY'
         )
 

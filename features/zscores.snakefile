@@ -1,5 +1,5 @@
 rule compute_zscores:
-    input: '{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
+    input: config['features']['normed_counts']['output']
     output:
         zscores=config['features']['zscores']['output'][0],
         estimates=config['features']['zscores']['output'][1]

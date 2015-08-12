@@ -21,23 +21,20 @@ samples = [i.strip() for i in open(config['samples'])]
 
 Rscript = config['Rscript']
 
-def run_R(fn, log=None):
-    if log is not None:
-        log = " > {0} 2> {0}".format(log)
-    else:
-        log = ""
-    shell("/usr/bin/Rscript {fn} {log}")
+lookup_targets = [i.format(prefix=config['prefix']) for i in [
+    '{prefix}/metadata/ENSG2ENTREZID.tab',
+    '{prefix}/metadata/ENSG2SYMBOL.tab',
+]]
 
 rule all_features:
-    input: feature_targets
+    input: feature_targets + lookup_targets
 
 
 rule make_lookups:
-    output:
-        entrez='{prefix}/metadata/ENSG2ENTREZID.tab',
-        symbol='{prefix}/metadata/ENSG2SYMBOL.tab',
-    run:
-        for map_to in ['ENTREZID', 'SYMBOL']:
-            shell('{Rscript} tools/make_lookup.R {map}')
+    output: '{prefix}/metadata/ENSG2{map}.tab'
+    shell:
+        """
+        {Rscript} tools/make_lookups.R {wildcards.map}
+        """
 
 # vim: ft=python

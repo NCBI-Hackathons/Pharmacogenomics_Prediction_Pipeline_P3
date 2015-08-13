@@ -19,7 +19,7 @@
 #      - response data (normalized percentage of viable cells) to a single file per sample
 #      - drc (dose response curve fit and sensitivity estimates) to a single file per sample
 #   5a. NCATS file names in the written out single files per sample are replaced
-#        and include unique SAMPLE_ID from the raw/metadata/samples_ids_drug_response.csv file
+#        and include unique SAMPLE_ID from the raw/metadata/sample_ids_drug_response.csv file
 # 
 #################################################################################################
 
@@ -30,7 +30,7 @@
 dir_in <- 'data/datasets/raw/drug_response'
 dir_meta_in <- 'data/datasets/raw/metadata'
     
-file_in_samples_ids <- file.path(dir_meta_in, 'samples_ids_drug_response.csv')
+file_in_sample_ids <- file.path(dir_meta_in, 'sample_ids_drug_response.csv')
 
 #. output
 dir_out <- 'data/datasets/processed/drug_response'
@@ -45,7 +45,7 @@ if (!dir.exists(dir_out_response))  dir.create(dir_out_response, recursive = T)
 dir_meta_out <- 'data/datasets/processed/metadata'
 if (!dir.exists(dir_meta_out))  dir.create(dir_meta_out, recursive = T)
     
-file_out_compounds_ids <- file.path(dir_meta_out, 'compounds_ids_drug_response.csv')
+file_out_compound_ids <- file.path(dir_meta_out, 'compound_ids_drug_response.csv')
 file_out_doses <- file.path(dir_meta_out, 'doses_drug_response.csv')
 
 
@@ -89,7 +89,7 @@ if (negative){
 #-->RUN:
 
 #. read sample ids and files
-sampleIds <- read.csv(file_in_samples_ids)
+sampleIds <- read.csv(file_in_sample_ids)
 sampleFiles <- sampleIds$SAMPLE_FILE
 sampleUID <- sampleIds$SAMPLE_ID
 
@@ -112,7 +112,7 @@ for (i in 1:length(datList)){
 #. write out compound ids/name to one file in processed/metadata directory
 temp <- datList[[1]]
 temp <- temp[, match(varCompound, colnames(temp))]
-write.csv(temp, file_out_compounds_ids, row.names = FALSE, quote = TRUE)
+write.csv(temp, file_out_compound_ids, row.names = FALSE, quote = TRUE)
 
 #. write out drug doses to one file in processed/metadata directory,  
 #.. assuming doses are the same across all samples for a particular drug

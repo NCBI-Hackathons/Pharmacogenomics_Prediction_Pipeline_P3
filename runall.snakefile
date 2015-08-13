@@ -34,7 +34,7 @@ rule make_lookups:
     output: '{prefix}/metadata/ENSG2{map}.tab'
     shell:
         """
-        {Rscript} tools/make_lookups.R {wildcards.map}
+        {Rscript} tools/make_lookups.R {wildcards.map} {output}
         """
 
 # vim: ft=python

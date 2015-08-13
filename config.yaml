@@ -47,5 +47,5 @@ features:
     zscores:
         snakefile: features/zscores.snakefile
         output:
-            - "{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv"
-            - "{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv"
+            zscores: "{prefix}/filtered/rnaseq_expression/zscores.csv"
+            zscore_estimates: "{prefix}/filtered/rnaseq_expression/zscore_estimates.csv"

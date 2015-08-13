@@ -1,3 +1,7 @@
+Pipeline design
+===============
+
+
 Overview
 --------
 A modular design helps organize data provenance.  This is accomplished using

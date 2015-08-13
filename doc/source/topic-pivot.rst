@@ -1,3 +1,5 @@
+Obtaining pathway scores
+========================
 With respect to features, we have many cases where we download features as
 a table with format gene X feature. However, for training, we need a table that
 is cell line X feature. So for each cell line and feature, we need to calculate

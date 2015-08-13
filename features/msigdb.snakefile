@@ -4,15 +4,15 @@ rule msigdb_preprocessing:
     shell:
         "python tools/process_msigdb.py {input} {output}"
 
-rule msigdb_processing:
+rule msigdb_zscores:
     input:
-        zscores='{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
-        msig_mapping='{prefix}/raw/msig_db/c2.cp.v5.0.ensembl.tab'
-    output: config['features']['msigdb']['output']
+        zscores=config['features']['zscores']['output']['zscores'],
+        msig_mapping=rules.msigdb_preprocessing.output
+    output: config['features']['msigdb']['output']['zscores']
     run:
         dfs = pipeline_helpers.pathway_scores_from_zscores(
             pd.read_csv(str(input.zscores), index_col=0),
-            pd.read_table(str(input.msig_mapping), names=['ENSMEBL', 'PATHWAY'], index_col=0),
+            pd.read_table(str(input.msig_mapping), names=['ENSEMBL', 'PATHWAY'], index_col=0),
             'PATHWAY'
         )
 

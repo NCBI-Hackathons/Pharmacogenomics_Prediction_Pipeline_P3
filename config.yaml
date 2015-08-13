@@ -31,14 +31,17 @@ features:
 
     msigdb:
         snakefile: features/msigdb.snakefile
-        output: "{prefix}/filtered/msigdb.csv"
+        output:
+            zscores: "{prefix}/filtered/msigdb/msigdb_zscores.csv"
     go:
         snakefile: features/gene_ontology.snakefile
-        output: "{prefix}/filtered/go.csv"
+        output:
+            zscores: "{prefix}/filtered/go/go_zscores.csv"
 
     cpdb:
         snakefile: features/cpdb.snakefile
-        output: "{prefix}/filtered/cpdb.csv"
+        output:
+            zscores: "{prefix}/filtered/consensus_pathway/cpdb_zscores.csv"
 
     normed_counts:
         snakefile: features/normed_counts.snakefile

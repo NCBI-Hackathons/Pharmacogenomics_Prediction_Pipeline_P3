@@ -8,11 +8,11 @@ rule download_go:
         {Rscript} tools/generate_ensembl_go_mapping.R {output}
         """
 
-rule go_term_processing:
+rule go_term_zscores:
     input:
-        zscores='{prefix}/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
-        go_mapping='{prefix}/raw/gene_ontology/ensembl_go_mapping.tab',
-    output: config['features']['go']['output']
+        zscores=config['features']['zscores']['output']['zscores'],
+        go_mapping=rules.download_go.output
+    output: config['features']['go']['output']['zscores']
     run:
         dfs = pipeline_helpers.pathway_scores_from_zscores(
             pd.read_csv(str(input.zscores), index_col=0),

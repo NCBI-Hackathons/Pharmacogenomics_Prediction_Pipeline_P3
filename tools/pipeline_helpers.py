@@ -23,6 +23,18 @@ def index_converter(df, label):
     return df
 
 
+def pathway_scores_from_variants(variants_df, pathway_df, index_field):
+    """
+    Similar to `pathway_scores_from_zscores`, but with different subsetting
+    logic that makes sense with integer variants per gene.
+    """
+    x = variants_df.join(pathway_df)
+    dfs = []
+    dfs.append(index_converter(pd.pivot_table(x, index=index_field, aggfunc=np.sum), 'sum_var'))
+    dfs.append(index_converter(pd.pivot_table(x, index=index_field, aggfunc=np.mean), 'mean_var'))
+    return pd.concat(dfs)
+
+
 def pathway_scores_from_zscores(zscores_df, pathway_df, index_field):
     """
     Calculates a variety of pathway scores for each cell line, given a gene

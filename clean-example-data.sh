@@ -17,4 +17,4 @@ if [ -e example_data ]; then
     rm -rf example_data
 fi
 mkdir -p example_data
-(cd example_data && unzip ../raw.zip)
+(cd example_data && unzip ../sample_in_progress/raw.zip)

@@ -27,22 +27,22 @@
 #--> HARD CODED: paths
 
 #. input 
-dir_in <- 'datasets/raw/drug_response'
-dir_meta_in <- 'datasets/raw/metadata/'
+dir_in <- 'data/datasets/raw/drug_response'
+dir_meta_in <- 'data/datasets/raw/metadata'
     
 file_in_samples_ids <- file.path(dir_meta_in, 'samples_ids_drug_response.csv')
 
 #. output
-dir_out <- 'datasets/processed/drug_response'
+dir_out <- 'data/datasets/processed/drug_response'
 if (!dir.exists(dir_out))  dir.create(dir_out, recursive = T)
     
-dir_out_drc <- 'datasets/processed/drug_response/drc'
+dir_out_drc <- 'data/datasets/processed/drug_response/drc'
 if (!dir.exists(dir_out_drc))  dir.create(dir_out_drc, recursive = T)
     
-dir_out_response <- 'datasets/processed/drug_response/response'
+dir_out_response <- 'data/datasets/processed/drug_response/response'
 if (!dir.exists(dir_out_response))  dir.create(dir_out_response, recursive = T)
     
-dir_meta_out <- 'datasets/processed/metadata'
+dir_meta_out <- 'data/datasets/processed/metadata'
 if (!dir.exists(dir_meta_out))  dir.create(dir_meta_out, recursive = T)
     
 file_out_compounds_ids <- file.path(dir_meta_out, 'compounds_ids_drug_response.csv')

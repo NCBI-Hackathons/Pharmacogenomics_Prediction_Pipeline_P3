@@ -12,7 +12,9 @@ for name in config['features_to_use']:
     cfg = config['features'][name]
     workflow.include(cfg['snakefile'])
     outputs = cfg['output']
-    if not isinstance(outputs, list):
+    if isinstance(outputs, dict):
+        outputs = outputs.values()
+    elif not isinstance(outputs, list):
         outputs = [outputs]
     for output in outputs:
         feature_targets.append(output.format(prefix=config['prefix']))

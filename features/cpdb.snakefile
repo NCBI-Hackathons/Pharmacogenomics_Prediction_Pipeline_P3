@@ -1,6 +1,6 @@
 rule preprocess_cpdb:
     input: '{prefix}/raw/consensus_pathway_db/CPDB_pathways_genes.tab'
-    output: '{prefix}/raw/consensus_pathway_db/CPDB_pathways_ensembl.tab'
+    output: '{prefix}/filtered/consensus_pathway_db/CPDB_pathways_ensembl.tab'
     run:
         with open(output[0], 'w') as fout:
             for line in open(input[0]):
@@ -24,6 +24,18 @@ rule process_cpdb_zscores:
         )
         dfs.T.to_csv(output[0])
 
+
+rule process_cpdb_variants:
+    input:
+        variants=config['features']['exome_variants']['output'],
+        cpdb_mapping=rules.preprocess_cpdb.output
+    output: config['features']['cpdb']['output']['variants']
+    run:
+        dfs = pipeline_helpers.pathway_scores_from_variants(
+            pd.read_table(str(input.variants), index_col=0),
+            pd.read_table(str(input.cpdb_mapping), index_col=0, names=['ENSEMBL', 'EXTERNAL_ID']),
+            'EXTERNAL_ID'
+        )
         dfs.T.to_csv(output[0])
 
 # vim: ft=python

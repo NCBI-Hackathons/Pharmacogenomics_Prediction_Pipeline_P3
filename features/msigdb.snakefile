@@ -18,5 +18,21 @@ rule msigdb_zscores:
 
         dfs.T.to_csv(output[0])
 
+
+rule msigdb_variants:
+    input:
+        variants=config['features']['exome_variants']['output'],
+        msig_mapping=rules.msigdb_preprocessing.output
+    output: config['features']['msigdb']['output']['variants']
+    run:
+        dfs = pipeline_helpers.pathway_scores_from_variants(
+            pd.read_table(str(input.variants), index_col=0),
+            pd.read_table(str(input.msig_mapping), names=['ENSEMBL', 'PATHWAY'], index_col=0),
+            'PATHWAY'
+        )
+        dfs.T.to_csv(output[0])
+
+
+
 # vim: ft=python
 

@@ -1,4 +1,3 @@
-# vim: ft=python
 import pandas as pd
 
 rule download_go:
@@ -21,3 +20,18 @@ rule go_term_zscores:
         )
 
         dfs.T.to_csv(output[0])
+
+
+rule go_term_variant_scores:
+    input:
+        variants=config['features']['exome_variants']['output'],
+        go_mapping=rules.download_go.output
+    output: config['features']['go']['output']['variants']
+    run:
+        dfs = pipeline_helpers.pathway_scores_from_variants(
+            pd.read_table(str(input.variants), index_col=0),
+            pd.read_table(str(input.go_mapping), index_col=0), 'GO'
+        )
+        dfs.T.to_csv(output[0])
+
+# vim: ft=python

@@ -75,3 +75,42 @@ def pathway_scores_from_zscores(zscores_df, pathway_df, index_field):
     return pd.concat(dfs)
 
 
+def stitch(filenames, sample_from_filename_func, index_col=0, data_col=1,
+           **kwargs):
+    """
+    Given a set of filenames each corresponding to one sample and at least one
+    data column, create a matrix containing all samples.
+
+    For example, given many htseq-count output files containing gene ID and
+    count, create a matrix indexed by gene and with a column for each sample.
+
+    Parameters
+    ----------
+    filenames : list
+        List of filenames to stitch together.
+
+    sample_from_filename_func:
+        Function that, when provided a filename, can figure out what the sample
+        label should be. Easiest cases are those where the sample is contained
+        in the filename, but this function could do things like access a lookup
+        table or read the file itself to figure it out.
+
+    index_col : int
+        Which column of a single file should be considered the index
+
+    data_col : int
+        Which column of a single file should be considered the data.
+
+    Additional keyword arguments are passed to pandas.read_table.
+    """
+    read_table_kwargs = dict(index_col=index_col)
+    read_table_kwargs.update(**kwargs)
+    dfs = []
+    names = []
+    for fn in filenames:
+        dfs.append(pd.read_table(fn, **read_table_kwargs))
+        names.append(sample_from_filename_func(fn))
+    df = pd.concat(dfs, axis=1)
+    df.columns = names
+    return df
+

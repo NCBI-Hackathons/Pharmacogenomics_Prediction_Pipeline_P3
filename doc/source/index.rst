@@ -25,6 +25,7 @@ Contents:
 
     installation
     configuration
+    features
     topic-snakefiles
     topic-pivot
 

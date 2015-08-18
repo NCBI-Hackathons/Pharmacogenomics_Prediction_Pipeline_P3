@@ -2,7 +2,7 @@ import pandas
 import numpy
 
 
-rule combine_samples:
+rule transcript_variant_matrix:
     input: expand('{{prefix}}/raw/exome_variants/{sample}_exome_variants.txt', sample=samples)
     output: '{prefix}/filtered/exome_variants/exome_variants_by_transcript.tab'
     run:
@@ -23,7 +23,7 @@ rule combine_samples:
         results.to_csv(output[0], sep='\t')
 
 
-rule transcript_to_gene:
+rule transcript_variant_matrix_to_gene_variant_matrix:
     input:
         variants_table='{prefix}/filtered/exome_variants/exome_variants_by_transcript.tab',
         lookup_table='{prefix}/metadata/ENSG2ENSEMBLTRANS.tab'
@@ -34,6 +34,5 @@ rule transcript_to_gene:
         x = variants.join(lookup).dropna(subset=['ENSEMBL'])
         results = x.groupby('ENSEMBL').agg(numpy.sum)
         results.to_csv(output[0], sep='\t')
-
 
 # vim: ft=python

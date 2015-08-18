@@ -3,7 +3,7 @@ prefix: example_data
 
 # List of feature sets to use while training. Anything selected here must be
 # configured below.
-features_to_use: [go, normed_counts, zscores, msigdb, cpdb, exome_variants]
+features_to_use: [go, normed_counts, zscores, msigdb, cpdb, exome_variants, cnv]
 
 samples: celllines.txt
 
@@ -24,6 +24,12 @@ Rscript: Rscript
 #       - interdependencies between feature snakefiles can be handled by using
 #         the snakemake directive "include:"
 features:
+    cnv:
+        snakefile: features/cnv.snakefile
+        output:
+            clusters: "{prefix}/filtered/cnv/cluster_scores.tab"
+            max_gene: "{prefix}/filtered/cnv/cnv_gene_max_scores.tab"
+            longest_gene: "{prefix}/filtered/cnv/cnv_gene_longest_overlap_scores.tab"
 
     exome_variants:
         snakefile: features/variants.snakefile

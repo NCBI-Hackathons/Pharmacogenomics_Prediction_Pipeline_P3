@@ -1,6 +1,5 @@
 import pandas
 import numpy
-samples = [i.strip() for i in open(config['samples'])]
 
 
 rule combine_samples:

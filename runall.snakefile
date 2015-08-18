@@ -6,7 +6,10 @@ from textwrap import dedent
 
 localrules: make_lookups
 
+
 config = yaml.load(open('config.yaml'))
+samples = [i.strip() for i in open(config['samples'])]
+config['sample_list'] = samples
 feature_targets = []
 for name in config['features_to_use']:
     cfg = config['features'][name]
@@ -18,8 +21,6 @@ for name in config['features_to_use']:
         outputs = [outputs]
     for output in outputs:
         feature_targets.append(output.format(prefix=config['prefix']))
-
-samples = [i.strip() for i in open(config['samples'])]
 
 Rscript = config['Rscript']
 

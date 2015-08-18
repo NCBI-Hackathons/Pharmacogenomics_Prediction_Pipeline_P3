@@ -1,8 +1,6 @@
 # vim: ft=python
 import pandas
 import os
-samples = [i.strip() for i in open(config['samples'])]
-
 
 
 rule rnaseq_counts_matrix:

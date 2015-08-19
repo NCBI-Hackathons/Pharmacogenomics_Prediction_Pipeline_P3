@@ -3,3 +3,4 @@ example_data
 *.swp
 *.pyc
 *__pycache__*
+doc/build/doctrees

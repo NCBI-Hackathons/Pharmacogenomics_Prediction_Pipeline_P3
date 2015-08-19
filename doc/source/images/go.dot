@@ -2,21 +2,21 @@ digraph snakemake_dag {
     graph[bgcolor=white, margin=0];
     node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
     edge[penwidth=2, color=grey];
-	0[label = "make_lookups", color = "0.17 0.6 0.85", style="rounded"];
-	1[label = "rnaseq_counts_matrix", color = "0.36 0.6 0.85", style="rounded"];
-	2[label = "go_term_zscores", color = "0.42 0.6 0.85", style="rounded"];
-	3[label = "transcript_variant_matrix", color = "0.28 0.6 0.85", style="rounded"];
-	4[label = "go_term_variant_scores", color = "0.00 0.6 0.85", style="rounded"];
-	5[label = "rnaseq_data_prep", color = "0.03 0.6 0.85", style="rounded"];
-	6[label = "transcript_variant_matrix_to_gene_variant_matrix", color = "0.08 0.6 0.85", style="rounded"];
-	7[label = "compute_zscores", color = "0.39 0.6 0.85", style="rounded"];
-	8[label = "download_go", color = "0.22 0.6 0.85", style="rounded"];
-	7 -> 2
-	8 -> 2
-	6 -> 4
-	8 -> 4
-	1 -> 5
-	0 -> 6
-	3 -> 6
-	5 -> 7
+	0[label = "rnaseq_counts_matrix", color = "0.00 0.6 0.85", style="rounded"];
+	1[label = "transcript_variant_matrix", color = "0.42 0.6 0.85", style="rounded"];
+	2[label = "make_lookups", color = "0.22 0.6 0.85", style="rounded"];
+	3[label = "compute_zscores", color = "0.31 0.6 0.85", style="rounded"];
+	4[label = "rnaseq_data_prep", color = "0.64 0.6 0.85", style="rounded"];
+	5[label = "go_term_zscores", color = "0.14 0.6 0.85", style="rounded"];
+	6[label = "go_term_variant_scores", color = "0.03 0.6 0.85", style="rounded"];
+	7[label = "transcript_variant_matrix_to_gene_variant_matrix", color = "0.11 0.6 0.85", style="rounded"];
+	8[label = "download_go", color = "0.36 0.6 0.85", style="rounded"];
+	4 -> 3
+	0 -> 4
+	8 -> 5
+	3 -> 5
+	7 -> 6
+	8 -> 6
+	1 -> 7
+	2 -> 7
 }            

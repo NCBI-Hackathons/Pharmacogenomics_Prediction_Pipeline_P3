@@ -2,9 +2,9 @@ digraph snakemake_dag {
     graph[bgcolor=white, margin=0];
     node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
     edge[penwidth=2, color=grey];
-	0[label = "transcript_variant_matrix_to_gene_variant_matrix", color = "0.64 0.6 0.85", style="rounded"];
-	1[label = "make_lookups", color = "0.17 0.6 0.85", style="rounded"];
-	2[label = "transcript_variant_matrix", color = "0.31 0.6 0.85", style="rounded"];
+	0[label = "transcript_variant_matrix_to_gene_variant_matrix", color = "0.53 0.6 0.85", style="rounded"];
+	1[label = "transcript_variant_matrix", color = "0.61 0.6 0.85", style="rounded"];
+	2[label = "make_lookups", color = "0.00 0.6 0.85", style="rounded"];
 	1 -> 0
 	2 -> 0
 }            

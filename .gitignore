@@ -1,7 +1,5 @@
 .snakemake
-doc/build
 example_data
 *.swp
-*.html
 *.pyc
 *__pycache__*

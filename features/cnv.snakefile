@@ -7,7 +7,8 @@ rule seg_to_bed:
     output: '{prefix}/filtered/cnv/{sample}_cnv.bed'
     shell:
         """
-        tail -n +2 {input} | awk -F "\\t" '{{OFS="\\t"; print $2,$3,$4,$6}}' > {output}
+        tail -n +2 {input} | awk -F "\\t" '{{OFS="\\t"; print $2,$3,$4,$6}}' \\
+            | bedtools sort -i stdin > {output}
         """
 
 rule multi_intersect:
@@ -15,7 +16,8 @@ rule multi_intersect:
     output: '{prefix}/filtered/cnv/clustered.bed'
     shell:
         """
-        bedtools multiinter -i {input} | awk -F "\\t" '{{OFS="\\t"; print $1,$2,$3}}' > {output}
+        bedtools multiinter -i {input} | awk -F "\\t" '{{OFS="\\t"; print $1,$2,$3}}' \\
+            | bedtools sort -i stdin > {output}
         """
 
 rule create_cluster_scores:
@@ -25,7 +27,7 @@ rule create_cluster_scores:
     output: '{prefix}/filtered/cnv/{sample}_cnv_cluster_overlaps.bed'
     shell:
         """
-        bedtools intersect -a {input.clusters} -b {input.cnv_bed} -wao \\
+        bedtools intersect -a {input.clusters} -b {input.cnv_bed} -wao -nonamecheck \\
             | sed "s/\\t\\t/\\t/g" \\
             | awk -F "\\t" '{{OFS="\\t"; print $1"_"$2"_"$3, $7}}' > {output}
         """
@@ -54,7 +56,7 @@ rule create_gene_scores:
         gene_longest='{prefix}/filtered/cnv/{sample}_cnv_gene_longest_overlap_scores.bed'
     run:
         shell("""
-        bedtools intersect -a {input.cnv_bed} -b {input.genes} -wao \\
+        bedtools intersect -a {input.cnv_bed} -b {input.genes} -wao -nonamecheck \\
             | sed "s/\\t\\t/\\t/g" > {output.intersected}
         """)
         df = pd.read_table(

@@ -12,7 +12,7 @@
 #
 # Ryan Dale 2015/08/09
 #
-library(Homo.sapiens)
+suppressMessages(library(Homo.sapiens))
 args = commandArgs(TRUE)
 write.table(
   select(

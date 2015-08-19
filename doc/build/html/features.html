@@ -165,14 +165,18 @@ LineA_1	1	12917433	22050665	3	-4.111
 CNVs across all samples must be determined. The <cite>multiinter</cite> program from the
 <cite>BEDTools</cite> suite is used to identify a uniform set of segments that can be used
 across all samples.</p>
-<div class="admonition-todo admonition" id="index-2">
-<p class="first admonition-title">Todo</p>
-<p class="last">Add screenshot of bedtools multiinter output</p>
-</div>
 <p>This uniform set of segments is then intersected with the actual segments on
 a per-sample basis to obtain per-sample CNV values for each segment. Files
-across samples are then aggregated into a single &#8220;cluster matrix&#8221; file, which
-looks like this:</p>
+across samples are then aggregated into a single &#8220;cluster matrix&#8221; file.</p>
+<p>This diagram shows how cluster scores are calculated for a hypothetical set of
+3 samples:</p>
+<img alt="_images/cluster-scores-diagram.png" src="_images/cluster-scores-diagram.png" />
+<p>A separate set of scores is calculated at the gene level. A score for each gene
+can be calculated in several ways. The following diagram shows two ways: the
+largest magnitude CNV that overlaps the gene (&#8220;max&#8221;), or the score of the
+longest segment that overlaps the gene (&#8220;longest&#8221;):</p>
+<img alt="_images/gene-scores-diagram.png" src="_images/gene-scores-diagram.png" />
+<p>The final cluster scores output file looks like the following:</p>
 <div class="highlight-python"><div class="highlight"><pre>1_564454_746638	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
 1_746638_752741	0.0	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	-3.252	-3.3
 1_752741_1613780	0.3181	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	-3.252	-3.3

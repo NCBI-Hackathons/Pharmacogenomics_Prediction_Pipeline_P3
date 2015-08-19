@@ -117,14 +117,25 @@ CNVs across all samples must be determined. The `multiinter` program from the
 `BEDTools` suite is used to identify a uniform set of segments that can be used
 across all samples.
 
-.. todo::
-
-    Add screenshot of bedtools multiinter output
 
 This uniform set of segments is then intersected with the actual segments on
 a per-sample basis to obtain per-sample CNV values for each segment. Files
-across samples are then aggregated into a single "cluster matrix" file, which
-looks like this:
+across samples are then aggregated into a single "cluster matrix" file.
+
+This diagram shows how cluster scores are calculated for a hypothetical set of
+3 samples:
+
+.. image:: images/cluster-scores-diagram.png
+
+
+A separate set of scores is calculated at the gene level. A score for each gene
+can be calculated in several ways. The following diagram shows two ways: the
+largest magnitude CNV that overlaps the gene ("max"), or the score of the
+longest segment that overlaps the gene ("longest"):
+
+.. image:: images/gene-scores-diagram.png
+
+The final cluster scores output file looks like the following:
 
 .. literalinclude:: ../../example_data/filtered/cnv/cluster_scores.tab
     :lines: 1-5

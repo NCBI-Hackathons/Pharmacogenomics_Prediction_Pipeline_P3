@@ -51,6 +51,9 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
+dags:
+	python custom_dot.py
+
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo

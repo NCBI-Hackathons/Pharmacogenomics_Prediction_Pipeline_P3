@@ -27,6 +27,7 @@ Rscript = config['Rscript']
 lookup_targets = [i.format(prefix=config['prefix']) for i in [
     '{prefix}/metadata/ENSG2ENTREZID.tab',
     '{prefix}/metadata/ENSG2SYMBOL.tab',
+    '{prefix}/metadata/genes.bed',
 ]]
 
 rule all_features:
@@ -40,4 +41,10 @@ rule make_lookups:
         {Rscript} tools/make_lookups.R {wildcards.map} {output}
         """
 
+rule make_genes:
+    output: '{prefix}/metadata/genes.bed'
+    shell:
+        """
+        {Rscript} tools/make_gene_lookup.R {output}
+        """
 # vim: ft=python

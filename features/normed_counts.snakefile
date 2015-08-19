@@ -9,7 +9,7 @@ rule rnaseq_counts_matrix:
     run:
         df = pipeline_helpers.stitch(
             input,
-            lambda x: os.path.basename(fn).replace('_counts.csv', ''),
+            lambda x: os.path.basename(x).replace('_counts.csv', ''),
             index_col=0,
             sep=','
         )

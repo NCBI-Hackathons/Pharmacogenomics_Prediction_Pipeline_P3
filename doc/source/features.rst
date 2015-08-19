@@ -21,7 +21,7 @@ been color coded.
 
 ``runall.snakefile``
 
-.. image:: all_dag.png
+.. image:: images/all_dag.png
 
 .. _normcounts:
 
@@ -36,7 +36,7 @@ the following format:
 
 The workflow is the following:
 
-.. image:: normed_counts_dag.png
+.. image:: images/normed_counts_dag.png
 
 The output file of ``norm_counts.snakefile`` is a table of gene-level
 quantile-normalized counts per million (CPM). One row per gene, and one column
@@ -55,7 +55,7 @@ This workflow takes the output of :ref:`normcounts` and converts counts into
 zscores. In the absence of matched controls, these zscores are then used as
 a proxy for direction and magnitude of differential expression.
 
-.. image:: zscores_dag.png
+.. image:: images/zscores_dag.png
 
 Output looks like this:
 
@@ -82,7 +82,7 @@ features that consider genes (i.e., the pathway features), after
 collecting samples into a `transcripts x sample` matrix, we aggregate into
 a `gene x sample` matrix by summing variants across all transcripts of a gene.
 
-.. image:: exome_variants_dag.png
+.. image:: images/exome_variants_dag.png
 
 Output of the `gene x sample` matrix looks like this, where values indicate the
 total number of variants across a gene in a sample. 
@@ -110,7 +110,7 @@ sample. For example:
 
     Need methods on how the SEG files were created
 
-.. image:: cnv_dag.png
+.. image:: images/cnv_dag.png
 
 Since each sample may have a different set of CNVs, the total number of unique
 CNVs across all samples must be determined. The `multiinter` program from the
@@ -155,7 +155,7 @@ Consensus pathway database
 Scores for each pathway are calculated based on the output of
 :ref:`variants` and :ref:`zscores`.
 
-.. image:: cpdb_dag.png
+.. image:: images/cpdb_dag.png
 
 
 Variants output file:
@@ -176,7 +176,7 @@ Gene ontology
 Scores for each GO term are calculated based on the output of
 :ref:`variants` and :ref:`zscores`.
 
-.. image:: go_dag.png
+.. image:: images/go_dag.png
 
 Variants output file:
 
@@ -194,7 +194,7 @@ Scores for each pathway are calculated based on the output of
 :ref:`variants` and :ref:`zscores`.
 
 
-.. image:: msigdb_dag.png
+.. image:: images/msigdb_dag.png
 
 Variants output file:
 

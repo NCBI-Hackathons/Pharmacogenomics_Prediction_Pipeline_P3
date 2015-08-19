@@ -1,0 +1,68 @@
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "rnaseq_data_prep", color = "0.00 0.6 0.85", style="rounded"];
+	1[label = "process_cpdb_zscores", color = "0.36 0.6 0.85", style="rounded"];
+	2[label = "seg_to_bed", color = "0.11 0.6 0.85", style="rounded"];
+	3[label = "go_term_zscores", color = "0.03 0.6 0.85", style="rounded"];
+	4[label = "go_term_variant_scores", color = "0.08 0.6 0.85", style="rounded"];
+	5[label = "create_cluster_scores", color = "0.14 0.6 0.85", style="rounded"];
+	6[label = "cluster_matrix", color = "0.39 0.6 0.85", style="rounded"];
+	7[label = "msigdb_zscores", color = "0.42 0.6 0.85", style="rounded"];
+	8[label = "multi_intersect", color = "0.44 0.6 0.85", style="rounded"];
+	9[label = "create_gene_scores", color = "0.17 0.6 0.85", style="rounded"];
+	10[label = "rnaseq_counts_matrix", color = "0.53 0.6 0.85", style="rounded"];
+	11[label = "process_cpdb_variants", color = "0.47 0.6 0.85", style="rounded"];
+	12[label = "make_genes", color = "0.19 0.6 0.85", style="rounded"];
+	13[label = "transcript_variant_matrix_to_gene_variant_matrix", color = "0.50 0.6 0.85", style="rounded"];
+	14[label = "all_features", color = "0.22 0.6 0.85", style="rounded"];
+	15[label = "gene_longest_overlap_scores_matrix", color = "0.25 0.6 0.85", style="rounded"];
+	16[label = "make_lookups", color = "0.56 0.6 0.85", style="rounded"];
+	17[label = "gene_max_scores_matrix", color = "0.58 0.6 0.85", style="rounded"];
+	18[label = "transcript_variant_matrix", color = "0.28 0.6 0.85", style="rounded"];
+	19[label = "compute_zscores", color = "0.64 0.6 0.85", style="rounded"];
+	20[label = "msigdb_preprocessing", color = "0.61 0.6 0.85", style="rounded"];
+	21[label = "msigdb_variants", color = "0.31 0.6 0.85", style="rounded"];
+	22[label = "preprocess_cpdb", color = "0.06 0.6 0.85", style="rounded"];
+	23[label = "download_go", color = "0.33 0.6 0.85", style="rounded"];
+	10 -> 0
+	22 -> 1
+	19 -> 1
+	19 -> 3
+	23 -> 3
+	13 -> 4
+	23 -> 4
+	2 -> 5
+	8 -> 5
+	5 -> 6
+	20 -> 7
+	19 -> 7
+	2 -> 8
+	12 -> 9
+	2 -> 9
+	22 -> 11
+	13 -> 11
+	16 -> 13
+	18 -> 13
+	0 -> 14
+	1 -> 14
+	15 -> 14
+	16 -> 14
+	3 -> 14
+	17 -> 14
+	4 -> 14
+	6 -> 14
+	7 -> 14
+	21 -> 14
+	11 -> 14
+	12 -> 14
+	19 -> 14
+	13 -> 14
+	9 -> 15
+	9 -> 17
+	0 -> 19
+	16 -> 20
+	20 -> 21
+	13 -> 21
+}            

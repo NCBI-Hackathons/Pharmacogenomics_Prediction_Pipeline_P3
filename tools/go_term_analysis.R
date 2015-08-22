@@ -8,13 +8,20 @@
 #
 # Looks for GO terms which are over- or under-represented among DE genes,...
 #
+#
+# Usage:
+#
+#    Rscript go_term_analysis.R {zscores file} {go mapping file} {output file}
+#
 ###############################################################################
 library('dplyr')
 
+args = commandArgs(TRUE)
+
 # Filepaths
-zscores_filepath    = '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv'
-go_mapping_filepath = '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab'
-outfile             = '/data/datasets/combined/gene_ontology/go_term_zscores.csv'
+zscores_filepath    = args[1] #'/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv'
+go_mapping_filepath = args[2] #'/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab'
+outfile             = args[3] # '/data/datasets/combined/gene_ontology/go_term_zscores.csv'
 
 # Load expression z-scores
 zscores = read.csv(zscores_filepath, row.names=1)
@@ -31,14 +38,12 @@ for (go_id in unique(go_mapping$GO)) {
     gene_ids = as.character((go_mapping %>% filter(GO == go_id))$ENSEMBL)
     gene_zscores = zscores[rownames(zscores) %in% gene_ids,]
 
-    print(sprintf("Processing %s", go_id))
-
     # sum the positive and negative z-scores for each annotation
     pos_scores = apply(gene_zscores, 2, function(x) { sum(x[x > 0]) })
     neg_scores = apply(gene_zscores, 2, function(x) { sum(x[x < 0]) })
     ratio_pos  = apply(gene_zscores, 2, function(x) { sum(x > 0) / length(x) })
 
-    column_labels = append(column_labels, 
+    column_labels = append(column_labels,
                            c(paste0(c(sub(':', '_', go_id), 'pos'), collapse='_'),
                              paste0(c(sub(':', '_', go_id), 'neg'), collapse='_'),
                              paste0(c(sub(':', '_', go_id), 'pct_pos'), collapse='_')))
@@ -52,7 +57,7 @@ colnames(output) = column_labels
 output = output[,-c(1)]
 
 if (!dir.exists(dirname(outfile))) {
-    dir.create(dirname(outfile), recursive=TRUE)    
+    dir.create(dirname(outfile), recursive=TRUE)
 }
 write.csv(output, quote=FALSE, file=outfile)
 

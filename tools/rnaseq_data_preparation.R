@@ -19,9 +19,11 @@
 ###############################################################################
 library('preprocessCore')
 
+args = commandArgs(TRUE)
+
 # Filepaths
-infile  = '/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
-outfile = '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
+infile  = args[1] #'/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
+outfile = args[2] #'/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
 
 # Load raw count matrix
 raw_counts = read.csv(infile, row.names=1)

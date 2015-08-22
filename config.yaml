@@ -1,0 +1,63 @@
+# Top-level data dir
+prefix: example_data
+
+# List of feature sets to use while training. Anything selected here must be
+# configured below.
+features_to_use: [go, normed_counts, zscores, msigdb, cpdb, exome_variants, cnv]
+
+samples: celllines.txt
+
+# Explicitly defines path to Rscript to avoid conflict with other existing
+# installations
+Rscript: Rscript
+
+# Each set of features:
+#   - has a unique name that can be used in the "features_to_use" list
+#
+#   - has one or more output files, which must be of the general format:
+#       - rows = features
+#       - columns = samples
+#
+#   - has a snakefile responsible for creating the output file.
+#       - paths in these snakefiles should be relative to the runall.snakefile
+#         since they are included verbatim.
+#       - interdependencies between feature snakefiles can be handled by using
+#         the snakemake directive "include:"
+features:
+    cnv:
+        snakefile: features/cnv.snakefile
+        output:
+            clusters: "{prefix}/filtered/cnv/cluster_scores.tab"
+            max_gene: "{prefix}/filtered/cnv/cnv_gene_max_scores.tab"
+            longest_gene: "{prefix}/filtered/cnv/cnv_gene_longest_overlap_scores.tab"
+
+    exome_variants:
+        snakefile: features/variants.snakefile
+        output: "{prefix}/filtered/exome_variants/exome_variants_by_gene.tab"
+
+    msigdb:
+        snakefile: features/msigdb.snakefile
+        output:
+            zscores: "{prefix}/filtered/msigdb/msigdb_zscores.csv"
+            variants: "{prefix}/filtered/msigdb/msigdb_variants.csv"
+    go:
+        snakefile: features/gene_ontology.snakefile
+        output:
+            zscores: "{prefix}/filtered/go/go_zscores.csv"
+            variants: "{prefix}/filtered/go/go_variants.csv"
+
+    cpdb:
+        snakefile: features/cpdb.snakefile
+        output:
+            zscores: "{prefix}/filtered/consensus_pathway/cpdb_zscores.csv"
+            variants: "{prefix}/filtered/consensus_pathway/cpdb_variants.csv"
+
+    normed_counts:
+        snakefile: features/normed_counts.snakefile
+        output: "{prefix}/filtered/rnaseq_expression/counts_matrix_normalized.csv"
+
+    zscores:
+        snakefile: features/zscores.snakefile
+        output:
+            zscores: "{prefix}/filtered/rnaseq_expression/zscores.csv"
+            zscore_estimates: "{prefix}/filtered/rnaseq_expression/zscore_estimates.csv"

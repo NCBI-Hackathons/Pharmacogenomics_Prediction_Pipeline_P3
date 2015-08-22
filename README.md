@@ -1,6 +1,11 @@
 Pharmacogenomics Predicting Pipeline (P<sup>3</sup>)
 ====================================================
 
+
+See http://dcgenomics.github.io/Pharmacogenomics_Prediction_Pipeline_P3/doc/build/html for detailed documentation.
+
+
+
 Overview
 --------
 

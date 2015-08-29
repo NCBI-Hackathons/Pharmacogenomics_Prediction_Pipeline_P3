@@ -22,6 +22,7 @@ been color coded.
 ``runall.snakefile``
 
 .. image:: images/all_dag.png
+    :target: images/all_dag.png
 
 .. _normcounts:
 

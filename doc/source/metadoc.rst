@@ -1,15 +1,17 @@
 Documentation about the documentation
--------------------------------------
+=====================================
 
 These docs are built using `Sphinx <http://sphinx-doc.org>`_ and served on
-github. Here's how to rebuild and upload them.
+github. They use the actual input and output used for the example pipeline run,
+so generation of the docs requires successfully running the example pipeline.
+
+Here's how to rebuild and upload the docs.
 
 .. note::
 
     All paths below are relative to the top-level dir of the repo
 
 Run the pipeline on example data
-
 --------------------------------
 The documentation includes customized DAGs of the workflows. To generate these,
 first the example pipeline must have been successfully run. Here's how to do
@@ -44,9 +46,19 @@ Relative to the top-level dir of the repo:
 
     git checkout gh-pages
     git merge master
+
+
+Make the docs while in the `gh-pages` branch
+--------------------------------------------
+::
+
     cd doc
     make dags
     make clean html
+
+
+Check output and push to github
+-------------------------------
 
 In a browser, check the built docs at ``doc/build/html/index.html``. If
 everything looks OK, you're ready to push to github::
@@ -55,9 +67,14 @@ everything looks OK, you're ready to push to github::
     git commit -a -m 'rebuild docs'
     git push origin gh-pages
 
+Switch back to master branch
+----------------------------
+
 And finally, get back to the master branch::
 
     git checkout master
 
+View docs on web
+----------------
 Now check the new docs (might need to force refresh) at
 http://ncbi-hackathons.github.io/Pharmacogenomics_Prediction_Pipeline_P3/doc/build/html.

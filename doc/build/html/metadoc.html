@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Documentation about the documentation &mdash; Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Obtaining pathway scores" href="topic-pivot.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="topic-pivot.html" title="Obtaining pathway scores"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="documentation-about-the-documentation">
+<h1>Documentation about the documentation<a class="headerlink" href="#documentation-about-the-documentation" title="Permalink to this headline">¶</a></h1>
+<p>These docs are built using <a class="reference external" href="http://sphinx-doc.org">Sphinx</a> and served on
+github. Here&#8217;s how to rebuild and upload them.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All paths below are relative to the top-level dir of the repo</p>
+</div>
+<p>The documentation includes customized DAGs of the workflows. To generate these,
+first the example pipeline must have been successfully run:</p>
+<div class="highlight-python"><div class="highlight"><pre>./clean-example-data.sh
+module load bedtools R  # on biowulf
+snakemake -npr -s runall.snakefile  # dry run
+snakemake -pr -s runall.snakefile  # run everything
+</pre></div>
+</div>
+<p>If you have made any changes to the documentation, make sure you commit them
+now:</p>
+<div class="highlight-python"><div class="highlight"><pre>git status
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The following commands assume your latest work was on the master branch.
+This is generally a good assumption because it means that the docs match
+the code in master. But merging from another branch might be useful if
+you&#8217;re playing around with changes to the docs themselves.</p>
+</div>
+<p>Relative to the top-level dir of the repo:</p>
+<div class="highlight-python"><div class="highlight"><pre>git checkout gh-pages
+git merge master
+cd doc
+make dags
+make clean html
+</pre></div>
+</div>
+<p>In a browser, check the built docs at <code class="docutils literal"><span class="pre">doc/build/html/index.html</span></code>. If
+everything looks OK, you&#8217;re ready to push to github:</p>
+<div class="highlight-python"><div class="highlight"><pre>git status
+git commit -a -m &#39;rebuild docs&#39;
+git push origin gh-pages
+</pre></div>
+</div>
+<p>And finally, get back to the master branch:</p>
+<div class="highlight-python"><div class="highlight"><pre>git checkout master
+</pre></div>
+</div>
+<p>Now check the new docs (might need to force refresh) at
+<a class="reference external" href="http://ncbi-hackathons.github.io/Pharmacogenomics_Prediction_Pipeline_P3/doc/build/html">http://ncbi-hackathons.github.io/Pharmacogenomics_Prediction_Pipeline_P3/doc/build/html</a>.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="topic-pivot.html"
+                        title="previous chapter">Obtaining pathway scores</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/metadoc.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, various.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="_sources/metadoc.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

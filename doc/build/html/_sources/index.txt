@@ -28,7 +28,7 @@ Contents:
     features
     topic-snakefiles
     topic-pivot
-
+    metadoc
 
 
 

@@ -1,3 +1,5 @@
+.. _snakefiles:
+
 Pipeline design
 ===============
 

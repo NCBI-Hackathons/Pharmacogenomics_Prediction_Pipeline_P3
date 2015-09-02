@@ -2,9 +2,9 @@ digraph snakemake_dag {
     graph[bgcolor=white, margin=0];
     node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
     edge[penwidth=2, color=grey];
-	0[label = "rnaseq_counts_matrix", color = "0.08 0.6 0.85", style="rounded"];
-	1[label = "compute_zscores", color = "0.36 0.6 0.85", style="rounded"];
-	2[label = "rnaseq_data_prep", color = "0.53 0.6 0.85", style="rounded"];
+	0[label = "compute_zscores", color = "0.39 0.6 0.85", style="rounded"];
+	1[label = "rnaseq_data_prep", color = "0.22 0.6 0.85", style="rounded"];
+	2[label = "rnaseq_counts_matrix", color = "0.14 0.6 0.85", style="rounded"];
+	1 -> 0
 	2 -> 1
-	0 -> 2
 }            

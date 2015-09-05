@@ -18,7 +18,7 @@ rule process_cpdb_zscores:
     output: config['features']['cpdb']['output']['zscores']
     run:
         dfs = pipeline_helpers.pathway_scores_from_zscores(
-            pd.read_csv(str(input.zscores), index_col=0),
+            pd.read_table(str(input.zscores), index_col=0),
             pd.read_table(str(input.cpdb_mapping), index_col=0, names=['ENSEMBL', 'EXTERNAL_ID']),
             'EXTERNAL_ID'
         )

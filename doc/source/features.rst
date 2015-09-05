@@ -141,6 +141,15 @@ The final cluster scores output file looks like the following:
 .. literalinclude:: ../../example_data/filtered/cnv/cluster_scores.tab
     :lines: 1-5
 
+And the "max" gene scores:
+
+.. literalinclude:: ../../example_data/filtered/cnv/cnv_gene_max_scores.tab
+    :lines: 1-5
+
+And the "longest" gene scores:
+
+.. literalinclude:: ../../example_data/filtered/cnv/cnv_gene_longest_overlap_scores.tab
+    :lines: 1-5
 
 
 Pathways
@@ -173,11 +182,12 @@ Scores for each pathway are calculated based on the output of
 Variants output file:
 
 .. literalinclude:: ../../example_data/filtered/consensus_pathway/cpdb_variants.csv
+    :lines: 1-5
 
 Zscores output file:
 
 .. literalinclude:: ../../example_data/filtered/consensus_pathway/cpdb_zscores.csv
-
+    :lines: 1-5
 
 
 
@@ -193,10 +203,12 @@ Scores for each GO term are calculated based on the output of
 Variants output file:
 
 .. literalinclude:: ../../example_data/filtered/go/go_variants.csv
+    :lines: 1-5
 
 Zscores output file:
 
 .. literalinclude:: ../../example_data/filtered/go/go_zscores.csv
+    :lines: 1-5
 
 .. _msigdb:
 
@@ -211,10 +223,12 @@ Scores for each pathway are calculated based on the output of
 Variants output file:
 
 .. literalinclude:: ../../example_data/filtered/msigdb/msigdb_variants.csv
+    :lines: 1-5
 
 Zscores output file:
 
 .. literalinclude:: ../../example_data/filtered/msigdb/msigdb_zscores.csv
+    :lines: 1-5
 
 
 

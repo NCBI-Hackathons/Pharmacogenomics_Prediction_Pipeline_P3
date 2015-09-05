@@ -27,7 +27,7 @@ rule create_cluster_scores:
     output: '{prefix}/filtered/cnv/{sample}_cnv_cluster_overlaps.bed'
     shell:
         """
-        bedtools intersect -a {input.clusters} -b {input.cnv_bed} -wao -nonamecheck \\
+        bedtools intersect -a {input.clusters} -b {input.cnv_bed} -wao  \\
             | sed "s/\\t\\t/\\t/g" \\
             | awk -F "\\t" '{{OFS="\\t"; print $1"_"$2"_"$3, $7}}' > {output}
         """
@@ -43,7 +43,7 @@ rule cluster_matrix:
             na_values=['.', '-1'],
         )
         df = df.fillna(0)
-        df.to_csv(str(output[0]), sep='\t')
+        df.to_csv(str(output[0]), sep='\t', index_label='cluster_id')
 
 
 rule create_gene_scores:
@@ -56,7 +56,7 @@ rule create_gene_scores:
         gene_longest='{prefix}/filtered/cnv/{sample}_cnv_gene_longest_overlap_scores.bed'
     run:
         shell("""
-        bedtools intersect -a {input.cnv_bed} -b {input.genes} -wao -nonamecheck \\
+        bedtools intersect -a {input.cnv_bed} -b {input.genes} -wao \\
             | sed "s/\\t\\t/\\t/g" > {output.intersected}
         """)
         df = pd.read_table(
@@ -78,7 +78,7 @@ rule gene_longest_overlap_scores_matrix:
             input,
             lambda x: os.path.basename(x).split('_cnv_gene')[0],
         )
-        df.to_csv(str(output), sep='\t')
+        df.to_csv(str(output), sep='\t', index_label='gene_id')
 
 
 rule gene_max_scores_matrix:
@@ -89,7 +89,7 @@ rule gene_max_scores_matrix:
             input,
             lambda x: os.path.basename(x).split('_cnv_gene')[0],
         )
-        df.to_csv(str(output), sep='\t')
+        df.to_csv(str(output), sep='\t', index_label='gene_id')
 
 
 

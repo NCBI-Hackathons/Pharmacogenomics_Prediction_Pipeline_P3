@@ -7,14 +7,14 @@
 #
 # This script takes a raw count matrix with and performs some basic filtering
 # and transformations on the data.
-# 
+#
 # The steps performed are:
-# 
+#
 # 1. Remove outlier samples
 # 2. Low-count gene filtering
 # 3. Counts-per-million (CPM)
 # 4. Log2 transformation
-# 5. Quantile normalization 
+# 5. Quantile normalization
 #
 ###############################################################################
 library('preprocessCore')
@@ -26,7 +26,7 @@ infile  = args[1] #'/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.c
 outfile = args[2] #'/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
 
 # Load raw count matrix
-raw_counts = read.csv(infile, row.names=1)
+raw_counts = read.table(infile, row.names=1, sep='\t', header=TRUE)
 
 # Sample IDs
 sample_ids = colnames(raw_counts)
@@ -45,7 +45,7 @@ num_before = nrow(raw_counts)
 keep = rowSums(raw_counts > threshold) >= 1
 raw_counts = raw_counts[keep,]
 
-print(sprintf("Removing %d low-count genes (%d remaining).", 
+print(sprintf("Removing %d low-count genes (%d remaining).",
     num_before - nrow(raw_counts), nrow(raw_counts)))
 
 # Counts-per-million (CPM)
@@ -66,5 +66,5 @@ colnames(log2_cpm_qnorm_counts) = colnames(log2_cpm_counts)
 if (!file.exists(dirname(outfile))) {
     dir.create(dirname(outfile), recursive=TRUE)
 }
-write.csv(log2_cpm_qnorm_counts, file=outfile, quote=FALSE)
+write.table(log2_cpm_qnorm_counts, file=outfile, sep='\t', quote=FALSE)
 

@@ -30,7 +30,7 @@ args = commandArgs(TRUE)
 infile = args[1]
 out1 = args[2]
 out2 = args[3]
-dat = read.csv(infile, row=1)
+dat = read.table(infile, row=1, header=TRUE)
 med = apply(dat,1, median)
 MAD = apply(dat,1, mad)
 zdat = t(apply(dat, 1, function(x) (x-median(x))/mad(x)))
@@ -39,5 +39,5 @@ zout = zdat[!rem,]
 MADout = MAD[!rem]
 medout = med[!rem]
 est = data.frame(Median=medout, MAD=MADout)
-write.csv(zout, out1)
-write.csv(est, out2)
+write.table(zout, file=out1, sep='\t', quote=FALSE)
+write.table(est, file=out2, sep='\t', quote=FALSE)

@@ -14,12 +14,12 @@ rule go_term_zscores:
     output: config['features']['go']['output']['zscores']
     run:
         dfs = pipeline_helpers.pathway_scores_from_zscores(
-            pd.read_csv(str(input.zscores), index_col=0),
-            pd.read_table(str(input.go_mapping), index_col=0),
+            pd.read_table(str(input.zscores), index_col=0),
+            pd.read_table(str(input.go_mapping), index_col=0)[['GO']],
             'GO'
         )
 
-        dfs.T.to_csv(output[0])
+        dfs.to_csv(output[0], sep='\t', index_label='pathway_id')
 
 
 rule go_term_variant_scores:
@@ -30,8 +30,9 @@ rule go_term_variant_scores:
     run:
         dfs = pipeline_helpers.pathway_scores_from_variants(
             pd.read_table(str(input.variants), index_col=0),
-            pd.read_table(str(input.go_mapping), index_col=0), 'GO'
+            pd.read_table(str(input.go_mapping), index_col=0)[['GO']],
+            'GO'
         )
-        dfs.T.to_csv(output[0])
+        dfs.to_csv(output[0], sep='\t', index_label='pathway_id')
 
 # vim: ft=python

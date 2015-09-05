@@ -46,5 +46,6 @@ rule make_genes:
     shell:
         """
         {Rscript} tools/make_gene_lookup.R {output}
+        sed -i "s/^chr//g" {output}
         """
 # vim: ft=python

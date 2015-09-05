@@ -15,7 +15,7 @@ rule go_term_zscores:
     run:
         dfs = pipeline_helpers.pathway_scores_from_zscores(
             pd.read_table(str(input.zscores), index_col=0),
-            pd.read_table(str(input.go_mapping), index_col=0),
+            pd.read_table(str(input.go_mapping), index_col=0)[['GO']],
             'GO'
         )
 
@@ -30,7 +30,8 @@ rule go_term_variant_scores:
     run:
         dfs = pipeline_helpers.pathway_scores_from_variants(
             pd.read_table(str(input.variants), index_col=0),
-            pd.read_table(str(input.go_mapping), index_col=0), 'GO'
+            pd.read_table(str(input.go_mapping), index_col=0)[['GO']],
+            'GO'
         )
         dfs.to_csv(output[0], sep='\t', index_label='pathway_id')
 

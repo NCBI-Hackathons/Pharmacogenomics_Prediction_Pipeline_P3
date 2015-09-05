@@ -35,7 +35,7 @@ rule msigdb_preprocessing:
         df = df.join(lookup).dropna(subset=['ENSEMBL'])
         df.index = df['ENSEMBL']
         del df['ENSEMBL']
-        df.to_csv(str(output[0]), sep='\t')
+        df.to_csv(str(output[0]), sep='\t', index_label='pathway id')
 
 
 rule msigdb_zscores:
@@ -50,7 +50,7 @@ rule msigdb_zscores:
             'PATHWAY'
         )
 
-        dfs.T.to_csv(output[0])
+        dfs.to_csv(output[0], sep='\t', index_label='pathway_id')
 
 
 rule msigdb_variants:
@@ -64,7 +64,7 @@ rule msigdb_variants:
             pd.read_table(str(input.msig_mapping), names=['ENSEMBL', 'PATHWAY'], index_col=0),
             'PATHWAY'
         )
-        dfs.T.to_csv(output[0])
+        dfs.to_csv(output[0], sep='\t', index_label='pathway_id')
 
 
 

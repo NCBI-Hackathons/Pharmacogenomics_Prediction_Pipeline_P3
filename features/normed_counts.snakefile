@@ -13,12 +13,12 @@ rule rnaseq_counts_matrix:
             index_col=0,
             sep='\t'
         )
-        df.to_csv(output[0])
+        df.to_csv(output[0], sep='\t')
 
 
 rule rnaseq_data_prep:
     input:
-        "{prefix}/raw/rnaseq_expression/counts_matrix.csv"
+        "{prefix}/raw/rnaseq_expression/counts_matrix.tsv"
     output:
         config['features']['normed_counts']['output']
     shell:

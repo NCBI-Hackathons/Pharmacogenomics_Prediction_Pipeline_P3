@@ -22,7 +22,7 @@ rule process_cpdb_zscores:
             pd.read_table(str(input.cpdb_mapping), index_col=0, names=['ENSEMBL', 'EXTERNAL_ID']),
             'EXTERNAL_ID'
         )
-        dfs.T.to_csv(output[0])
+        dfs.to_csv(output[0], sep='\t', index_label='pathway_id')
 
 
 rule process_cpdb_variants:
@@ -36,6 +36,6 @@ rule process_cpdb_variants:
             pd.read_table(str(input.cpdb_mapping), index_col=0, names=['ENSEMBL', 'EXTERNAL_ID']),
             'EXTERNAL_ID'
         )
-        dfs.T.to_csv(output[0])
+        dfs.to_csv(output[0], sep='\t', index_label='pathway_id')
 
 # vim: ft=python

@@ -43,7 +43,7 @@ rule cluster_matrix:
             na_values=['.', '-1'],
         )
         df = df.fillna(0)
-        df.to_csv(str(output[0]), sep='\t')
+        df.to_csv(str(output[0]), sep='\t', index_label='cluster_id')
 
 
 rule create_gene_scores:
@@ -78,7 +78,7 @@ rule gene_longest_overlap_scores_matrix:
             input,
             lambda x: os.path.basename(x).split('_cnv_gene')[0],
         )
-        df.to_csv(str(output), sep='\t')
+        df.to_csv(str(output), sep='\t', index_label='gene_id')
 
 
 rule gene_max_scores_matrix:
@@ -89,7 +89,7 @@ rule gene_max_scores_matrix:
             input,
             lambda x: os.path.basename(x).split('_cnv_gene')[0],
         )
-        df.to_csv(str(output), sep='\t')
+        df.to_csv(str(output), sep='\t', index_label='gene_id')
 
 
 

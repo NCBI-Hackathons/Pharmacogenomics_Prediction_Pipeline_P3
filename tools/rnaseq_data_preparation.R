@@ -66,5 +66,5 @@ colnames(log2_cpm_qnorm_counts) = colnames(log2_cpm_counts)
 if (!file.exists(dirname(outfile))) {
     dir.create(dirname(outfile), recursive=TRUE)
 }
-write.csv(log2_cpm_qnorm_counts, file=outfile, quote=FALSE)
+write.table(log2_cpm_qnorm_counts, file=outfile, sep='\t', quote=FALSE)
 

@@ -19,7 +19,7 @@ rule go_term_zscores:
             'GO'
         )
 
-        dfs.T.to_csv(output[0])
+        dfs.to_csv(output[0], sep='\t', index_label='pathway_id')
 
 
 rule go_term_variant_scores:
@@ -32,6 +32,6 @@ rule go_term_variant_scores:
             pd.read_table(str(input.variants), index_col=0),
             pd.read_table(str(input.go_mapping), index_col=0), 'GO'
         )
-        dfs.T.to_csv(output[0])
+        dfs.to_csv(output[0], sep='\t', index_label='pathway_id')
 
 # vim: ft=python

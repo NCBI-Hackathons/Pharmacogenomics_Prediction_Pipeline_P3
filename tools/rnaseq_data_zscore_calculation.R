@@ -39,5 +39,5 @@ zout = zdat[!rem,]
 MADout = MAD[!rem]
 medout = med[!rem]
 est = data.frame(Median=medout, MAD=MADout)
-write.csv(zout, out1)
-write.csv(est, out2)
+write.table(zout, file=out1, sep='\t', quote=FALSE)
+write.table(est, file=out2, sep='\t', quote=FALSE)

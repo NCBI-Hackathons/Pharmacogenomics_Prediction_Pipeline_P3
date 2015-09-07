@@ -33,6 +33,16 @@ The accompanying `Dockerfile` shows the setup to be performed (using the
 Bioconductor Docker container as a base) and the container will be eventually
 provided on docker hub.
 
+**Sample data**
+
+P<sup>3</sup> currently includes an example dataset which can be used to test
+out the pipeline. To clean any existing example dataset build files and example
+data, run:
+
+```sh
+snakemake -s runall.snakefile prepare_example_data
+```
+
 Usage
 -----
 

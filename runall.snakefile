@@ -48,4 +48,17 @@ rule make_genes:
         {Rscript} tools/make_gene_lookup.R {output}
         sed -i "s/^chr//g" {output}
         """
+
+# Create a fresh copy of example_data
+# Used for testing the pipeline starting from raw data.
+rule prepare_example_data:
+    shell:
+        """
+        if [ -e example_data ]; then
+            rm -rf example_data
+        fi
+        mkdir -p example_data
+        (cd example_data && unzip ../sample_in_progress/raw.zip)
+        """
+
 # vim: ft=python

@@ -60,3 +60,5 @@ rule prepare_example_data:
         mkdir -p example_data
         (cd example_data && unzip ../sample_in_progress/raw.zip)
         """
+
+-# vim: ft=python

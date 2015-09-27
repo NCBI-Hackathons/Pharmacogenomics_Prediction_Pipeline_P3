@@ -58,7 +58,7 @@ analysis. It is a text file with one sample name per line.
 The final set of features will be subsetted to only include data from the
 sample IDs specified in this file.
 
-This file is parsed into a list of sample IDs within the `runall.snakefile`
+This file is parsed into a list of sample IDs within the `Snakefile`
 workflow such that each child workflow can access the list of samples. This is
 especially convenient when sample IDs are encoded in filenames and you want to
 grab all files for all samples.

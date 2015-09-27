@@ -21,8 +21,8 @@ that on the biowulf cluster:
 
     ./clean-example-data.sh
     module load bedtools R  # on biowulf
-    snakemake -npr -s runall.snakefile  # dry run
-    snakemake -pr -s runall.snakefile  # run everything
+    snakemake -npr -s Snakefile  # dry run
+    snakemake -pr -s Snakefile  # run everything
 
 If you have made any changes to the documentation, make sure you commit them
 now::

@@ -19,7 +19,7 @@ been color coded.
 
 .. _all:
 
-``runall.snakefile``
+``Snakefile``
 
 .. image:: images/all_dag.png
     :target: images/all_dag.png

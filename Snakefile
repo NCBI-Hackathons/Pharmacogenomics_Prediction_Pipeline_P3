@@ -1,164 +1,64 @@
-# vim: ft=python
-
-"""
-
-"""
-
+import yaml
+from tools import pipeline_helpers
 import os
-from textwrap import dedent
 import pandas
+from textwrap import dedent
 
-targets = [
-
-    #'tools/data_qa.html',
-    #'/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
-    #'/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv',
-    #'/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab',
-    #'/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv',
-    #'/data/datasets/combined/gene_ontology/go_term_zscores.csv',
-    #'/data/datasets/raw/msig_db/c2.cp.v5.0.ensembl.tab',
-    #'/data/datasets/combined/msig_db/msig_db_zscores.csv',
-]
-
-df = pandas.read_table('/data/datasets/raw/metadata/sample_drugs_for_quick_testing.csv', sep=',')
-for drug_id in df.SID:
-    targets.append(
-        '/data/datasets/final/regression/SuperLearner/exome_variants/outSL_{0}.RData'.format(drug_id)
-    )
-    targets.append(
-        '/data/datasets/final/regression/SuperLearner/outSL_{0}.RData'.format(drug_id)
-    )
-def compile_Rmd(fn):
-    with open(os.path.basename(fn) + '.driver', 'w') as fout:
-        fout.write(dedent(
-            """
-            library(knitr)
-            library(rmarkdown)
-            render("{0}", output_format="all", clean=TRUE)
-            """.format(fn)))
-    shell("/usr/bin/Rscript {0}".format(fout.name))
-    shell("rm {0}".format(fout.name))
+localrules: make_lookups
 
 
-def run_R(fn, log=None):
-    if log is not None:
-        log = " > {0} 2> {0}".format(log)
-    else:
-        log = ""
-    shell("/usr/bin/Rscript {fn} {log}")
+config = yaml.load(open('config.yaml'))
+samples = [i.strip() for i in open(config['samples'])]
+config['sample_list'] = samples
+feature_targets = []
+for name in config['features_to_use']:
+    cfg = config['features'][name]
+    workflow.include(cfg['snakefile'])
+    outputs = cfg['output']
+    if isinstance(outputs, dict):
+        outputs = outputs.values()
+    elif not isinstance(outputs, list):
+        outputs = [outputs]
+    for output in outputs:
+        feature_targets.append(output.format(prefix=config['prefix']))
+
+Rscript = config['Rscript']
+
+lookup_targets = [i.format(prefix=config['prefix']) for i in [
+    '{prefix}/metadata/ENSG2ENTREZID.tab',
+    '{prefix}/metadata/ENSG2SYMBOL.tab',
+    '{prefix}/metadata/genes.bed',
+]]
+
+rule all_features:
+    input: feature_targets + lookup_targets
 
 
-rule all:
-    input: targets
-
-
-rule rmd:
-    input: '{prefix}.Rmd'
-    output: '{prefix}.html'
-    run:
-        compile_Rmd(input[0])
-
-
-rule compute_zscores:
-    input: "tools/rnaseq_data_zscore_calculation.R"
-    output: 
-        '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
-        '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore_estimates.csv'
-    run:
-        run_R(input[0])
-
-
-rule download_go:
-    input: 'tools/generate_ensembl_go_mapping.R'
-    output: '/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab'
-    run:
-        run_R(input[0])
-
-if 0:
-    rule rnaseq_data_prep:
-        input:
-            rscript='tools/rnaseq_data_preparation.R',
-            infile='/data/datasets/raw/rnaseq_expression/HMCL_ensembl74_Counts.csv'
-        output:
-            '/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv'
-        run:
-            run_R(input.rscript)
-
-
-rule go_term_processing:
-    input:
-        rscript='tools/go_term_analysis.R',
-        zscores='/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_zscore.csv',
-        go_mapping='/data/datasets/raw/gene_ontology/ensembl_go_mapping.tab',
-    output: '/data/datasets/combined/gene_ontology/go_term_zscores.csv'
-    log: 'tools/go_term_analysis.R.log'
-    run:
-        run_R(input.rscript, log)
-
-rule variants_transcript_summary:
-    input:
-        pyscript='src/variants_transcript_summary.py',
-        raw_annotations='/data/datasets/raw/exome_variants/'
-    output: '/data/datasets/filtered/exome_variants/transcripts_per_cell_line.txt'
-    run:
-        shell('python {input.pyscript} > {output}')
-
-rule variant_summary:
-    input:
-        pyscript='src/variant_summary.py',
-        raw_annotations='/data/datasets/raw/exome_variants/'
-    output: 
-        snp_effect_per_cell_line='/data/datasets/filtered/exome_variants/snp_effect_per_cell_line.txt',
-        snp_impact_per_cell_line='/data/datasets/filtered/exome_variants/snp_impact_per_cell_line.txt'
-    run:
-        shell('python {input.pyscript}')
-
-
-rule ensembl_transcripid_to_geneid:
-    input:
-        pyscript='src/replace_transcriptid_with_geneid.py',
-        raw_annotations='/data/datasets/filtered/exome_variants/transcripts_per_cell_line.txt'
-    output: '/data/datasets/filtered/exome_variants/genes_per_cell_line.txt'
-    run:
-        shell('python {input.pyscript} > {output}')
-
-rule msigdb_preprocessing:
-    input:
-        pyscript='tools/process_msigdb.py',
-        msigdb='/data/datasets/raw/msig_db/c2.cp.v5.0.entrez.gmt'
-    output: '/data/datasets/raw/msig_db/c2.cp.v5.0.ensembl.tab'
-    run:
-        shell('python {input.pyscript}')
-
-rule msigdb_processing:
-    input:
-        rscript='tools/msigdb_analysis.R',
-        ensembl_msigdb='/data/datasets/raw/msig_db/c2.cp.v5.0.ensembl.tab'
-    output: '/data/datasets/combined/msig_db/msig_db_zscores.csv'
-    log: 'tools/msigdb_analysis.R.log'
-    run:
-        run_R(input.rscript, log)
-
-
-rule superlearner:
-    input:
-        drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv",
-        features="/data/datasets/filtered/exome_variants/genes_per_cell_line-count-filtered.txt"
-    output: "/data/datasets/final/regression/SuperLearner/exome_variants/outSL_{drug_id}.RData"
-    params: rscript='tools/prediction_algorithm_analysis.R'
-    log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log"
+rule make_lookups:
+    output: '{prefix}/metadata/ENSG2{map}.tab'
     shell:
-        '''
-        /usr/bin/Rscript {params.rscript} {wildcards.drug_id} {input.features} $(dirname {output}) > {log} 2> {log}
-        '''
-rule superlearner2:
-    input:
-        drug_response_input="/data/datasets/filtered/drug_response/iLAC50_filtered.csv",
-        features="/data/datasets/filtered/rnaseq_expression/HMCL_ensembl74_Counts_normalized.csv"
-    output: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.RData"
-    params: rscript='tools/prediction_algorithm_analysis.R'
-    log: "/data/datasets/final/regression/SuperLearner/outSL_{drug_id}.log"
+        """
+        {Rscript} tools/make_lookups.R {wildcards.map} {output}
+        """
+
+rule make_genes:
+    output: '{prefix}/metadata/genes.bed'
     shell:
-        '''
-        /usr/bin/Rscript {params.rscript} {wildcards.drug_id} {input.features} $(dirname {output}) > {log} 2> {log}
-        '''
+        """
+        {Rscript} tools/make_gene_lookup.R {output}
+        sed -i "s/^chr//g" {output}
+        """
+
+# Create a fresh copy of example_data
+# Used for testing the pipeline starting from raw data.
+rule prepare_example_data:
+    shell:
+        """
+        if [ -e example_data ]; then
+            rm -rf example_data
+        fi
+        mkdir -p example_data
+        (cd example_data && unzip ../sample_in_progress/raw.zip)
+        """
+
+# vim: ft=python

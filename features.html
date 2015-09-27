@@ -1,0 +1,347 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>P3 features &mdash; Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
+    <link rel="next" title="Pipeline design" href="topic-snakefiles.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="topic-snakefiles.html" title="Pipeline design"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="configuration.html" title="Configuration"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="p3-features">
+<h1>P3 features<a class="headerlink" href="#p3-features" title="Permalink to this headline">¶</a></h1>
+<p>While the pipeline is generic enough to support arbitrary numbers of arbitrary
+features, here we describe the actual features used. This section can be used
+as a starting point for creating custom sets of features for other types of
+data.</p>
+<p>Each set of features requires a different set of pre-processing steps. To
+accommodate this, and to isolate the customization into discrete,
+easily-editable components, features are handled by separate workflows. In some
+cases, the workflows are interdepedent on each other. Each workflow is expected to
+create the output files defined in the <code class="docutils literal"><span class="pre">config.yaml</span></code> file.</p>
+<p>Below, each sub-workflow is shown separately as a directed acyclic graph (DAG)
+of the tasks performed and the first few lines of the output file (or files)
+are shown. To illustrate interdepdencies among workflows, sub-workflows have
+been color coded.</p>
+<p id="all"><code class="docutils literal"><span class="pre">runall.snakefile</span></code></p>
+<a class="reference external image-reference" href="images/all_dag.png"><img alt="_images/all_dag.png" src="_images/all_dag.png" /></a>
+<div class="section" id="norm-counts-snakefile">
+<span id="normcounts"></span><h2><code class="docutils literal"><span class="pre">norm_counts.snakefile</span></code><a class="headerlink" href="#norm-counts-snakefile" title="Permalink to this headline">¶</a></h2>
+<p>This workflow starts with <cite>htseq-count</cite> files, one for each sample. They have
+the following format:</p>
+<p>The workflow is the following:</p>
+<img alt="_images/normed_counts_dag.png" src="_images/normed_counts_dag.png" />
+<p>The output file of <code class="docutils literal"><span class="pre">norm_counts.snakefile</span></code> is a table of gene-level
+quantile-normalized counts per million (CPM). One row per gene, and one column
+per sample:</p>
+<div class="highlight-python"><div class="highlight"><pre>LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+ENSG00000234515	17.8687589559481	1.0769198527651	-1	-1	4.82703381950925	6.38863928575311	-1	-1	5.68281394137488	-1
+ENSG00000264113	-1	-1	-1	17.8687589559481	-0.0576641927637963	-1	12.1996591413175	16.6358805540731	7.30331969731323	17.8687589559481
+ENSG00000243514	-1	1.0769198527651	-1	2.50532392304214	-1	14.2884920493533	13.065890821649	-1	15.3885252912467	-1
+ENSG00000103415	-1	11.0105207510527	4.32755526660216	12.1996591413175	2.50532392304214	5.24816249855466	11.7813206156511	-1	-1	8.8974528747595
+</pre></div>
+</div>
+</div>
+<div class="section" id="zscores-snakefile">
+<span id="zscores"></span><h2><code class="docutils literal"><span class="pre">zscores.snakefile</span></code><a class="headerlink" href="#zscores-snakefile" title="Permalink to this headline">¶</a></h2>
+<p>This workflow takes the output of <a class="reference internal" href="#normcounts"><span>norm_counts.snakefile</span></a> and converts counts into
+zscores. In the absence of matched controls, these zscores are then used as
+a proxy for direction and magnitude of differential expression.</p>
+<img alt="_images/zscores_dag.png" src="_images/zscores_dag.png" />
+<p>Output looks like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+ENSG00000234515	11.580968729376	0.674490759476595	-0.674490759476595	-0.674490759476595	3.11022963903472	4.12450898691359	-0.674490759476595	-0.674490759476595	3.66606792386179	-0.674490759476595
+ENSG00000264113	-0.674490759476595	-0.674490759476595	-0.674490759476595	2.07854358239692	-0.53699984950445	-0.674490759476595	1.25139715937969	1.8986612389084	0.53699984950445	2.07854358239692
+ENSG00000243514	-0.674490759476595	0.674490759476595	-0.674490759476595	1.60225438494143	-0.674490759476595	9.25554732060764	8.46145482877324	-0.674490759476595	9.97003060294169	-0.674490759476595
+ENSG00000103415	-0.674490759476595	0.7251607226062	-0.053641690619681	0.863737504149148	-0.26599624656081	0.053641690619681	0.814986234358453	-0.674490759476595	-0.674490759476595	0.478913399438626
+</pre></div>
+</div>
+</div>
+<div class="section" id="variants-snakefile">
+<span id="variants"></span><h2><code class="docutils literal"><span class="pre">variants.snakefile</span></code><a class="headerlink" href="#variants-snakefile" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Need more methods here about how the original data files were processed.</p>
+</div>
+<p>The starting point of the exome variant data are tab-delimited files, one for
+each sample, generated by running SnpEff on VCF files, performing filtering
+steps to exclude likely germline mutations, and excluding the VCF header:</p>
+<div class="highlight-python"><div class="highlight"><pre>#CHROM	POS	ID	REF	ALT	1000G	COSMIC	DB	NHLBI	EFF[*].EFFECT	EFF[*].IMPACT	EFF[*].FUNCLASS	EFF[*].CODON	EFF[*].AA	EFF[*].AA_LEN	EFF[*].GENE	EFF[*].BIOTYPE	EFF[*].CODING	EFF[*].TRID	EFF[*].RANK	GEN[0].AD[0]	GEN[0].AD[1]	GEN[0].DP
+6	30994026	.	C	C	.	.	.	.	NON_SYNONYMOUS_CODING	MODERATE	MISSENSE	.	.	.	MUC22	protein_coding	CODING	ENST00000561890	.	.	.	.
+7	129825046	.	G	T	.	.	.	.	CODON_CHANGE_PLUS_CODON_DELETION	MODERATE	.	.	.	.	TMEM209	protein_coding	CODING	ENST00000397622	.	.	.	.
+12	72070805	.	G	C	.	.	.	.	NON_SYNONYMOUS_CODING	MODERATE	MISSENSE	.	.	.	THAP2	protein_coding	CODING	ENST00000308086	.	.	.	.
+19	58514095	.	A	TGCC	.	.	.	.	CODON_INSERTION	MODERATE	.	.	.	.	CTD-2368P22.1	protein_coding	CODING	ENST00000550135	.	.	.	.
+</pre></div>
+</div>
+<p>SnpEff reports effects on a per-transcript basis. For integration with other
+features that consider genes (i.e., the pathway features), after
+collecting samples into a <cite>transcripts x sample</cite> matrix, we aggregate into
+a <cite>gene x sample</cite> matrix by summing variants across all transcripts of a gene.</p>
+<img alt="_images/exome_variants_dag.png" src="_images/exome_variants_dag.png" />
+<p>Output of the <cite>gene x sample</cite> matrix looks like this, where values indicate the
+total number of variants across a gene in a sample.</p>
+<p>Specifically, since the variants in these files have been pre-filtered to only
+contain those with high impact, the value for each gene represents the total
+number of rows in the VCF file annotated with transcript IDs (<cite>EFF[*].TRID</cite>
+column) belonging to that gene.</p>
+<div class="highlight-python"><div class="highlight"><pre>ENSEMBL	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+ENSG00000005238	0.0	0.0	0.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0
+ENSG00000005483	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
+ENSG00000006377	0.0	0.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
+ENSG00000006788	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	1.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="cnv-snakefile">
+<span id="cnv"></span><h2><code class="docutils literal"><span class="pre">cnv.snakefile</span></code><a class="headerlink" href="#cnv-snakefile" title="Permalink to this headline">¶</a></h2>
+<p>The copy number variation (CNV) data starts as files in SEG format for each
+sample. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>ID	chrom	loc.start	loc.end	num.mark	seg.mean
+LineA_1	1	564454	746638	1594	0.0155
+LineA_1	1	752741	12846964	1205	0.3181
+LineA_1	1	12866220	12912597	8	-0.554
+LineA_1	1	12917433	22050665	3	-4.111
+</pre></div>
+</div>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">Need methods on how the SEG files were created</p>
+</div>
+<img alt="_images/cnv_dag.png" src="_images/cnv_dag.png" />
+<p>Since each sample may have a different set of CNVs, the total number of unique
+CNVs across all samples must be determined. The <cite>multiinter</cite> program from the
+<cite>BEDTools</cite> suite is used to identify a uniform set of segments that can be used
+across all samples.</p>
+<p>This uniform set of segments is then intersected with the actual segments on
+a per-sample basis to obtain per-sample CNV values for each segment. Files
+across samples are then aggregated into a single &#8220;cluster matrix&#8221; file.</p>
+<p>This diagram shows how cluster scores are calculated for a hypothetical set of
+3 samples:</p>
+<img alt="_images/cluster-scores-diagram.png" src="_images/cluster-scores-diagram.png" />
+<p>A separate set of scores is calculated at the gene level. A score for each gene
+can be calculated in several ways. The following diagram shows two ways: the
+largest magnitude CNV that overlaps the gene (&#8220;max&#8221;), or the score of the
+longest segment that overlaps the gene (&#8220;longest&#8221;):</p>
+<img alt="_images/gene-scores-diagram.png" src="_images/gene-scores-diagram.png" />
+<p>The final cluster scores output file looks like the following:</p>
+<div class="highlight-python"><div class="highlight"><pre>cluster_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+1_746638_752741	0.0	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	-3.252	-3.3
+1_752741_1613780	0.3181	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	-3.252	-3.3
+1_1613780_1651398	0.3181	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	0.0	-3.3
+1_1651398_1664194	0.3181	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	-1.6732	-3.3
+</pre></div>
+</div>
+<p>And the &#8220;max&#8221; gene scores:</p>
+<div class="highlight-python"><div class="highlight"><pre>gene_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+ENSG00000000003	0.8189	-0.0806	-1.3841	-1.6282	0.6118	0.0537	-0.6318	0.5661	0.0424	0.5658
+ENSG00000000005	0.8189	-0.0806	-1.3841	-1.6282	0.6118	0.0537	-0.6318	0.5661	0.0424	0.5658
+ENSG00000000419	0.3678	-0.517	0.3748	0.2662	1.3093	-1.0073	-4.5621	-1.3006	-0.9166	-1.4437
+ENSG00000000457	-0.9155	0.2732	0.6348	-0.5872	-0.5819	0.5559	-1.4232	-0.2612	-2.4134	-4.2292
+</pre></div>
+</div>
+<p>And the &#8220;longest&#8221; gene scores:</p>
+<div class="highlight-python"><div class="highlight"><pre>gene_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+ENSG00000000003	0.8189	-0.0806	-1.3841	-1.6282	0.6118	0.0537	-0.6318	0.5661	0.0424	0.5658
+ENSG00000000005	0.8189	-0.0806	-1.3841	-1.6282	0.6118	0.0537	-0.6318	0.5661	0.0424	0.5658
+ENSG00000000419	0.3678	-0.517	0.3748	0.2662	1.3093	-1.0073	-4.5621	-1.3006	-0.9166	-1.4437
+ENSG00000000457	-0.9155	0.2732	0.6348	-0.5872	-0.5819	0.5559	-1.4232	-0.2612	-2.4134	-4.2292
+</pre></div>
+</div>
+</div>
+<div class="section" id="pathways">
+<h2>Pathways<a class="headerlink" href="#pathways" title="Permalink to this headline">¶</a></h2>
+<p>Several annotation databases are used. These databases have annotations for
+each gene in a <cite>gene x annotation</cite> file. However, the features need to be in
+a <cite>annotation x samples</cite> file for use with regression methods. Therefore these
+pathway workflows use different strategies to calculate a pathway score for
+each sample, based on some property or properties of the genes for that pathway
+in that sample.</p>
+<p>See <a class="reference internal" href="topic-pivot.html#pathway-scores"><span>Obtaining pathway scores</span></a> for more details.</p>
+<p>In the pathway workflows below, there are several &#8220;flavors&#8221; of scores, each of
+which are derived from workflows described above. For example, there are scores
+derived from zscores, variants, and CNV data.</p>
+<div class="section" id="consensus-pathway-database">
+<span id="cpdb"></span><h3>Consensus pathway database<a class="headerlink" href="#consensus-pathway-database" title="Permalink to this headline">¶</a></h3>
+<p>Scores for each pathway are calculated based on the output of
+<a class="reference internal" href="#variants"><span>variants.snakefile</span></a> and <a class="reference internal" href="#zscores"><span>zscores.snakefile</span></a>.</p>
+<img alt="_images/cpdb_dag.png" src="_images/cpdb_dag.png" />
+<p>Variants output file:</p>
+<div class="highlight-python"><div class="highlight"><pre>pathway_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+N-Glycan_biosynthesis_sum_var	0.0	0.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
+None_sum_var	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	1.0	0.0
+PA152241951_sum_var	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	1.0	0.0
+Pathway_EGFR1_sum_var	0.0	1.0	4.0	1.0	1.0	1.0	3.0	1.0	2.0	1.0
+</pre></div>
+</div>
+<p>Zscores output file:</p>
+<div class="highlight-python"><div class="highlight"><pre>pathway_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+N-Glycan_biosynthesis_sum_pos		0.6744907594765949	3.5638961701333796				1.03207331666923	4.1439504657554		3.00806348507059
+None_sum_pos	0.131088071579741		1.4664123740802788	0.8307047838158309	0.32206503184169205	2.8771587960372305	1.8697663658591699	1.5811716854272402	0.407459235642265	
+PA152241951_sum_pos	1.3566355942144999		0.423897601727489		0.157361464312241		1.14508070430709			0.554828755663669
+PWY-5874_sum_pos		0.7251607226062		0.8637375041491481		0.053641690619681	0.814986234358453			0.47891339943862604
+</pre></div>
+</div>
+</div>
+<div class="section" id="gene-ontology">
+<span id="go"></span><h3>Gene ontology<a class="headerlink" href="#gene-ontology" title="Permalink to this headline">¶</a></h3>
+<p>Scores for each GO term are calculated based on the output of
+<a class="reference internal" href="#variants"><span>variants.snakefile</span></a> and <a class="reference internal" href="#zscores"><span>zscores.snakefile</span></a>.</p>
+<img alt="_images/go_dag.png" src="_images/go_dag.png" />
+<p>Variants output file:</p>
+<div class="highlight-python"><div class="highlight"><pre>pathway_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+GO_0000122_sum_var	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	1.0	0.0
+GO_0000978_sum_var	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	1.0	0.0
+GO_0001077_sum_var	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	1.0	0.0
+GO_0001133_sum_var	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	1.0	0.0
+</pre></div>
+</div>
+<p>Zscores output file:</p>
+<div class="highlight-python"><div class="highlight"><pre>pathway_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+GO_0000122_sum_pos	2.3518180778796096	1.76273485147185	0.694044921834633	3.9069612972010397	1.4971888921138388	0.9013622016070708	2.694214312746489		2.040518117783778	
+GO_0000159_sum_pos	2.48468185483921		1.69424387076123		1.1789473338098202	0.8296420036025209			0.597470904863933	
+GO_0000287_sum_pos	1.3566355942144999		0.423897601727489		0.157361464312241		1.14508070430709			0.554828755663669
+GO_0000775_sum_pos	2.48468185483921		1.69424387076123		1.1789473338098202	0.8296420036025209			0.597470904863933	
+</pre></div>
+</div>
+</div>
+<div class="section" id="msig-database">
+<span id="msigdb"></span><h3>MSIG database<a class="headerlink" href="#msig-database" title="Permalink to this headline">¶</a></h3>
+<p>Scores for each pathway are calculated based on the output of
+<a class="reference internal" href="#variants"><span>variants.snakefile</span></a> and <a class="reference internal" href="#zscores"><span>zscores.snakefile</span></a>.</p>
+<img alt="_images/msigdb_dag.png" src="_images/msigdb_dag.png" />
+<p>Variants output file:</p>
+<div class="highlight-python"><div class="highlight"><pre>pathway_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+KEGG_CHEMOKINE_SIGNALING_PATHWAY_sum_var	0.0	0.0	1.0	0.0	1.0	0.0	1.0	0.0	0.0	0.0
+KEGG_CYTOKINE_CYTOKINE_RECEPTOR_INTERACTION_sum_var	0.0	0.0	0.0	0.0	0.0	0.0	1.0	0.0	0.0	0.0
+KEGG_JAK_STAT_SIGNALING_PATHWAY_sum_var	0.0	0.0	0.0	0.0	0.0	0.0	1.0	0.0	0.0	0.0
+KEGG_N_GLYCAN_BIOSYNTHESIS_sum_var	0.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
+</pre></div>
+</div>
+<p>Zscores output file:</p>
+<div class="highlight-python"><div class="highlight"><pre>pathway_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
+BIOCARTA_CHREBP2_PATHWAY_sum_pos	2.48468185483921		1.69424387076123		1.1789473338098202	0.8296420036025209			0.597470904863933	
+BIOCARTA_IL22BP_PATHWAY_sum_pos	0.131088071579741		1.24411249036296	0.8307047838158309		1.9757965944301599		1.5811716854272402		
+KEGG_ARACHIDONIC_ACID_METABOLISM_sum_pos	1.3566355942144999		0.423897601727489		0.157361464312241		1.14508070430709			0.554828755663669
+KEGG_CYTOKINE_CYTOKINE_RECEPTOR_INTERACTION_sum_pos	0.131088071579741		1.24411249036296	0.8307047838158309		1.9757965944301599		1.5811716854272402		
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">P3 features</a><ul>
+<li><a class="reference internal" href="#norm-counts-snakefile"><code class="docutils literal"><span class="pre">norm_counts.snakefile</span></code></a></li>
+<li><a class="reference internal" href="#zscores-snakefile"><code class="docutils literal"><span class="pre">zscores.snakefile</span></code></a></li>
+<li><a class="reference internal" href="#variants-snakefile"><code class="docutils literal"><span class="pre">variants.snakefile</span></code></a></li>
+<li><a class="reference internal" href="#cnv-snakefile"><code class="docutils literal"><span class="pre">cnv.snakefile</span></code></a></li>
+<li><a class="reference internal" href="#pathways">Pathways</a><ul>
+<li><a class="reference internal" href="#consensus-pathway-database">Consensus pathway database</a></li>
+<li><a class="reference internal" href="#gene-ontology">Gene ontology</a></li>
+<li><a class="reference internal" href="#msig-database">MSIG database</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="configuration.html"
+                        title="previous chapter">Configuration</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="topic-snakefiles.html"
+                        title="next chapter">Pipeline design</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/features.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, various.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="_sources/features.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

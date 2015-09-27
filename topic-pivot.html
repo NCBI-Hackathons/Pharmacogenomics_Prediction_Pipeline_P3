@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Obtaining pathway scores &mdash; Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
+    <link rel="next" title="Documentation about the documentation" href="metadoc.html" />
+    <link rel="prev" title="Pipeline design" href="topic-snakefiles.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="metadoc.html" title="Documentation about the documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="topic-snakefiles.html" title="Pipeline design"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="obtaining-pathway-scores">
+<span id="pathway-scores"></span><h1>Obtaining pathway scores<a class="headerlink" href="#obtaining-pathway-scores" title="Permalink to this headline">¶</a></h1>
+<p>With respect to features, we have many cases where we download annotations as
+a table with format <cite>gene X annotation</cite>. However, for training, we need a table
+of features that is <cite>annotation X sample</cite>. So for each sample and annotation,
+we need to calculate a score across all genes for that annotation in that
+sample.</p>
+<p>Take GO terms for example. Imagine genes 1, 2, 3, and 4 are annotated with GO
+term &#8220;<a class="reference external" href="GO:001">GO:001</a>&#8221;. To get a score for &#8220;<a class="reference external" href="GO:001">GO:001</a>&#8221; in cell line &#8220;A&#8221;, we need some sort
+of cell-line-specific data . . . like, say, RNA-seq. So imagine we also have
+RNA-seq data where we&#8217;ve calculated zscores for each gene in each cell line.
+To give a concrete example, let&#8217;s say the zscores in cell line &#8220;A&#8221; for genes 1,
+2, 3, and 4 are -3, -1, 0, and 5 respectively.</p>
+<p>Possible scores for &#8220;<a class="reference external" href="GO:001">GO:001</a>&#8221; in cell line &#8220;A&#8221; might be:</p>
+<blockquote>
+<div><ul class="simple">
+<li>sum of all zscores = 1</li>
+<li>sum of downregulated = -4</li>
+<li>sum of upregulated = 5</li>
+<li>mean zscore = 0.25</li>
+<li>fraction of all &#8220;<a class="reference external" href="GO:001">GO:001</a>&#8220;-annotated genes that are upregulated = 1/4</li>
+<li>fraction of all &#8220;<a class="reference external" href="GO:001">GO:001</a>&#8220;-annotated genes that are downregulated = 2/4</li>
+<li>fraction of all &#8220;<a class="reference external" href="GO:001">GO:001</a>&#8220;-annotated genes that are changed = 3/4</li>
+<li>mean up-regulated zscore = 5</li>
+<li>mean downregulated zscore = -2</li>
+</ul>
+</div></blockquote>
+<p>The Python package &#8220;pandas&#8221; has some ridiculously fast pivot tables as long as
+we restrict ourselves to NumPy and pandas.Series functions.</p>
+<p>In the example below, <code class="docutils literal"><span class="pre">file1</span></code> is a <cite>gene X annotation</cite> tab-delimited file
+where one column, &#8220;GO&#8221;, contains the GO accession for each gene. <code class="docutils literal"><span class="pre">file2</span></code> is
+a <cite>gene x sample</cite> CSV file where values are zscores.</p>
+<p>First, we load the files and join them on their index column. So now we have
+columns for all samples as well as additional columns for annotations (one of
+which is the GO accession column):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="n">x1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">file1</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">file2</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">x1</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then we use <code class="docutils literal"><span class="pre">pandas.pivot_table</span></code> to do all the work for us. The important
+things are which column to aggregate a score for (&#8220;<cite>GO</cite>&#8221;) and how to do the
+aggregation (&#8220;<cite>aggfunc</cite>&#8221;):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># sum of all zscores</span>
+<span class="n">y0</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s">&#39;GO&#39;</span><span class="p">,</span> <span class="n">aggfunc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span>
+
+<span class="c"># sum of all upregulated</span>
+<span class="n">y1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="s">&#39;GO&#39;</span><span class="p">,</span> <span class="n">aggfunc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span>
+
+<span class="c"># mean of all upregulated</span>
+<span class="n">y2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="s">&#39;GO&#39;</span><span class="p">,</span> <span class="n">aggfunc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+
+<span class="c"># fraction upregulated</span>
+<span class="c"># first get the count of upregulated. This calls the .count() method on</span>
+<span class="c"># Series objects.</span>
+<span class="n">y3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="s">&#39;GO&#39;</span><span class="p">,</span> <span class="n">aggfunc</span><span class="o">=</span><span class="s">&#39;count&#39;</span><span class="p">)</span>
+
+<span class="c"># Then get how many there are total for each GO term.</span>
+<span class="n">y4</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="s">&#39;GO&#39;</span><span class="p">,</span> <span class="n">aggfunc</span><span class="o">=</span><span class="nb">len</span><span class="p">)</span>
+
+<span class="c"># Get the fraction</span>
+<span class="n">y5</span> <span class="o">=</span> <span class="n">y3</span> <span class="o">/</span> <span class="n">y4</span>
+</pre></div>
+</div>
+<p>Note that at the end of the machine learning, we will want to be able to
+inspect the resulting models for variable importance. In the above example, all
+of the resulting <cite>y*</cite> dataframes have similar indexes (e.g., the sum-of-zscores
+is indexed by GO term, and so is the sum-of-all-upregulated, and so on). So if
+we include more than one of them in the final set of features, we won&#8217;t know
+which is which.  The solution to this is to append a unique tag to the
+indexes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">index_converter</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">label</span><span class="p">)</span>
+
+<span class="n">y0</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index_converter</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="s">&#39;_sum&#39;</span><span class="p">)</span>
+<span class="n">y1</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index_converter</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="s">&#39;_upsum&#39;</span><span class="p">)</span>
+<span class="n">y2</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index_converter</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="s">&#39;_upavg&#39;</span><span class="p">)</span>
+<span class="n">y5</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index_converter</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="s">&#39;_upfrac&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>While documented in long form here, this is actually implemented in the
+<cite>tools/pipeline_helpers.py</cite> module in <cite>pathway_scores_from_zscores()</cite>. There
+are analagous functions in that module to handle variants and CNV data.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="topic-snakefiles.html"
+                        title="previous chapter">Pipeline design</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="metadoc.html"
+                        title="next chapter">Documentation about the documentation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/topic-pivot.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, various.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="_sources/topic-pivot.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

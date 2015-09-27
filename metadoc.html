@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Documentation about the documentation &mdash; Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Obtaining pathway scores" href="topic-pivot.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="topic-pivot.html" title="Obtaining pathway scores"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="documentation-about-the-documentation">
+<h1>Documentation about the documentation<a class="headerlink" href="#documentation-about-the-documentation" title="Permalink to this headline">¶</a></h1>
+<p>These docs are built using <a class="reference external" href="http://sphinx-doc.org">Sphinx</a> and served on
+github. They use the actual input and output used for the example pipeline run,
+so generation of the docs requires successfully running the example pipeline.</p>
+<p>Here&#8217;s how to rebuild and upload the docs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All paths below are relative to the top-level dir of the repo</p>
+</div>
+<div class="section" id="run-the-pipeline-on-example-data">
+<h2>Run the pipeline on example data<a class="headerlink" href="#run-the-pipeline-on-example-data" title="Permalink to this headline">¶</a></h2>
+<p>The documentation includes customized DAGs of the workflows. To generate these,
+first the example pipeline must have been successfully run. Here&#8217;s how to do
+that on the biowulf cluster:</p>
+<div class="highlight-bash"><div class="highlight"><pre>./clean-example-data.sh
+module load bedtools R  <span class="c"># on biowulf</span>
+snakemake -npr -s runall.snakefile  <span class="c"># dry run</span>
+snakemake -pr -s runall.snakefile  <span class="c"># run everything</span>
+</pre></div>
+</div>
+<p>If you have made any changes to the documentation, make sure you commit them
+now:</p>
+<div class="highlight-python"><div class="highlight"><pre>git status
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The following commands assume your latest work was on the master branch.
+This is generally a good assumption because it means that the docs match
+the code in master. But merging from another branch might be useful if
+you&#8217;re playing around with changes to the docs themselves.</p>
+</div>
+</div>
+<div class="section" id="run-build-docs-sh">
+<h2>Run <cite>build-docs.sh</cite><a class="headerlink" href="#run-build-docs-sh" title="Permalink to this headline">¶</a></h2>
+<p>Run:</p>
+<div class="highlight-python"><div class="highlight"><pre>./build-docs.sh
+</pre></div>
+</div>
+<p>This will build and upload docs to the currently-configured origin. If this is
+run on your fork of the P3 code, it will upload the docs to your fork, such
+that you can view it at:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;username&gt;.github.io/Pharmacogenomics_Prediction_Pipeline_P3
+</pre></div>
+</div>
+<p>If you would like to build and upload for another repo that you have write
+access to &#8211; say, to update the
+docs in the main repo &#8211; then pass that repo as the first argument to
+<cite>build-docs.sh</cite>.  E.g.,:</p>
+<div class="highlight-python"><div class="highlight"><pre>./build-docs.sh git@github.com:NCBI-Hackathons/Pharmacogenomics_Prediction_Pipeline_P3.git
+</pre></div>
+</div>
+</div>
+<div class="section" id="merge-master-with-gh-pages-branch">
+<h2>Merge master with gh-pages branch<a class="headerlink" href="#merge-master-with-gh-pages-branch" title="Permalink to this headline">¶</a></h2>
+<p>Relative to the top-level dir of the repo:</p>
+<div class="highlight-bash"><div class="highlight"><pre>git checkout gh-pages
+git merge master
+</pre></div>
+</div>
+</div>
+<div class="section" id="make-the-docs-while-in-the-gh-pages-branch">
+<h2>Make the docs while in the <cite>gh-pages</cite> branch<a class="headerlink" href="#make-the-docs-while-in-the-gh-pages-branch" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>cd doc
+make dags
+make clean html
+</pre></div>
+</div>
+</div>
+<div class="section" id="check-output-and-push-to-github">
+<h2>Check output and push to github<a class="headerlink" href="#check-output-and-push-to-github" title="Permalink to this headline">¶</a></h2>
+<p>In a browser, check the built docs at <code class="docutils literal"><span class="pre">doc/build/html/index.html</span></code>. If
+everything looks OK, you&#8217;re ready to push to github:</p>
+<div class="highlight-python"><div class="highlight"><pre>git status
+git commit -a -m &#39;rebuild docs&#39;
+git push origin gh-pages
+</pre></div>
+</div>
+</div>
+<div class="section" id="switch-back-to-master-branch">
+<h2>Switch back to master branch<a class="headerlink" href="#switch-back-to-master-branch" title="Permalink to this headline">¶</a></h2>
+<p>And finally, get back to the master branch:</p>
+<div class="highlight-python"><div class="highlight"><pre>git checkout master
+&lt;username&gt;.github.io/
+</pre></div>
+</div>
+</div>
+<div class="section" id="view-docs-on-web">
+<h2>View docs on web<a class="headerlink" href="#view-docs-on-web" title="Permalink to this headline">¶</a></h2>
+<p>Now check the new docs (might need to force refresh) at
+<a class="reference external" href="http://ncbi-hackathons.github.io/Pharmacogenomics_Prediction_Pipeline_P3/doc/build/html">http://ncbi-hackathons.github.io/Pharmacogenomics_Prediction_Pipeline_P3/doc/build/html</a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Documentation about the documentation</a><ul>
+<li><a class="reference internal" href="#run-the-pipeline-on-example-data">Run the pipeline on example data</a></li>
+<li><a class="reference internal" href="#run-build-docs-sh">Run <cite>build-docs.sh</cite></a></li>
+<li><a class="reference internal" href="#merge-master-with-gh-pages-branch">Merge master with gh-pages branch</a></li>
+<li><a class="reference internal" href="#make-the-docs-while-in-the-gh-pages-branch">Make the docs while in the <cite>gh-pages</cite> branch</a></li>
+<li><a class="reference internal" href="#check-output-and-push-to-github">Check output and push to github</a></li>
+<li><a class="reference internal" href="#switch-back-to-master-branch">Switch back to master branch</a></li>
+<li><a class="reference internal" href="#view-docs-on-web">View docs on web</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="topic-pivot.html"
+                        title="previous chapter">Obtaining pathway scores</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/metadoc.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, various.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="_sources/metadoc.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

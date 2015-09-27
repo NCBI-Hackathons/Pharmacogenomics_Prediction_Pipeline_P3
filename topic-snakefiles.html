@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Pipeline design &mdash; Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
+    <link rel="next" title="Obtaining pathway scores" href="topic-pivot.html" />
+    <link rel="prev" title="P3 features" href="features.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="topic-pivot.html" title="Obtaining pathway scores"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="features.html" title="P3 features"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pipeline-design">
+<span id="snakefiles"></span><h1>Pipeline design<a class="headerlink" href="#pipeline-design" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>A modular design helps organize data provenance.  This is accomplished using
+a single &#8220;driver&#8221; workflow that calls many sub-workflows.</p>
+<p>In Snakemake, this can be accomplished using one of two methods: subworkflows
+or includes.  Both import other snakefiles into the main workflow. Subworkflows
+allow different working directories to be set and allow the main workflow to
+require a specific output file from the subworkflow&#8217;s rules. Includes, on the
+other hand, insert an entire snakefile verbatim into the main workflow.</p>
+<p>Includes work better in this case because:</p>
+<blockquote>
+<div><ul class="simple">
+<li>when writing a snakefile, we can use anything that was imported or
+defined in the main workflow. Here, this means that we don&#8217;t have to keep
+reading the config file, keeping things clean and focused on the logic.</li>
+<li>other snakefiles can be interdependent on each other simply by including
+one snakefile in another.</li>
+</ul>
+</div></blockquote>
+<p>Much of the complexity of this project is preparing features for use in the
+learning algorithms. This often involves several steps &#8211; downloading,
+filtering, combining, reformatting, and so on. The strategy is to have, for
+each feature set, a separate snakefile. That snakefile is responsible for
+creating one or several output files that will be used as features by the
+learning algorithms.</p>
+<p>This means that we can add a new feature set by writing a new snakefile and
+telling the main workflow about it. This is accomplished using the
+<cite>config.yaml</cite> file. It&#8217;s probably easiest to look at an example:</p>
+</div>
+<div class="section" id="adding-a-new-feature-set">
+<h2>Adding a new feature set<a class="headerlink" href="#adding-a-new-feature-set" title="Permalink to this headline">¶</a></h2>
+<p>Edit <cite>config.yaml</cite>. Choose a name for the feature set, and add an entry to the
+<cite>features</cite> dictionary. The entry must have the filename of a Snakemake pipeline
+and the name of an output file. If there are several output files, then use
+a list of output files. Both paths are <em>relative to the runall.snakefile
+directory</em>.</p>
+<p>The current configuration uses &#8220;{prefix}&#8221; as a placeholder for the top-level
+data directory. This makes it straightforward to swap the data directory across
+all steps of all pipelines. For example, we can change the prefix to point
+somewhere else for running small test datasets without changing anything else.</p>
+<p>Next, write the snakefile referred to in the new <cite>config.yaml</cite> entry. This
+snakefile is responsible for creating the output file or files referred to in
+the new <cite>config.yaml</cite> entry.</p>
+</div>
+<div class="section" id="creating-the-snakefiles">
+<h2>Creating the snakefiles<a class="headerlink" href="#creating-the-snakefiles" title="Permalink to this headline">¶</a></h2>
+<p><cite>runall.snakefile</cite> simply <cite>include</cite> s each child snakefile. This means that you
+can use anything in the namespace of runall.snakefile &#8211; including the config
+obj and the helper functions. In fact, it would be a good idea to use
+<cite>config[&#8220;features&#8221;][featureset_name][&#8220;output&#8221;]</cite> as the output for the final
+rule in the child snakefile, ensuring that <cite>runall.snakefile</cite> and the child
+snakefile are expecting the same file to be created.</p>
+<p>runall.snakefile automatically includes any snakefiles configured in
+&#8216;config.yaml&#8217;.</p>
+<p>In those child snakefiles, you can use anything in the namespace of
+runall.snakefile &#8211; including the config obj and the helper functions.</p>
+<p>The child snakefiles are included verbatim, so beware rule name
+collisions.</p>
+<p>TODO: refactor all scripts to use input/output specified on commandline.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Pipeline design</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#adding-a-new-feature-set">Adding a new feature set</a></li>
+<li><a class="reference internal" href="#creating-the-snakefiles">Creating the snakefiles</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="features.html"
+                        title="previous chapter">P3 features</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="topic-pivot.html"
+                        title="next chapter">Obtaining pathway scores</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/topic-snakefiles.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, various.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="_sources/topic-snakefiles.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

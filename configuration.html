@@ -1,0 +1,303 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Configuration &mdash; Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
+    <link rel="next" title="P3 features" href="features.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="features.html" title="P3 features"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>Most configuration for P3 is performed by editing <code class="docutils literal"><span class="pre">config.yaml</span></code>,
+a text file using <a class="reference external" href="https://en.wikipedia.org/wiki/YAML">YAML</a> syntax.</p>
+<p>See the <a class="reference internal" href="#exampleconfig"><span>Example config.yaml</span></a> below for a full example and to see how each part
+relates. But first, we describe the parts of the config file and what they do.</p>
+<div class="section" id="config-sections">
+<h2>Config sections<a class="headerlink" href="#config-sections" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="prefix">
+<span id="config-prefix"></span><h3><cite>prefix</cite><a class="headerlink" href="#prefix" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">prefix</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">example_data</span>
+</pre></div>
+</div>
+<p>This entry sets the directory <cite>prefix</cite> that can be used by any output filenames
+(which will be described below). For example, in the <a class="reference internal" href="#exampleconfig"><span>Example config.yaml</span></a>, the
+output filenames for the features start with the <code class="docutils literal"><span class="pre">{prefix}</span></code> placeholder.</p>
+<p>It is convenient to set this to a directory containing a subset of the data
+(but with the same filenames as real data) while developing the pipeline, and
+then set it to the full data set once everything is working.</p>
+</div>
+<div class="section" id="features-to-use">
+<h3><cite>features_to_use</cite><a class="headerlink" href="#features-to-use" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">features_to_use</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">cnv</span><span class="p-Indicator">,</span> <span class="nv">exome_variants</span><span class="p-Indicator">]</span>
+</pre></div>
+</div>
+<p>This entry selects the feature sets to use for a particular run. The items in the
+list must correspond to feature sets defined in the <a class="reference internal" href="#config-features"><span>features</span></a>
+section. Note that if one feature set depends on another, they must both be
+included in this list.</p>
+</div>
+<div class="section" id="samples">
+<h3><cite>samples</cite><a class="headerlink" href="#samples" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">samples</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">celllines.txt</span>
+</pre></div>
+</div>
+<p>This entry specifies a filename containing sample IDs to include in the
+analysis. It is a text file with one sample name per line.</p>
+<p>The final set of features will be subsetted to only include data from the
+sample IDs specified in this file.</p>
+<p>This file is parsed into a list of sample IDs within the <cite>runall.snakefile</cite>
+workflow such that each child workflow can access the list of samples. This is
+especially convenient when sample IDs are encoded in filenames and you want to
+grab all files for all samples.</p>
+</div>
+<div class="section" id="rscript">
+<h3><cite>Rscript</cite><a class="headerlink" href="#rscript" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">Rscript</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/usr/bin/Rscript</span>
+</pre></div>
+</div>
+<p>Sets the path to <cite>Rscript</cite>. Within Snakemake rules, an R file is then called
+with the <code class="docutils literal"><span class="pre">{Rscript}</span></code> placeholder which will be filled in with the path
+defined here:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">rule</span> <span class="n">example_r</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span> <span class="s">&#39;{prefix}/input_data.txt&#39;</span>
+    <span class="n">output</span><span class="p">:</span> <span class="s">&#39;{prefix}/output_data.txt&#39;</span>
+    <span class="n">shell</span><span class="p">:</span>
+        <span class="s">&quot;{Rscript} myscript.R {input} {output}&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="features">
+<span id="config-features"></span><h3><cite>features</cite><a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">features</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">cnv</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/cnv.snakefile</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
+            <span class="l-Scalar-Plain">clusters</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/cnv/cluster_scores.tab&quot;</span>
+            <span class="l-Scalar-Plain">max_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/cnv/cnv_gene_max_scores.tab&quot;</span>
+            <span class="l-Scalar-Plain">longest_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/cnv/cnv_gene_longest_overlap_scores.tab&quot;</span>
+
+    <span class="l-Scalar-Plain">exome_variants</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/variants.snakefile</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/exome_variants/exome_variants_by_gene.tab&quot;</span>
+</pre></div>
+</div>
+<p>This is where new feature sets are defined. In this example, there are two
+feature sets with the labels <code class="docutils literal"><span class="pre">cnv</span></code> and <code class="docutils literal"><span class="pre">exome_variants</span></code>. Under each label
+are two fields: <code class="docutils literal"><span class="pre">snakefile</span></code> and <code class="docutils literal"><span class="pre">output</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">snakefile:</th><td class="field-body">This field specifies the path, relative to the <code class="docutils literal"><span class="pre">config.yaml</span></code> file, to the
+Snakemake workflow that creates these features. This snakefile can do
+whatever it needs to do in order to create the output file[s].</td>
+</tr>
+<tr class="field-even field"><th class="field-name">output:</th><td class="field-body">This field can either be a single string (as in the <code class="docutils literal"><span class="pre">exome_variants</span></code>) or
+can be a dictionary with multiple output files, each with a unique name (as
+in <code class="docutils literal"><span class="pre">cnv</span></code>).  These output files can use the <code class="docutils literal"><span class="pre">{prefix}</span></code> placeholder which
+will be filled in with the <a class="reference internal" href="#config-prefix"><span>prefix</span></a> field. It is expected that
+these files will be created by the snakefile specified for this feature
+set.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Most of the effort in adding a new feature set is in writing the actual
+snakefile that does the work.  See <a class="reference internal" href="topic-snakefiles.html#snakefiles"><span>Pipeline design</span></a> for more on this.</p>
+</div>
+</div>
+</div>
+<div class="section" id="example-config-yaml">
+<span id="exampleconfig"></span><h2>Example <cite>config.yaml</cite><a class="headerlink" href="#example-config-yaml" title="Permalink to this headline">¶</a></h2>
+<p>This is the config file used to run the example data.</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="c1"># Top-level data dir</span>
+<span class="l-Scalar-Plain">prefix</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">example_data</span>
+
+<span class="c1"># List of feature sets to use while training. Anything selected here must be</span>
+<span class="c1"># configured below.</span>
+<span class="l-Scalar-Plain">features_to_use</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">go</span><span class="p-Indicator">,</span> <span class="nv">normed_counts</span><span class="p-Indicator">,</span> <span class="nv">zscores</span><span class="p-Indicator">,</span> <span class="nv">msigdb</span><span class="p-Indicator">,</span> <span class="nv">cpdb</span><span class="p-Indicator">,</span> <span class="nv">exome_variants</span><span class="p-Indicator">,</span> <span class="nv">cnv</span><span class="p-Indicator">]</span>
+
+<span class="l-Scalar-Plain">samples</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">celllines.txt</span>
+
+<span class="c1"># Explicitly defines path to Rscript to avoid conflict with other existing</span>
+<span class="c1"># installations</span>
+<span class="l-Scalar-Plain">Rscript</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Rscript</span>
+
+<span class="c1"># Each set of features:</span>
+<span class="c1">#   - has a unique name that can be used in the &quot;features_to_use&quot; list</span>
+<span class="c1">#</span>
+<span class="c1">#   - has one or more output files, which must be of the general format:</span>
+<span class="c1">#       - rows = features</span>
+<span class="c1">#       - columns = samples</span>
+<span class="c1">#</span>
+<span class="c1">#   - has a snakefile responsible for creating the output file.</span>
+<span class="c1">#       - paths in these snakefiles should be relative to the runall.snakefile</span>
+<span class="c1">#         since they are included verbatim.</span>
+<span class="c1">#       - interdependencies between feature snakefiles can be handled by using</span>
+<span class="c1">#         the snakemake directive &quot;include:&quot;</span>
+<span class="l-Scalar-Plain">features</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">cnv</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/cnv.snakefile</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
+            <span class="l-Scalar-Plain">clusters</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/cnv/cluster_scores.tab&quot;</span>
+            <span class="l-Scalar-Plain">max_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/cnv/cnv_gene_max_scores.tab&quot;</span>
+            <span class="l-Scalar-Plain">longest_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/cnv/cnv_gene_longest_overlap_scores.tab&quot;</span>
+
+    <span class="l-Scalar-Plain">exome_variants</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/variants.snakefile</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/exome_variants/exome_variants_by_gene.tab&quot;</span>
+
+    <span class="l-Scalar-Plain">msigdb</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/msigdb.snakefile</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
+            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/msigdb/msigdb_zscores.csv&quot;</span>
+            <span class="l-Scalar-Plain">variants</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/msigdb/msigdb_variants.csv&quot;</span>
+    <span class="l-Scalar-Plain">go</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/gene_ontology.snakefile</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
+            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/go/go_zscores.csv&quot;</span>
+            <span class="l-Scalar-Plain">variants</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/go/go_variants.csv&quot;</span>
+
+    <span class="l-Scalar-Plain">cpdb</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/cpdb.snakefile</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
+            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/consensus_pathway/cpdb_zscores.csv&quot;</span>
+            <span class="l-Scalar-Plain">variants</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/consensus_pathway/cpdb_variants.csv&quot;</span>
+
+    <span class="l-Scalar-Plain">normed_counts</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/normed_counts.snakefile</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/rnaseq_expression/counts_matrix_normalized.csv&quot;</span>
+
+    <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/zscores.snakefile</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
+            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/rnaseq_expression/zscores.csv&quot;</span>
+            <span class="l-Scalar-Plain">zscore_estimates</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/rnaseq_expression/zscore_estimates.csv&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Configuration</a><ul>
+<li><a class="reference internal" href="#config-sections">Config sections</a><ul>
+<li><a class="reference internal" href="#prefix"><cite>prefix</cite></a></li>
+<li><a class="reference internal" href="#features-to-use"><cite>features_to_use</cite></a></li>
+<li><a class="reference internal" href="#samples"><cite>samples</cite></a></li>
+<li><a class="reference internal" href="#rscript"><cite>Rscript</cite></a></li>
+<li><a class="reference internal" href="#features"><cite>features</cite></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-config-yaml">Example <cite>config.yaml</cite></a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="features.html"
+                        title="next chapter">P3 features</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/configuration.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, various.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="_sources/configuration.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

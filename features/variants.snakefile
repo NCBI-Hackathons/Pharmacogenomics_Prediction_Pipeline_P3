@@ -4,7 +4,7 @@ import numpy
 
 rule transcript_variant_matrix:
     input: expand('{{prefix}}/raw/exome_variants/{sample}_exome_variants.txt', sample=samples)
-    output: '{prefix}/filtered/exome_variants/exome_variants_by_transcript.tab'
+    output: '{prefix}/cleaned/exome_variants/exome_variants_by_transcript.tab'
     run:
         dfs = []
         for fn in input:
@@ -25,9 +25,9 @@ rule transcript_variant_matrix:
 
 rule transcript_variant_matrix_to_gene_variant_matrix:
     input:
-        variants_table='{prefix}/filtered/exome_variants/exome_variants_by_transcript.tab',
+        variants_table='{prefix}/cleaned/exome_variants/exome_variants_by_transcript.tab',
         lookup_table='{prefix}/metadata/ENSG2ENSEMBLTRANS.tab'
-    output: '{prefix}/filtered/exome_variants/exome_variants_by_gene.tab'
+    output: '{prefix}/cleaned/exome_variants/exome_variants_by_gene.tab'
     run:
         lookup = pandas.read_table(str(input.lookup_table), index_col='ENSEMBLTRANS')
         variants = pandas.read_table(str(input.variants_table), index_col='EFF[*].TRID')

@@ -4,7 +4,7 @@ rule msigdb_preprocessing:
     input:
         msigdb_downloaded_file='{prefix}/raw/msig_db/c2.cp.v5.0.entrez.gmt',
         lookup='{prefix}/metadata/ENSG2ENTREZID.tab'
-    output: '{prefix}/filtered/msig_db/c2.cp.v5.0.ensembl.tab'
+    output: '{prefix}/cleaned/msig_db/c2.cp.v5.0.ensembl.tab'
     run:
         """
         Convert msigdb Entrez accessions to Ensembl. Since there are some one-to-many

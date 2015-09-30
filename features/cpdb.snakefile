@@ -1,6 +1,6 @@
 rule preprocess_cpdb:
     input: '{prefix}/raw/consensus_pathway_db/CPDB_pathways_genes.tab'
-    output: '{prefix}/filtered/consensus_pathway_db/CPDB_pathways_ensembl.tab'
+    output: '{prefix}/cleaned/consensus_pathway_db/CPDB_pathways_ensembl.tab'
     run:
         with open(output[0], 'w') as fout:
             for line in open(input[0]):

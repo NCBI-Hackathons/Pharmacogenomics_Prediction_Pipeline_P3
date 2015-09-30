@@ -27,7 +27,7 @@ rule transcript_variant_matrix_to_gene_variant_matrix:
     input:
         variants_table='{prefix}/cleaned/exome_variants/exome_variants_by_transcript.tab',
         lookup_table='{prefix}/metadata/ENSG2ENSEMBLTRANS.tab'
-    output: '{prefix}/cleaned/exome_variants/exome_variants_by_gene.tab'
+    output: config['features']['exome_variants']['output']['by_gene']
     run:
         lookup = pandas.read_table(str(input.lookup_table), index_col='ENSEMBLTRANS')
         variants = pandas.read_table(str(input.variants_table), index_col='EFF[*].TRID')

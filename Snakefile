@@ -49,6 +49,22 @@ rule make_genes:
         sed -i "s/^chr//g" {output}
         """
 
+# For each configured sample, converts the NCATS-format input file into several
+# processed files.
+rule process_response:
+    input: '{prefix}/raw/drug_response/s-tum-{sample}-x1-1.csv'
+    output:
+        drugIds_file='{prefix}/processed/drug_response/{sample}_drugIds.tab',
+        drugResponse_file='{prefix}/processed/drug_response/{sample}_drugResponse.tab',
+        drugDoses_file='{prefix}/processed/drug_response/{sample}_drugDoses.tab',
+        drugDrc_file='{prefix}/processed/drug_response/{sample}_drugDrc.tab'
+    params: uniqueID='SID'
+    shell:
+        """
+        {Rscript} tools/drug_response_process.R {input} \
+        {output.drugIds_file} {output.drugResponse_file} {output.drugDoses_file} \
+        {output.drugDrc_file} {params.uniqueID}
+        """
 # Create a fresh copy of example_data
 # Used for testing the pipeline starting from raw data.
 rule prepare_example_data:

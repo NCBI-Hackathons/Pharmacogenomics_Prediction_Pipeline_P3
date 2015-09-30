@@ -114,3 +114,23 @@ def stitch(filenames, sample_from_filename_func, index_col=0, data_col=1,
     df.columns = names
     return df
 
+
+def remove_zero_variance(infile):
+    """
+    Remove rows with zero variance
+    """
+    d = pd.read_table(infile, index_col=0)
+    return d[d.var(axis=1) == 0]
+
+
+def remove_nfrac_variants(infile, nfrac=0.1):
+    """
+    Remove rows in which fewer than `nfrac` or greater than `1-nfrac` samples
+    have a variant.
+    """
+    d = pd.read_table(infile, index_col=0)
+    n = d.shape[1]
+    n_nonzero = (d == 0).sum(axis=1).astype(float)
+    too_low = (n_nonzero / n) <= nfrac
+    too_high = (n_nonzero / n) >= (1 - nfrac)
+    return d[~(too_low | too_high)]

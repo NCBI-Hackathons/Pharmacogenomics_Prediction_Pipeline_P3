@@ -1,7 +1,8 @@
+import os
+import yaml
 import numpy as np
 import pandas as pd
 import string
-
 
 def sanitize(s):
     """
@@ -114,6 +115,40 @@ def stitch(filenames, sample_from_filename_func, index_col=0, data_col=1,
     df.columns = names
     return df
 
+def filtered_targets_from_config(config_file):
+    """
+    Given a config.yaml file, convert the output from each feature set into an
+    expected run-specific filtered output file. E.g., given the following
+    config snippet::
+
+        features:
+            go:
+                snakefile: features/gene_ontology.snakefile
+                output:
+                    zscores: "{prefix}/cleaned/go/go_zscores.csv"
+                    variants: "{prefix}/cleaned/go/go_variants.csv"
+
+        run_info:
+            run_1:
+                filter_function: "filterfuncs.run1"
+
+    This function will return:
+        [
+            'runs/run_1/filtered/go/zscores_filtered.tab',
+            'runs/run_1/filtered/go/variants_filtered.tab',
+        ]
+
+    """
+    config = yaml.load(open(config_file))
+    targets = []
+    for run in config['run_info'].keys():
+        for features_label, block in config['features'].items():
+            output = block['output']
+            for label, filename in output.items():
+                targets.append(os.path.join('runs', run, 'filtered', features_label, label +
+                                            '_filtered.tab'))
+    return targets
+
 
 def resolve_name(name):
     """
@@ -158,3 +193,4 @@ def remove_nfrac_variants(infile, nfrac=0.1):
     too_low = (n_nonzero / n) <= nfrac
     too_high = (n_nonzero / n) >= (1 - nfrac)
     return d[~(too_low | too_high)]
+

@@ -102,7 +102,8 @@ Example:
 
         exome_variants:
             snakefile: features/variants.snakefile
-            output: "{prefix}/filtered/exome_variants/exome_variants_by_gene.tab"
+            output:
+                by_gene: "{prefix}/filtered/exome_variants/exome_variants_by_gene.tab"
 
 
 This is where new feature sets are defined. In this example, there are two
@@ -115,12 +116,14 @@ are two fields: ``snakefile`` and ``output``.
     whatever it needs to do in order to create the output file[s].
 
 :output:
-    This field can either be a single string (as in the ``exome_variants``) or
-    can be a dictionary with multiple output files, each with a unique name (as
-    in ``cnv``).  These output files can use the ``{prefix}`` placeholder which
-    will be filled in with the :ref:`config-prefix` field. It is expected that
-    these files will be created by the snakefile specified for this feature
-    set.
+    This field is a dictionary with at least one output file. The combination
+    of feature label and output label must be unique (e.g., (`exome_variants`,
+    `by_gene`) is unique).  These output files can use the ``{prefix}``
+    placeholder which will be filled in with the :ref:`config-prefix` field. It
+    is expected that these files will be created by the snakefile specified for
+    this feature set. In this example, `featurex/cnv.snakefile` is expected to
+    create the three output files listed and `features/variants.snakefile` is
+    expected to create one output file.
 
 .. note:: 
 

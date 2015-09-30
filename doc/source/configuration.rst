@@ -130,6 +130,39 @@ are two fields: ``snakefile`` and ``output``.
     Most of the effort in adding a new feature set is in writing the actual
     snakefile that does the work.  See :ref:`snakefiles` for more on this.
 
+`run_info`
+~~~~~~~~~~
+Example:
+
+.. code-block:: yaml
+
+    run_info:
+        -
+            label: run_1
+            filter_function: "filterfuncs.run1"
+
+        -
+            label: run_2
+            filter_function: "filterfuncs.run2"
+
+
+This is a list of dictionaries that defines multiple runs. It is intended as
+the entry point for configuring and tweaking filtering and learning parameters.
+It has the following keys:
+
+:label:
+    Label for this run; output will go in `runs/run_1` and `runs/run_2`
+
+:filter_function:
+    This is a dotted-notation specification of a Python filter function to use. See
+    :ref:`filtering` for more details. In this example, we need a function
+    called `run1` and another called `run2` in the `filterfuncs.py` Python
+    module.
+
+
+
+
+
 .. _exampleconfig:
 
 Example `config.yaml`

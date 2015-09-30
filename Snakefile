@@ -60,11 +60,16 @@ drug_response_targets = expand(
     prefix=config['prefix'], datatype=['drugIds', 'drugResponse', 'drugDoses',
                                        'drugDrc'])
 
+# Filtered targets to be created for this run
+filtered_targets = pipeline_helpers.filtered_targets_from_config('config.yaml')
+
 # ----------------------------------------------------------------------------
 # Create all output files. Since this is the first rule in the file, it will be
 # the one run by default.
 rule all:
-    input: feature_targets + lookup_targets + drug_response_targets
+    input:
+        (feature_targets + lookup_targets + drug_response_targets
+         + filtered_targets)
 
 
 # ----------------------------------------------------------------------------
@@ -122,5 +127,35 @@ rule prepare_example_data:
         mkdir -p example_data
         (cd example_data && unzip ../sample_in_progress/raw.zip)
         """
+
+
+def get_input_from_filtered_output_wildcards(wildcards):
+    """
+    Based on the wildcards (which are expected to include `features_label` and
+    `output_label`), figure out what the input file should be.
+
+    Also fills in the prefix based on what config.yaml says.
+    """
+    outputs = config['features'][wildcards.features_label]['output']
+    return outputs[wildcards.output_label].format(prefix=config['prefix'])
+
+
+# ----------------------------------------------------------------------------
+# This is one do-it-all rule to do the filtering. The logic of what filter to
+# apply is left up to the function defined in the run_info of the config file.
+rule do_filter:
+    input: get_input_from_filtered_output_wildcards
+    output: 'runs/{run}/filtered/{features_label}/{output_label}_filtered.tab'
+    run:
+        dotted_path = config['run_info'][wildcards.run]['filter_function']
+        function = pipeline_helpers.resolve_name(dotted_path)
+
+        # if exceptions are raised and they point to this line, check the
+        # actual filter function code.
+        d = function(infile=str(input[0]),
+                 features_label=wildcards.features_label,
+                 output_label=wildcards.output_label)
+        d.to_csv(str(output[0]), sep='\t')
+
 
 # vim: ft=python

@@ -16,5 +16,5 @@ def run1(infile, features_label, output_label):
         return pd.read_table(infile, index_col=0)
     else:
         d = pipeline_helpers.remove_zero_variance(infile)
-    return d
+    return d.dropna()
 

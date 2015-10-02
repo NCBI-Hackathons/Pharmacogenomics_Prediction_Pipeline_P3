@@ -26,6 +26,7 @@ Contents:
     installation
     configuration
     features
+    filtering
     topic-snakefiles
     topic-pivot
     metadoc

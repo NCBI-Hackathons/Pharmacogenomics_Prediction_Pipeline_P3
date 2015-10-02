@@ -2,20 +2,20 @@ digraph snakemake_dag {
     graph[bgcolor=white, margin=0];
     node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
     edge[penwidth=2, color=grey];
-	0[label = "make_genes", color = "0.50 0.6 0.85", style="rounded"];
-	1[label = "gene_longest_overlap_scores_matrix", color = "0.00 0.6 0.85", style="rounded"];
-	2[label = "cluster_matrix", color = "0.42 0.6 0.85", style="rounded"];
-	3[label = "create_cluster_scores", color = "0.08 0.6 0.85", style="rounded"];
-	4[label = "gene_max_scores_matrix", color = "0.14 0.6 0.85", style="rounded"];
-	5[label = "seg_to_bed", color = "0.58 0.6 0.85", style="rounded"];
-	6[label = "multi_intersect", color = "0.39 0.6 0.85", style="rounded"];
-	7[label = "create_gene_scores", color = "0.47 0.6 0.85", style="rounded"];
-	7 -> 1
-	3 -> 2
+	0[label = "seg_to_bed", color = "0.02 0.6 0.85", style="rounded"];
+	1[label = "cluster_matrix", color = "0.00 0.6 0.85", style="rounded"];
+	2[label = "make_genes", color = "0.49 0.6 0.85", style="rounded"];
+	3[label = "create_cluster_scores", color = "0.20 0.6 0.85", style="rounded"];
+	4[label = "create_gene_scores", color = "0.53 0.6 0.85", style="rounded"];
+	5[label = "multi_intersect", color = "0.40 0.6 0.85", style="rounded"];
+	6[label = "gene_longest_overlap_scores_matrix", color = "0.11 0.6 0.85", style="rounded"];
+	7[label = "gene_max_scores_matrix", color = "0.62 0.6 0.85", style="rounded"];
+	3 -> 1
+	0 -> 3
 	5 -> 3
-	6 -> 3
-	7 -> 4
-	5 -> 6
-	5 -> 7
-	0 -> 7
+	0 -> 4
+	2 -> 4
+	0 -> 5
+	4 -> 6
+	4 -> 7
 }            

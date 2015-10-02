@@ -2,67 +2,88 @@ digraph snakemake_dag {
     graph[bgcolor=white, margin=0];
     node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
     edge[penwidth=2, color=grey];
-	0[label = "rnaseq_data_prep", color = "0.00 0.6 0.85", style="rounded"];
-	1[label = "process_cpdb_zscores", color = "0.36 0.6 0.85", style="rounded"];
-	2[label = "seg_to_bed", color = "0.11 0.6 0.85", style="rounded"];
-	3[label = "go_term_zscores", color = "0.03 0.6 0.85", style="rounded"];
-	4[label = "go_term_variant_scores", color = "0.08 0.6 0.85", style="rounded"];
-	5[label = "create_cluster_scores", color = "0.14 0.6 0.85", style="rounded"];
-	6[label = "cluster_matrix", color = "0.39 0.6 0.85", style="rounded"];
-	7[label = "msigdb_zscores", color = "0.42 0.6 0.85", style="rounded"];
-	8[label = "multi_intersect", color = "0.44 0.6 0.85", style="rounded"];
-	9[label = "create_gene_scores", color = "0.17 0.6 0.85", style="rounded"];
-	10[label = "rnaseq_counts_matrix", color = "0.53 0.6 0.85", style="rounded"];
-	11[label = "process_cpdb_variants", color = "0.47 0.6 0.85", style="rounded"];
-	12[label = "make_genes", color = "0.19 0.6 0.85", style="rounded"];
-	13[label = "transcript_variant_matrix_to_gene_variant_matrix", color = "0.50 0.6 0.85", style="rounded"];
-	14[label = "all_features", color = "0.22 0.6 0.85", style="rounded"];
-	15[label = "gene_longest_overlap_scores_matrix", color = "0.25 0.6 0.85", style="rounded"];
-	16[label = "make_lookups", color = "0.56 0.6 0.85", style="rounded"];
-	17[label = "gene_max_scores_matrix", color = "0.58 0.6 0.85", style="rounded"];
-	18[label = "transcript_variant_matrix", color = "0.28 0.6 0.85", style="rounded"];
-	19[label = "compute_zscores", color = "0.64 0.6 0.85", style="rounded"];
-	20[label = "msigdb_preprocessing", color = "0.61 0.6 0.85", style="rounded"];
-	21[label = "msigdb_variants", color = "0.31 0.6 0.85", style="rounded"];
-	22[label = "preprocess_cpdb", color = "0.06 0.6 0.85", style="rounded"];
-	23[label = "download_go", color = "0.33 0.6 0.85", style="rounded"];
-	10 -> 0
-	22 -> 1
-	19 -> 1
-	19 -> 3
-	23 -> 3
-	13 -> 4
-	23 -> 4
-	2 -> 5
-	8 -> 5
-	5 -> 6
-	20 -> 7
-	19 -> 7
-	2 -> 8
-	12 -> 9
-	2 -> 9
-	22 -> 11
-	13 -> 11
-	16 -> 13
-	18 -> 13
-	0 -> 14
-	1 -> 14
-	15 -> 14
-	16 -> 14
+	0[label = "aggregate_filtered_features", color = "0.07 0.6 0.85", style="rounded"];
+	1[label = "gene_longest_overlap_scores_matrix", color = "0.04 0.6 0.85", style="rounded"];
+	2[label = "gene_max_scores_matrix", color = "0.33 0.6 0.85", style="rounded"];
+	3[label = "create_cluster_scores", color = "0.00 0.6 0.85", style="rounded"];
+	4[label = "download_go", color = "0.38 0.6 0.85", style="rounded"];
+	5[label = "rnaseq_data_prep", color = "0.40 0.6 0.85", style="rounded"];
+	6[label = "make_lookups", color = "0.42 0.6 0.85", style="rounded"];
+	7[label = "make_genes", color = "0.44 0.6 0.85", style="rounded"];
+	8[label = "compute_zscores", color = "0.47 0.6 0.85", style="rounded"];
+	9[label = "msigdb_preprocessing", color = "0.11 0.6 0.85", style="rounded"];
+	10[label = "msigdb_variants", color = "0.13 0.6 0.85", style="rounded"];
+	11[label = "rnaseq_counts_matrix", color = "0.49 0.6 0.85", style="rounded"];
+	12[label = "go_term_zscores", color = "0.16 0.6 0.85", style="rounded"];
+	13[label = "msigdb_zscores", color = "0.18 0.6 0.85", style="rounded"];
+	14[label = "cluster_matrix", color = "0.09 0.6 0.85", style="rounded"];
+	15[label = "go_term_variant_scores", color = "0.20 0.6 0.85", style="rounded"];
+	16[label = "create_gene_scores", color = "0.56 0.6 0.85", style="rounded"];
+	17[label = "transcript_variant_matrix", color = "0.58 0.6 0.85", style="rounded"];
+	18[label = "transcript_variant_matrix_to_gene_variant_matrix", color = "0.22 0.6 0.85", style="rounded"];
+	19[label = "process_response", color = "0.24 0.6 0.85", style="rounded"];
+	20[label = "multi_intersect", color = "0.60 0.6 0.85", style="rounded"];
+	21[label = "process_cpdb_zscores", color = "0.27 0.6 0.85", style="rounded"];
+	22[label = "seg_to_bed", color = "0.36 0.6 0.85", style="rounded"];
+	23[label = "aggregate_responses", color = "0.29 0.6 0.85", style="rounded"];
+	24[label = "all", color = "0.51 0.6 0.85", style="rounded"];
+	25[label = "process_cpdb_variants", color = "0.62 0.6 0.85", style="rounded"];
+	26[label = "preprocess_cpdb", color = "0.31 0.6 0.85", style="rounded"];
+	27[label = "do_filter", color = "0.64 0.6 0.85", style="rounded"];
+	27 -> 0
+	16 -> 1
+	16 -> 2
+	22 -> 3
+	20 -> 3
+	11 -> 5
+	5 -> 8
+	6 -> 9
+	18 -> 10
+	9 -> 10
+	8 -> 12
+	4 -> 12
+	8 -> 13
+	9 -> 13
 	3 -> 14
-	17 -> 14
-	4 -> 14
-	6 -> 14
-	7 -> 14
-	21 -> 14
-	11 -> 14
-	12 -> 14
-	19 -> 14
-	13 -> 14
-	9 -> 15
-	9 -> 17
-	0 -> 19
-	16 -> 20
-	20 -> 21
-	13 -> 21
+	18 -> 15
+	4 -> 15
+	22 -> 16
+	7 -> 16
+	17 -> 18
+	6 -> 18
+	22 -> 20
+	8 -> 21
+	26 -> 21
+	19 -> 23
+	0 -> 24
+	21 -> 24
+	1 -> 24
+	2 -> 24
+	18 -> 24
+	19 -> 24
+	6 -> 24
+	5 -> 24
+	14 -> 24
+	7 -> 24
+	8 -> 24
+	10 -> 24
+	23 -> 24
+	13 -> 24
+	25 -> 24
+	12 -> 24
+	15 -> 24
+	18 -> 25
+	26 -> 25
+	1 -> 27
+	2 -> 27
+	18 -> 27
+	5 -> 27
+	14 -> 27
+	21 -> 27
+	8 -> 27
+	10 -> 27
+	12 -> 27
+	25 -> 27
+	13 -> 27
+	15 -> 27
 }            

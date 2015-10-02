@@ -69,14 +69,14 @@ for run_label, block in config['run_info'].items():
     drug_response_targets.update(run_targets)
 drug_response_targets = sorted(list(drug_response_targets))
 drug_response_targets += expand(
-    'runs/{run}/filtered/aggregated_response.tab',
-    run=config['run_info'].keys())
+    '{prefix}/runs/{run}/filtered/aggregated_response.tab',
+    prefix=config['prefix'], run=config['run_info'].keys())
 
 
 # Filtered targets to be created for this run
 filtered_targets = pipeline_helpers.filtered_targets_from_config('config.yaml')
 
-filtered_targets += expand('runs/{run}/filtered/aggregated_features.tab', run=config['run_info'].keys())
+filtered_targets += expand('{prefix}/runs/{run}/filtered/aggregated_features.tab', run=config['run_info'].keys(), prefix=config['prefix'])
 # ----------------------------------------------------------------------------
 # Create all output files. Since this is the first rule in the file, it will be
 # the one run by default.
@@ -159,7 +159,7 @@ def get_input_from_filtered_output_wildcards(wildcards):
 # apply is left up to the function defined in the run_info of the config file.
 rule do_filter:
     input: get_input_from_filtered_output_wildcards
-    output: 'runs/{run}/filtered/{features_label}/{output_label}_filtered.tab'
+    output: '{prefix}/runs/{run}/filtered/{features_label}/{output_label}_filtered.tab'
     run:
         dotted_path = config['run_info'][wildcards.run]['feature_filter']
         function = pipeline_helpers.resolve_name(dotted_path)
@@ -181,7 +181,8 @@ def all_filtered_output_from_run(wildcards):
     """
     filtered_files = []
     run = wildcards.run
-    template = 'runs/{run}/filtered/{feature_label}/{output_label}_filtered.tab'
+    prefix = config['prefix']
+    template = '{prefix}/runs/{run}/filtered/{feature_label}/{output_label}_filtered.tab'
     for feature_label in config['features'].keys():
         for output_label in config['features'][feature_label]['output'].keys():
             filtered_files.append(template.format(**locals()))
@@ -190,7 +191,7 @@ def all_filtered_output_from_run(wildcards):
 
 rule aggregate_filtered_features:
     input: all_filtered_output_from_run
-    output: 'runs/{run}/filtered/aggregated_features.tab'
+    output: '{prefix}/runs/{run}/filtered/aggregated_features.tab'
     run:
         samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]
         d = pipeline_helpers.aggregate_filtered_features(input)
@@ -210,7 +211,7 @@ def aggregate_responses_input(wildcards):
 
 rule aggregate_responses:
     input: aggregate_responses_input
-    output: 'runs/{run}/processed/aggregated_response.tab'
+    output: '{prefix}/runs/{run}/filtered/aggregated_response.tab'
     run:
         data_col = config['run_info'][wildcards.run]['response_column']
         samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]

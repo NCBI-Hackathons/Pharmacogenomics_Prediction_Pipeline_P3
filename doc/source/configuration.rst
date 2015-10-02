@@ -137,29 +137,31 @@ Example:
 .. code-block:: yaml
 
     run_info:
-        -
-            label: run_1
-            filter_function: "filterfuncs.run1"
+        run_1:
+            feature_filter: "filterfuncs.run1"
+            response_filter: "filterfuncs.aic1"
 
-        -
-            label: run_2
-            filter_function: "filterfuncs.run2"
+        run_2:
+            feature_filter: "filterfuncs.run2"
+            response_filter: "filterfuncs.aic1"
+
+This is a dictionary that defines multiple runs. It is intended as the entry
+point for configuring and tweaking filtering and learning parameters.  Each
+entry (here, `run_1` and `run_2`) defines a unique set of feature filtering,
+response filtering, and learning parameters. Each entry then has
+the following keys:
 
 
-This is a list of dictionaries that defines multiple runs. It is intended as
-the entry point for configuring and tweaking filtering and learning parameters.
-It has the following keys:
-
-:label:
-    Label for this run; output will go in `runs/run_1` and `runs/run_2`
-
-:filter_function:
+:feature_filter:
     This is a dotted-notation specification of a Python filter function to use. See
     :ref:`filtering` for more details. In this example, we need a function
     called `run1` and another called `run2` in the `filterfuncs.py` Python
     module.
 
 
+:response_filter:
+    Similar to `feature_filter`, this is a function that will handle the
+    filtering of response data.
 
 
 

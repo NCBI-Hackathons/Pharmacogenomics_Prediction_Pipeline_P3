@@ -147,10 +147,10 @@ rule do_filter:
     input: get_input_from_filtered_output_wildcards
     output: 'runs/{run}/filtered/{features_label}/{output_label}_filtered.tab'
     run:
-        dotted_path = config['run_info'][wildcards.run]['filter_function']
+        dotted_path = config['run_info'][wildcards.run]['feature_filter']
         function = pipeline_helpers.resolve_name(dotted_path)
 
-        # if exceptions are raised and they point to this line, check the
+        # NOTE: if exceptions are raised and they point to this line, check the
         # actual filter function code.
         d = function(infile=str(input[0]),
                  features_label=wildcards.features_label,

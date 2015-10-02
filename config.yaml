@@ -66,5 +66,6 @@ features:
 
 run_info:
     run_1:
-        filter_function: "filterfuncs.run1"
+        feature_filter: "filterfuncs.run1"
+        response_filter: "filterfuncs.aic1"
 

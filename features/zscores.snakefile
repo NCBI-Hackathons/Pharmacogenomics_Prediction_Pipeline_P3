@@ -1,5 +1,5 @@
 rule compute_zscores:
-    input: config['features']['normed_counts']['output']
+    input: config['features']['normed_counts']['output']['normed_counts']
     output:
         zscores=config['features']['zscores']['output']['zscores'],
         estimates=config['features']['zscores']['output']['zscore_estimates']

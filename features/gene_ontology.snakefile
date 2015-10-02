@@ -24,7 +24,7 @@ rule go_term_zscores:
 
 rule go_term_variant_scores:
     input:
-        variants=config['features']['exome_variants']['output'],
+        variants=config['features']['exome_variants']['output']['by_gene'],
         go_mapping=rules.download_go.output
     output: config['features']['go']['output']['variants']
     run:

@@ -27,7 +27,7 @@ rule process_cpdb_zscores:
 
 rule process_cpdb_variants:
     input:
-        variants=config['features']['exome_variants']['output'],
+        variants=config['features']['exome_variants']['output']['by_gene'],
         cpdb_mapping=rules.preprocess_cpdb.output
     output: config['features']['cpdb']['output']['variants']
     run:

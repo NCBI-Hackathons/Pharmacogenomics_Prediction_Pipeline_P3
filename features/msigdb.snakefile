@@ -55,7 +55,7 @@ rule msigdb_zscores:
 
 rule msigdb_variants:
     input:
-        variants=config['features']['exome_variants']['output'],
+        variants=config['features']['exome_variants']['output']['by_gene'],
         msig_mapping=rules.msigdb_preprocessing.output
     output: config['features']['msigdb']['output']['variants']
     run:

@@ -76,6 +76,7 @@ drug_response_targets += expand(
 # Filtered targets to be created for this run
 filtered_targets = pipeline_helpers.filtered_targets_from_config('config.yaml')
 
+filtered_targets += expand('runs/{run}/filtered/aggregated_features.tab', run=config['run_info'].keys())
 # ----------------------------------------------------------------------------
 # Create all output files. Since this is the first rule in the file, it will be
 # the one run by default.
@@ -171,4 +172,27 @@ rule do_filter:
         d.to_csv(str(output[0]), sep='\t')
 
 
+def all_filtered_output_from_run(wildcards):
+    """
+    Figures out all the filenames that need to be aggregated together.
+
+    To be used as the input function for the `aggregate_filtered_features`
+    rule.
+    """
+    filtered_files = []
+    run = wildcards.run
+    template = 'runs/{run}/filtered/{feature_label}/{output_label}_filtered.tab'
+    for feature_label in config['features'].keys():
+        for output_label in config['features'][feature_label]['output'].keys():
+            filtered_files.append(template.format(**locals()))
+    return filtered_files
+
+
+rule aggregate_filtered_features:
+    input: all_filtered_output_from_run
+    output: 'runs/{run}/filtered/aggregated_features.tab'
+    run:
+        samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]
+        d = pipeline_helpers.aggregate_filtered_features(input)
+        d[samples].to_csv(str(output[0]), sep='\t')
 # vim: ft=python

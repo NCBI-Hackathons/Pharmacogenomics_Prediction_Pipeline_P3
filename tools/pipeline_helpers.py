@@ -194,3 +194,18 @@ def remove_nfrac_variants(infile, nfrac=0.1):
     too_high = (n_nonzero / n) >= (1 - nfrac)
     return d[~(too_low | too_high)]
 
+def aggregate_filtered_features(inputs):
+    def labels_from_filename(fn):
+        toks = fn.split('/')
+        feature_label = toks[-2]
+        output_label = toks[-1].replace('_filtered.tab', '')
+        return feature_label, output_label
+    all_features = []
+    for fn in inputs:
+        fn = str(fn)
+        feature_label, output_label = labels_from_filename(fn)
+        tag = feature_label + '_' + output_label + '_'
+        d = pd.read_table(fn, index_col=0)
+        d.index = tag + d.index
+        all_features.append(d)
+    return pd.concat(all_features)

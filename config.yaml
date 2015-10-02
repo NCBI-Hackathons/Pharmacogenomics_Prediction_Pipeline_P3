@@ -5,7 +5,6 @@ prefix: example_data
 # configured below.
 features_to_use: [go, normed_counts, zscores, msigdb, cpdb, exome_variants, cnv]
 
-samples: celllines.txt
 
 # Explicitly defines path to Rscript to avoid conflict with other existing
 # installations
@@ -67,5 +66,13 @@ features:
 run_info:
     run_1:
         feature_filter: "filterfuncs.run1"
-        response_filter: "filterfuncs.aic1"
 
+        # this will create a NxM matrix, where N is the number of drugs listed
+        # in `response_list`, M is the number of samples listed in the sample list.
+        # The values in the matrix will be extracted from the column called
+        # "response_column" from the files matching the template in
+        # "response_template"
+        response_list: "SIDs.txt"
+        sample_list: "celllines.txt"
+        response_template: "{prefix}/processed/drug_response/{sample}_drugResponse.tab"
+        response_column: "DATA0"

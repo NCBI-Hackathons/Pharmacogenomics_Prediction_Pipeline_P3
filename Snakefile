@@ -61,11 +61,17 @@ lookup_targets = [i.format(prefix=config['prefix']) for i in [
     '{prefix}/metadata/genes.bed',
 ]]
 
-# Drug response files to be created. Note prefix and
-drug_response_targets = expand(
-    '{prefix}/processed/drug_response/{sample}_{datatype}.tab', sample=samples,
-    prefix=config['prefix'], datatype=['drugIds', 'drugResponse', 'drugDoses',
-                                       'drugDrc'])
+# Drug response files to be created. These are inferred from the
+# `response_template` configured for each run.
+drug_response_targets = set()
+for run_label, block in config['run_info'].items():
+    run_targets = expand(block['response_template'], prefix=config['prefix'], sample=samples)
+    drug_response_targets.update(run_targets)
+drug_response_targets = sorted(list(drug_response_targets))
+drug_response_targets += expand(
+    'runs/{run}/filtered/aggregated_response.tab',
+    run=config['run_info'].keys())
+
 
 # Filtered targets to be created for this run
 filtered_targets = pipeline_helpers.filtered_targets_from_config('config.yaml')

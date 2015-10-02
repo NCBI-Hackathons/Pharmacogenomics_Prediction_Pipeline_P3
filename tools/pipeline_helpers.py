@@ -76,7 +76,7 @@ def pathway_scores_from_zscores(zscores_df, pathway_df, index_field):
     return pd.concat(dfs)
 
 
-def stitch(filenames, sample_from_filename_func, index_col=0, data_col=1,
+def stitch(filenames, sample_from_filename_func, index_col=0, data_col=0,
            **kwargs):
     """
     Given a set of filenames each corresponding to one sample and at least one
@@ -109,7 +109,7 @@ def stitch(filenames, sample_from_filename_func, index_col=0, data_col=1,
     dfs = []
     names = []
     for fn in filenames:
-        dfs.append(pd.read_table(fn, **read_table_kwargs))
+        dfs.append(pd.read_table(fn, **read_table_kwargs).ix[:, data_col])
         names.append(sample_from_filename_func(fn))
     df = pd.concat(dfs, axis=1)
     df.columns = names

@@ -195,4 +195,37 @@ rule aggregate_filtered_features:
         samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]
         d = pipeline_helpers.aggregate_filtered_features(input)
         d[samples].to_csv(str(output[0]), sep='\t')
+
+def aggregate_responses_input(wildcards):
+    """
+    Figures out all the response filenames for all samples for a run.
+
+    To be used as the input function for the `aggregate_responses` rule.
+    """
+    samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]
+    return expand(
+        config['run_info'][wildcards.run]['response_template'],
+        prefix=config['prefix'], sample=samples)
+
+
+rule aggregate_responses:
+    input: aggregate_responses_input
+    output: 'runs/{run}/processed/aggregated_response.tab'
+    run:
+        data_col = config['run_info'][wildcards.run]['response_column']
+        samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]
+
+        def f(fn):
+            sample = os.path.basename(fn).split('_drug')[0]
+            assert sample in samples
+            return sample
+
+        d = pipeline_helpers.stitch(
+            filenames=input,
+            sample_from_filename_func=f,
+            index_col=0,
+            data_col=data_col)
+        d.to_csv(str(output[0]), sep='\t')
+
+
 # vim: ft=python

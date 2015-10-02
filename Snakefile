@@ -1,5 +1,17 @@
 """
 This is the main workflow integrating many sub-workflows.
+
+The workflow defined for each feature set defined in config.yaml is imported
+into this workflow. This modular approach avoids cluttering this main
+snakefile with lots of feature set-specific rules.
+
+Since the sub-workflows come in to the namespace of this file, they can use
+anything in this file. Things useful in sub-workflows might be:
+  - the imported pipeline_helpers module
+  - the `config` object
+  - the `samples` list
+  - the `Rscript` path.
+
 """
 
 import yaml
@@ -10,16 +22,6 @@ from textwrap import dedent
 
 localrules: make_lookups
 
-# The workflow defined for each feature set defined in config.yaml is imported
-# into this workflow. This modular approach avoids cluttering this main
-# snakefile with lots of feature set-specific rules.
-#
-# Since the sub-workflows come in to the namespace of this file, they can use
-# anything in this file. Things useful in sub-workflows might be:
-#   - the imported pipeline_helpers module
-#   - the `config` object
-#   - the `samples` list
-#   - the `Rscript` path.
 config = yaml.load(open('config.yaml'))
 
 # Each run can define its own list of samples. Here we get the unique set of
@@ -112,8 +114,8 @@ rule make_genes:
         """
 
 # ----------------------------------------------------------------------------
-# For each configured sample, converts the NCATS-format input file into several
-# processed files.
+# Converts the NCATS-format input file into several processed files. Runs once
+# for each sample.
 rule process_response:
     input: '{prefix}/raw/drug_response/s-tum-{sample}-x1-1.csv'
     output:
@@ -171,7 +173,10 @@ rule do_filter:
                  output_label=wildcards.output_label)
         d.to_csv(str(output[0]), sep='\t')
 
-
+# ----------------------------------------------------------------------------
+# Aggregate all features together into one file in preparation for model
+# training. Uses the function below, "all_filtered_output_from_run(), to
+# identify which features to aggregate.
 def all_filtered_output_from_run(wildcards):
     """
     Figures out all the filenames that need to be aggregated together.
@@ -197,6 +202,13 @@ rule aggregate_filtered_features:
         d = pipeline_helpers.aggregate_filtered_features(input)
         d[samples].to_csv(str(output[0]), sep='\t')
 
+# ----------------------------------------------------------------------------
+# Aggregate responses together; uses aggregate_responses_input() function to
+# figure out which response filenames to aggregate.
+#
+# TODO: while useful, we don't actually need to aggregate since response and
+# sample filtering are performed using the response_list and sample_list config
+# items.
 def aggregate_responses_input(wildcards):
     """
     Figures out all the response filenames for all samples for a run.

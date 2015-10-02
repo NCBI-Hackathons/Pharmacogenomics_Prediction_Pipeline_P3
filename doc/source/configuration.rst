@@ -139,31 +139,42 @@ Example:
     run_info:
         run_1:
             feature_filter: "filterfuncs.run1"
-            response_filter: "filterfuncs.aic1"
+            sample_list: "celllines.txt"
+            response_list: "SIDs.txt"
+            response_column: "DATA0"
+            response_template: "{prefix}/processed/drug_response/{sample}_drugResponse.tab"
 
-        run_2:
-            feature_filter: "filterfuncs.run2"
-            response_filter: "filterfuncs.aic1"
-
-This is a dictionary that defines multiple runs. It is intended as the entry
+`run_info` is a dictionary that defines multiple runs. It is intended as the entry
 point for configuring and tweaking filtering and learning parameters.  Each
-entry (here, `run_1` and `run_2`) defines a unique set of feature filtering,
-response filtering, and learning parameters. Each entry then has
-the following keys:
+entry (here, there is a single run labeled `run_1`) defines a unique set of
+feature filtering, response filtering, and learning parameters. Each run
+has the following keys:
 
 
 :feature_filter:
     This is a dotted-notation specification of a Python filter function to use. See
     :ref:`filtering` for more details. In this example, we need a function
-    called `run1` and another called `run2` in the `filterfuncs.py` Python
-    module.
+    called `run1` in a Python module called `filterfuncs.py`.
 
+:sample_list:
+    A file containing one sample ID per line. You can control the samples that
+    make it into the training by modifying this file.
 
-:response_filter:
-    Similar to `feature_filter`, this is a function that will handle the
-    filtering of response data.
+:response_list:
+    A file containing one response ID (i.e., drug SID) per line. It is can be
+    used to determine which drugs make it into the training.
 
+:response_template:
+    There may be many options for which response data *values* to use, but only
+    one can be used for training. This template defines which file to use. It
+    should start with `{prefix}` and have the `{sample}` placeholder. Note that to figure
+    out the sample, the underlying code will split the basename of the filename
+    on `_drug` and take the first part, so the response pre-processing should
+    output files of the form `{sample}_drugResponse.tab`
 
+:response_column:
+    Each response file specified in the `response_template` field may have
+    several variables. Specify the column name here.
 
 .. _exampleconfig:
 

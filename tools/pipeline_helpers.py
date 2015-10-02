@@ -179,7 +179,7 @@ def remove_zero_variance(infile):
     Remove rows with zero variance
     """
     d = pd.read_table(infile, index_col=0)
-    return d[d.var(axis=1) == 0]
+    return d[d.var(axis=1) > 0]
 
 
 def remove_nfrac_variants(infile, nfrac=0.1):

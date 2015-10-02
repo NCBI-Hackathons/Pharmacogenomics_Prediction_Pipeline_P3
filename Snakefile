@@ -21,8 +21,15 @@ localrules: make_lookups
 #   - the `samples` list
 #   - the `Rscript` path.
 config = yaml.load(open('config.yaml'))
-samples = [i.strip() for i in open(config['samples'])]
-config['sample_list'] = samples
+
+# Each run can define its own list of samples. Here we get the unique set of
+# samples used across all runs so that we can generate the features for them.
+samples = set()
+for run_label, block in config['run_info'].items():
+    samples_for_run = [i.strip() for i in open(block['sample_list'])]
+    samples.update(samples_for_run)
+
+config['sample_list'] = sorted(list(samples))
 
 # Output[s] for each feature set defined in the config will added to the
 # feature_targets list.

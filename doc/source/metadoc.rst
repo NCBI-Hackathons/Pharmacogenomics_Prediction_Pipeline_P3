@@ -21,8 +21,8 @@ that on the biowulf cluster:
 
     ./clean-example-data.sh
     module load bedtools R  # on biowulf
-    snakemake -npr -s runall.snakefile  # dry run
-    snakemake -pr -s runall.snakefile  # run everything
+    snakemake -npr -s Snakefile  # dry run
+    snakemake -pr -s Snakefile  # run everything
 
 If you have made any changes to the documentation, make sure you commit them
 now::
@@ -36,6 +36,26 @@ now::
     This is generally a good assumption because it means that the docs match
     the code in master. But merging from another branch might be useful if
     you're playing around with changes to the docs themselves.
+
+
+Run `build-docs.sh`
+-------------------
+
+Run::
+
+    ./build-docs.sh
+
+This will build and upload docs to the currently-configured origin. If this is
+run on your fork of the P3 code, it will upload the docs to your fork, such
+that you can view it at::
+
+    <username>.github.io/Pharmacogenomics_Prediction_Pipeline_P3
+
+If you would like to build and upload for another repo that you have write
+access to -- say, to update the docs in the main repo -- then pass that repo as
+the first argument to `build-docs.sh`.  E.g.,::
+
+    ./build-docs.sh git@github.com:NCBI-Hackathons/Pharmacogenomics_Prediction_Pipeline_P3.git
 
 Merge master with gh-pages branch
 ---------------------------------
@@ -73,6 +93,7 @@ Switch back to master branch
 And finally, get back to the master branch::
 
     git checkout master
+    <username>.github.io/
 
 View docs on web
 ----------------

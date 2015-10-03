@@ -4,7 +4,7 @@ import pandas as pd
 
 rule seg_to_bed:
     input: '{prefix}/raw/cnv/{sample}_cnv.seg'
-    output: '{prefix}/filtered/cnv/{sample}_cnv.bed'
+    output: '{prefix}/cleaned/cnv/{sample}_cnv.bed'
     shell:
         """
         tail -n +2 {input} | awk -F "\\t" '{{OFS="\\t"; print $2,$3,$4,$6}}' \\
@@ -12,8 +12,8 @@ rule seg_to_bed:
         """
 
 rule multi_intersect:
-    input: expand('{{prefix}}/filtered/cnv/{sample}_cnv.bed', sample=samples)
-    output: '{prefix}/filtered/cnv/clustered.bed'
+    input: expand('{{prefix}}/cleaned/cnv/{sample}_cnv.bed', sample=samples)
+    output: '{prefix}/cleaned/cnv/clustered.bed'
     shell:
         """
         bedtools multiinter -i {input} | awk -F "\\t" '{{OFS="\\t"; print $1,$2,$3}}' \\
@@ -24,7 +24,7 @@ rule create_cluster_scores:
     input:
         clusters=rules.multi_intersect.output[0],
         cnv_bed=rules.seg_to_bed.output
-    output: '{prefix}/filtered/cnv/{sample}_cnv_cluster_overlaps.bed'
+    output: '{prefix}/cleaned/cnv/{sample}_cnv_cluster_overlaps.bed'
     shell:
         """
         bedtools intersect -a {input.clusters} -b {input.cnv_bed} -wao  \\
@@ -34,8 +34,8 @@ rule create_cluster_scores:
 
 
 rule cluster_matrix:
-    input: expand("{{prefix}}/filtered/cnv/{sample}_cnv_cluster_overlaps.bed", sample=samples)
-    output: '{prefix}/filtered/cnv/cluster_scores.tab'
+    input: expand("{{prefix}}/cleaned/cnv/{sample}_cnv_cluster_overlaps.bed", sample=samples)
+    output: '{prefix}/cleaned/cnv/cluster_scores.tab'
     run:
         df = pipeline_helpers.stitch(
             input,
@@ -51,9 +51,9 @@ rule create_gene_scores:
         genes="example_data/metadata/genes.bed",
         cnv_bed=rules.seg_to_bed.output
     output:
-        intersected='{prefix}/filtered/cnv/{sample}_cnv_gene.bed',
-        gene_max='{prefix}/filtered/cnv/{sample}_cnv_gene_max_scores.bed',
-        gene_longest='{prefix}/filtered/cnv/{sample}_cnv_gene_longest_overlap_scores.bed'
+        intersected='{prefix}/cleaned/cnv/{sample}_cnv_gene.bed',
+        gene_max='{prefix}/cleaned/cnv/{sample}_cnv_gene_max_scores.bed',
+        gene_longest='{prefix}/cleaned/cnv/{sample}_cnv_gene_longest_overlap_scores.bed'
     run:
         shell("""
         bedtools intersect -a {input.cnv_bed} -b {input.genes} -wao \\
@@ -71,8 +71,8 @@ rule create_gene_scores:
 
 
 rule gene_longest_overlap_scores_matrix:
-    input: expand('{{prefix}}/filtered/cnv/{sample}_cnv_gene_longest_overlap_scores.bed', sample=samples)
-    output: '{prefix}/filtered/cnv/cnv_gene_longest_overlap_scores.tab'
+    input: expand('{{prefix}}/cleaned/cnv/{sample}_cnv_gene_longest_overlap_scores.bed', sample=samples)
+    output: '{prefix}/cleaned/cnv/cnv_gene_longest_overlap_scores.tab'
     run:
         df = pipeline_helpers.stitch(
             input,
@@ -82,8 +82,8 @@ rule gene_longest_overlap_scores_matrix:
 
 
 rule gene_max_scores_matrix:
-    input: expand('{{prefix}}/filtered/cnv/{sample}_cnv_gene_max_scores.bed', sample=samples)
-    output: '{prefix}/filtered/cnv/cnv_gene_max_scores.tab'
+    input: expand('{{prefix}}/cleaned/cnv/{sample}_cnv_gene_max_scores.bed', sample=samples)
+    output: '{prefix}/cleaned/cnv/cnv_gene_max_scores.tab'
     run:
         df = pipeline_helpers.stitch(
             input,

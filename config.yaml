@@ -5,7 +5,6 @@ prefix: example_data
 # configured below.
 features_to_use: [go, normed_counts, zscores, msigdb, cpdb, exome_variants, cnv]
 
-samples: celllines.txt
 
 # Explicitly defines path to Rscript to avoid conflict with other existing
 # installations
@@ -27,37 +26,53 @@ features:
     cnv:
         snakefile: features/cnv.snakefile
         output:
-            clusters: "{prefix}/filtered/cnv/cluster_scores.tab"
-            max_gene: "{prefix}/filtered/cnv/cnv_gene_max_scores.tab"
-            longest_gene: "{prefix}/filtered/cnv/cnv_gene_longest_overlap_scores.tab"
+            clusters: "{prefix}/cleaned/cnv/cluster_scores.tab"
+            max_gene: "{prefix}/cleaned/cnv/cnv_gene_max_scores.tab"
+            longest_gene: "{prefix}/cleaned/cnv/cnv_gene_longest_overlap_scores.tab"
 
     exome_variants:
         snakefile: features/variants.snakefile
-        output: "{prefix}/filtered/exome_variants/exome_variants_by_gene.tab"
+        output:
+            by_gene: "{prefix}/cleaned/exome_variants/exome_variants_by_gene.tab"
 
     msigdb:
         snakefile: features/msigdb.snakefile
         output:
-            zscores: "{prefix}/filtered/msigdb/msigdb_zscores.csv"
-            variants: "{prefix}/filtered/msigdb/msigdb_variants.csv"
+            zscores: "{prefix}/cleaned/msigdb/msigdb_zscores.csv"
+            variants: "{prefix}/cleaned/msigdb/msigdb_variants.csv"
     go:
         snakefile: features/gene_ontology.snakefile
         output:
-            zscores: "{prefix}/filtered/go/go_zscores.csv"
-            variants: "{prefix}/filtered/go/go_variants.csv"
+            zscores: "{prefix}/cleaned/go/go_zscores.csv"
+            variants: "{prefix}/cleaned/go/go_variants.csv"
 
     cpdb:
         snakefile: features/cpdb.snakefile
         output:
-            zscores: "{prefix}/filtered/consensus_pathway/cpdb_zscores.csv"
-            variants: "{prefix}/filtered/consensus_pathway/cpdb_variants.csv"
+            zscores: "{prefix}/cleaned/consensus_pathway/cpdb_zscores.csv"
+            variants: "{prefix}/cleaned/consensus_pathway/cpdb_variants.csv"
 
     normed_counts:
         snakefile: features/normed_counts.snakefile
-        output: "{prefix}/filtered/rnaseq_expression/counts_matrix_normalized.csv"
+        output:
+            normed_counts: "{prefix}/cleaned/rnaseq_expression/counts_matrix_normalized.csv"
 
     zscores:
         snakefile: features/zscores.snakefile
         output:
-            zscores: "{prefix}/filtered/rnaseq_expression/zscores.csv"
-            zscore_estimates: "{prefix}/filtered/rnaseq_expression/zscore_estimates.csv"
+            zscores: "{prefix}/cleaned/rnaseq_expression/zscores.csv"
+            zscore_estimates: "{prefix}/cleaned/rnaseq_expression/zscore_estimates.csv"
+
+run_info:
+    run_1:
+        feature_filter: "filterfuncs.run1"
+
+        # The pipeline will create a NxM matrix, where N is the number of drugs
+        # listed in `response_list`, M is the number of samples listed in the
+        # `sample_list`.  The values in the matrix will be extracted from the
+        # column called "response_column" from the files matching the template
+        # in "response_template"
+        response_list: "SIDs.txt"
+        sample_list: "celllines.txt"
+        response_template: "{prefix}/processed/drug_response/{sample}_drugResponse.tab"
+        response_column: "DATA0"

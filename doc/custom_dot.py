@@ -4,7 +4,7 @@ This script is used to create color-coded sub-DAGs for the documentation.  It
 is intended to be run from the "doc" directory, and can be triggered by running
 the Makefile target "dags".
 
-The "runall.snakefile" is run with each set of targets defined by the
+The "Snakefile" is run with each set of targets defined by the
 config.yaml file to create a DAG just for that feature snakefile.
 
 Each rule can therefore show up in multiple DAGs. The `color_lookup` dict
@@ -53,10 +53,10 @@ config = yaml.load(open('../config.yaml'))
 prefix = config['prefix']
 
 # We'll be iterating through sub-workflows defined in the config, so add the
-# main runall.snakefile as well. The target is the "all_features" rule -- this
+# main Snakefile as well. The target is the "all_features" rule -- this
 # gets us the DAG for the entire combined workflow.
 config['features']['all'] = dict(
-    snakefile='runall.snakefile', targets='all_features')
+    snakefile='Snakefile', targets='all_features')
 
 for k, v in config['features'].items():
     snakefile = v['snakefile']
@@ -77,7 +77,7 @@ for k, v in config['features'].items():
     cmd = [
         'cd .. &&', 'snakemake',
         '--rulegraph',
-        '-s', 'runall.snakefile']
+        '-s', 'Snakefile']
     cmd.extend(targets)
 
     # destination is relative to `..` when within the subshell...

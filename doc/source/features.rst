@@ -8,7 +8,7 @@ data.
 Each set of features requires a different set of pre-processing steps. To
 accommodate this, and to isolate the customization into discrete,
 easily-editable components, features are handled by separate workflows. In some
-cases, the workflows are interdepedent on each other. Each workflow is expected to
+cases, the workflows are interdependent on each other. Each workflow is expected to
 create the output files defined in the ``config.yaml`` file.
 
 Below, each sub-workflow is shown separately as a directed acyclic graph (DAG)
@@ -19,7 +19,7 @@ been color coded.
 
 .. _all:
 
-``runall.snakefile``
+``Snakefile``
 
 .. image:: images/all_dag.png
     :target: images/all_dag.png
@@ -32,7 +32,7 @@ been color coded.
 This workflow starts with `htseq-count` files, one for each sample. They have
 the following format:
 
-.. literalinclude:: ../../example_data/raw/rnaseq_expression/LineA_1_counts.csv
+.. literalinclude:: ../../example_data/raw/rnaseq_expression/LineA_1_counts.tsv
     :lines: 1-5
 
 The workflow is the following:
@@ -43,7 +43,7 @@ The output file of ``norm_counts.snakefile`` is a table of gene-level
 quantile-normalized counts per million (CPM). One row per gene, and one column
 per sample:
 
-.. literalinclude:: ../../example_data/filtered/rnaseq_expression/counts_matrix_normalized.csv
+.. literalinclude:: ../../example_data/cleaned/rnaseq_expression/counts_matrix_normalized.csv
     :lines: 1-5
 
 
@@ -60,7 +60,7 @@ a proxy for direction and magnitude of differential expression.
 
 Output looks like this:
 
-.. literalinclude:: ../../example_data/filtered/rnaseq_expression/zscores.csv
+.. literalinclude:: ../../example_data/cleaned/rnaseq_expression/zscores.csv
     :lines: 1-5
 
 .. _variants:
@@ -93,7 +93,7 @@ contain those with high impact, the value for each gene represents the total
 number of rows in the VCF file annotated with transcript IDs (`EFF[*].TRID`
 column) belonging to that gene.
 
-.. literalinclude:: ../../example_data/filtered/exome_variants/exome_variants_by_gene.tab 
+.. literalinclude:: ../../example_data/cleaned/exome_variants/exome_variants_by_gene.tab 
     :lines: 1-5
 
 
@@ -138,17 +138,17 @@ longest segment that overlaps the gene ("longest"):
 
 The final cluster scores output file looks like the following:
 
-.. literalinclude:: ../../example_data/filtered/cnv/cluster_scores.tab
+.. literalinclude:: ../../example_data/cleaned/cnv/cluster_scores.tab
     :lines: 1-5
 
 And the "max" gene scores:
 
-.. literalinclude:: ../../example_data/filtered/cnv/cnv_gene_max_scores.tab
+.. literalinclude:: ../../example_data/cleaned/cnv/cnv_gene_max_scores.tab
     :lines: 1-5
 
 And the "longest" gene scores:
 
-.. literalinclude:: ../../example_data/filtered/cnv/cnv_gene_longest_overlap_scores.tab
+.. literalinclude:: ../../example_data/cleaned/cnv/cnv_gene_longest_overlap_scores.tab
     :lines: 1-5
 
 
@@ -181,12 +181,12 @@ Scores for each pathway are calculated based on the output of
 
 Variants output file:
 
-.. literalinclude:: ../../example_data/filtered/consensus_pathway/cpdb_variants.csv
+.. literalinclude:: ../../example_data/cleaned/consensus_pathway/cpdb_variants.csv
     :lines: 1-5
 
 Zscores output file:
 
-.. literalinclude:: ../../example_data/filtered/consensus_pathway/cpdb_zscores.csv
+.. literalinclude:: ../../example_data/cleaned/consensus_pathway/cpdb_zscores.csv
     :lines: 1-5
 
 
@@ -202,12 +202,12 @@ Scores for each GO term are calculated based on the output of
 
 Variants output file:
 
-.. literalinclude:: ../../example_data/filtered/go/go_variants.csv
+.. literalinclude:: ../../example_data/cleaned/go/go_variants.csv
     :lines: 1-5
 
 Zscores output file:
 
-.. literalinclude:: ../../example_data/filtered/go/go_zscores.csv
+.. literalinclude:: ../../example_data/cleaned/go/go_zscores.csv
     :lines: 1-5
 
 .. _msigdb:
@@ -222,12 +222,12 @@ Scores for each pathway are calculated based on the output of
 
 Variants output file:
 
-.. literalinclude:: ../../example_data/filtered/msigdb/msigdb_variants.csv
+.. literalinclude:: ../../example_data/cleaned/msigdb/msigdb_variants.csv
     :lines: 1-5
 
 Zscores output file:
 
-.. literalinclude:: ../../example_data/filtered/msigdb/msigdb_zscores.csv
+.. literalinclude:: ../../example_data/cleaned/msigdb/msigdb_zscores.csv
     :lines: 1-5
 
 

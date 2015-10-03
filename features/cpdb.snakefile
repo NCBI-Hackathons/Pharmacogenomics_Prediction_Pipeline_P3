@@ -1,6 +1,6 @@
 rule preprocess_cpdb:
     input: '{prefix}/raw/consensus_pathway_db/CPDB_pathways_genes.tab'
-    output: '{prefix}/filtered/consensus_pathway_db/CPDB_pathways_ensembl.tab'
+    output: '{prefix}/cleaned/consensus_pathway_db/CPDB_pathways_ensembl.tab'
     run:
         with open(output[0], 'w') as fout:
             for line in open(input[0]):
@@ -27,7 +27,7 @@ rule process_cpdb_zscores:
 
 rule process_cpdb_variants:
     input:
-        variants=config['features']['exome_variants']['output'],
+        variants=config['features']['exome_variants']['output']['by_gene'],
         cpdb_mapping=rules.preprocess_cpdb.output
     output: config['features']['cpdb']['output']['variants']
     run:

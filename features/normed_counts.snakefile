@@ -20,7 +20,7 @@ rule rnaseq_data_prep:
     input:
         "{prefix}/raw/rnaseq_expression/counts_matrix.tsv"
     output:
-        config['features']['normed_counts']['output']
+        config['features']['normed_counts']['output']['normed_counts']
     shell:
         """
         {Rscript} tools/rnaseq_data_preparation.R {input} {output}

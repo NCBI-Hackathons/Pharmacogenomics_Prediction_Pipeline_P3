@@ -18,7 +18,6 @@ ADD \
     r-cran-packages.txt \
     r-github-packages.txt \
     r-install.R \
-    conda-requirements.txt \
     /tmp/
 
 # Install R prerequisites
@@ -30,7 +29,10 @@ RUN wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh && 
 ENV PATH=/tmp/conda-build/anaconda/bin:$PATH
 
 # Install non-R requirements via the bioconda channel
-RUN conda install -y -c bioconda snakemake bedtools pandas python=3.4
+ADD \
+    conda-requirements.txt \
+    /tmp/
+RUN conda install -y -c bioconda --file conda-requirements.txt
 
 # Create directory for data
 RUN mkdir /data

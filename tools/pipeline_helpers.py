@@ -134,8 +134,8 @@ def filtered_targets_from_config(config_file):
 
     This function will return:
         [
-            'runs/run_1/filtered/go/zscores_filtered.tab',
-            'runs/run_1/filtered/go/variants_filtered.tab',
+            '{prefix}/runs/run_1/filtered/go/zscores_filtered.tab',
+            '{prefix}/runs/run_1/filtered/go/variants_filtered.tab',
         ]
 
     """
@@ -145,7 +145,7 @@ def filtered_targets_from_config(config_file):
         for features_label, block in config['features'].items():
             output = block['output']
             for label, filename in output.items():
-                targets.append(os.path.join('runs', run, 'filtered', features_label, label +
+                targets.append(os.path.join(config['prefix'], 'runs', run, 'filtered', features_label, label +
                                             '_filtered.tab'))
     return targets
 

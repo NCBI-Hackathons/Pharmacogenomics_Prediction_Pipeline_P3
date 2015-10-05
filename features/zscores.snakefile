@@ -2,7 +2,7 @@ rule compute_zscores:
     input: config['features']['normed_counts']['output']['normed_counts']
     output:
         zscores=config['features']['zscores']['output']['zscores'],
-        estimates=config['features']['zscores']['output']['zscore_estimates']
+        estimates="{prefix}/cleaned/rnaseq_expression/zscore_estimates.csv"
     shell:
         """
         {Rscript} tools/rnaseq_data_zscore_calculation.R \

@@ -14,41 +14,47 @@ The `deploy/` directory contains requirements files for Python, R, and Ubuntu.
 These requirements have been included in the Docker container. To run the
 example in an isolated environment:
 
-1. `Install docker <https://docs.docker.com/>`.
+- Install `docker <https://docs.docker.com/>`_.
 
-
-2. Pull the docker container::
+- Pull the docker container::
 
     docker pull daler/p3
 
-3. Run the docker container::
+
+- Run the docker container::
 
    docker run -i -t daler/p3 /bin/bash
 
-4.  You should now be in the running docker container, in the `/data`
-    directory, From inside the container, clone the git repository::
+
+- You should now be in the running docker container, in the `/data` directory,
+  From inside the container, clone the git repository::
 
     git clone https://github.com/NCBI-Hackathons/Pharmacogenomics_Prediction_Pipeline_P3.git
 
-5. Change to the source code directory::
+
+- Change to the source code directory::
 
    cd Pharmacogenomics_Prediction_Pipeline_P3
 
-6. Run `snakemake` using the `prepare_example_data` rule to unzip the example
-   data into the aptly-named `example_data` directory::
+
+- Run `snakemake` using the `prepare_example_data` rule to unzip the example
+  data into the aptly-named `example_data` directory::
 
     snakemake prepare_example_data
 
-6. Do a dry run to see what needs to be run::
+
+Do a dry run to see what needs to be run::
 
     snakemake -n
 
-7. Run the pipeline, using `-j` to specify the number of processors to use::
+
+Run the pipeline, using `-j` to specify the number of processors to use::
 
     snakemake -j8
 
-8. Output will be in `example_data/runs/run_1/output/`. The final output
-   consists of one `.RData` file for each configured sample. Each file can be
-   loaded into R, and contains a single object called `outSL` that contains the
-   output of the SuperLearner run for that sample.
+
+Output will be in `example_data/runs/run_1/output/`. The final output
+consists of one `.RData` file for each configured sample. Each file can be
+loaded into R, and contains a single object called `outSL` that contains the
+output of the SuperLearner run for that sample.
 

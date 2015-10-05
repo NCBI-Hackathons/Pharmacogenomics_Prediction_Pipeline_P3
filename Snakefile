@@ -163,6 +163,7 @@ rule do_filter:
     input: get_input_from_filtered_output_wildcards
     output: '{prefix}/runs/{run}/filtered/{features_label}/{output_label}_filtered.tab'
     run:
+        samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]
         dotted_path = config['run_info'][wildcards.run]['feature_filter']
         function = pipeline_helpers.resolve_name(dotted_path)
 
@@ -171,7 +172,7 @@ rule do_filter:
         d = function(infile=str(input[0]),
                  features_label=wildcards.features_label,
                  output_label=wildcards.output_label)
-        d.to_csv(str(output[0]), sep='\t')
+        d[samples].to_csv(str(output[0]), sep='\t')
 
 # ----------------------------------------------------------------------------
 # Aggregate all features together into one file in preparation for model
@@ -200,7 +201,8 @@ rule aggregate_filtered_features:
     run:
         samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]
         d = pipeline_helpers.aggregate_filtered_features(input)
-        d[samples].to_csv(str(output[0]), sep='\t')
+        d[samples].T.dropna().to_csv(str(output[0]), sep='\t',
+                                     index_label='sample')
 
 # ----------------------------------------------------------------------------
 # Aggregate responses together; uses aggregate_responses_input() function to
@@ -238,7 +240,7 @@ rule aggregate_responses:
             sample_from_filename_func=f,
             index_col=0,
             data_col=data_col)
-        d.to_csv(str(output[0]), sep='\t')
+        d.T.to_csv(str(output[0]), sep='\t', index_label='sample')
 
 
 # vim: ft=python

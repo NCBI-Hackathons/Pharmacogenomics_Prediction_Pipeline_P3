@@ -79,13 +79,21 @@ drug_response_targets += expand(
 filtered_targets = pipeline_helpers.filtered_targets_from_config('config.yaml')
 
 filtered_targets += expand('{prefix}/runs/{run}/filtered/aggregated_features.tab', run=config['run_info'].keys(), prefix=config['prefix'])
+
+model_targets = []
+for run, block in config['run_info'].items():
+    responses_for_run = [i.strip() for i in open(block['response_list'])]
+    model_targets.extend(
+        expand('{prefix}/runs/{run}/output/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run))
+
+
 # ----------------------------------------------------------------------------
 # Create all output files. Since this is the first rule in the file, it will be
 # the one run by default.
 rule all:
     input:
         (feature_targets + lookup_targets + drug_response_targets
-         + filtered_targets)
+         + filtered_targets + model_targets)
 
 
 # ----------------------------------------------------------------------------
@@ -241,6 +249,23 @@ rule aggregate_responses:
             index_col=0,
             data_col=data_col)
         d.T.to_csv(str(output[0]), sep='\t', index_label='sample')
+
+rule learn_model:
+    input:
+        features=rules.aggregate_filtered_features.output[0],
+        response=rules.aggregate_responses.output[0],
+        SL_library_file=lambda wc: config['run_info'][wc.run]['SL_library_file']
+    output: '{prefix}/runs/{run}/output/{response}.RData'
+    log: '{prefix}/runs/{run}/output/{response}.log'
+    shell:
+        """
+        {Rscript} tools/run_prediction.R \
+            {input.features} \
+            {input.response} \
+            {wildcards.response} \
+            {input.SL_library_file} \
+            {output} > {log} 2> {log}
+        """
 
 
 # vim: ft=python

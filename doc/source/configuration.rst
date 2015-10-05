@@ -143,6 +143,7 @@ Example:
             response_list: "SIDs.txt"
             response_column: "DATA0"
             response_template: "{prefix}/processed/drug_response/{sample}_drugResponse.tab"
+            SL_library_file: "tools/default_SL_library.R"
 
 `run_info` is a dictionary that defines multiple runs. It is intended as the entry
 point for configuring and tweaking filtering and learning parameters.  Each
@@ -175,6 +176,18 @@ has the following keys:
 :response_column:
     Each response file specified in the `response_template` field may have
     several variables. Specify the column name here.
+
+:SL_library_file:
+    This is an R script that defines a library for SuperLearner. This file is
+    sourced right before calling `SuperLearner()`, and, upon being sourced,
+    this script must define a variable `SL.library` which will be provided to
+    the `SuperLearner()` function. The simplest case is a character vector of
+    algorithms to use. In the example above, the file
+    `tools/default_SL_library.R` simply contains the single line, ``SL.library
+    <- c("SL.randomForest", "SL.glmnet", "SL.mean")``. However, it is possible
+    to write custom wrappers in this script for SuperLearner to use.
+    See the `SuperLearner docs
+    <https://cran.r-project.org/web/packages/SuperLearner/SuperLearner.pdf>`_ 
 
 .. _exampleconfig:
 

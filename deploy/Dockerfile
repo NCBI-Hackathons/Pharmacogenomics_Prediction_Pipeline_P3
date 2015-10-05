@@ -1,50 +1,37 @@
-#
 # Pharmacogenomics Prediction Pipeline (P3) Docker image
-# 2015/08/05
 #
-# This docker image provides a pre-configured container including all of
-# the software and data needed to reproduce the results of the Pharmacogenomics
 # Prediction Pipeline (P3).
-#
-# For more information, see the M3 github page at:
-# https://github.com/DCGenomics/multiple_myeloma_rnaseq_drug_response_hackathon_v002/
-#
 FROM bioconductor/release_core
 
-MAINTAINER khughitt@umd.edu
+MAINTAINER khughitt@umd.edu, dalerr@niddk.nih.gov
 
 # Ubuntu packages
 RUN apt-get update && \
-    apt-get install -y \ 
+    apt-get install -y \
     libcurl4-openssl-dev \
     libxml2-dev \
-    tree 
+    tree
 
-# Python requirements
-RUN pip install mygene
+# Add dependencies
+ADD \
+    r-bioconductor-packages.txt \
+    r-cran-packages.txt \
+    r-github-packages.txt \
+    r-install.R \
+    conda-requirements.txt \
+    /tmp/
 
-# Install R CRAN packages
-ADD r-cran-packages.txt /tmp/
+# Install R prerequisites
+WORKDIR /tmp
+RUN R -e "source('r-install.R')"
 
-RUN for x in $(cat /tmp/r-cran-packages.txt); do \
-    echo "Installing $x..."; \
-    R -e "install.packages('$x');"; \
-    done
+# Install Miniconda
+RUN wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh && bash Miniconda-latest-Linux-x86_64.sh -b -p /tmp/conda-build/anaconda
+ENV PATH=/tmp/conda-build/anaconda/bin:$PATH
 
-# Install R Github packages
-ADD r-github-packages.txt /tmp/
-
-RUN for x in $(cat /tmp/r-github-packages.txt /tmp/); do \
-    echo "Installing $x..."; \
-    R -e "devtools::install_github('$x');"; \
-    done
-
-# Install R Bioconductor packages
-RUN R -e "source('http://bioconductor.org/biocLite.R');"\
-         "biocLite(c('preprocessCore', 'sva', 'genefilter', 'Homo.sapiens'), suppressUpdates=TRUE);"
+# Install non-R requirements via the bioconda channel
+RUN conda install -y -c bioconda snakemake bedtools pandas python=3.4
 
 # Create directory for data
 RUN mkdir /data
-
-# Clone P3 repo
-RUN git clone https://github.com/DCGenomics/multiple_myeloma_rnaseq_drug_response_hackathon_v002
+WORKDIR /data

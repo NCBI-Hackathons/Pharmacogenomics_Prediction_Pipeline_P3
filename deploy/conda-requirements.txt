@@ -1,0 +1,4 @@
+snakemake=3.4.2
+bedtools=2.24.0
+pandas=16.2
+python=3.4

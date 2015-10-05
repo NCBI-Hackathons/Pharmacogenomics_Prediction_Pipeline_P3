@@ -61,7 +61,7 @@ features:
         snakefile: features/zscores.snakefile
         output:
             zscores: "{prefix}/cleaned/rnaseq_expression/zscores.csv"
-            zscore_estimates: "{prefix}/cleaned/rnaseq_expression/zscore_estimates.csv"
+            #zscore_estimates: "{prefix}/cleaned/rnaseq_expression/zscore_estimates.csv"
 
 run_info:
     run_1:

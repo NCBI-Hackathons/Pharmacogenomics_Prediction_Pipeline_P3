@@ -91,15 +91,28 @@ for run, block in config['run_info'].items():
 # Create all output files. Since this is the first rule in the file, it will be
 # the one run by default.
 rule all:
-    input:
-        (feature_targets + lookup_targets + drug_response_targets
-         + filtered_targets + model_targets)
+    input: model_targets
 
 
 # ----------------------------------------------------------------------------
-# A rule just for creating the feature output files
-rule all_features:
-    input: feature_targets + lookup_targets
+# The following rules provide intermediate targets so we can run just part of
+# the pipeline if needed.
+rule preprocess_features:
+    input: feature_targets
+
+rule preprocess_response:
+    input: drug_response_targets
+
+rule filtered_response:
+    input:
+        expand('{prefix}/runs/{run}/filtered/aggregated_response.tab',
+                  prefix=config['prefix'], run=config['run_info'].keys())
+
+rule filtered_features:
+    input:
+        expand('{prefix}/runs/{run}/filtered/aggregated_features.tab',
+                  prefix=config['prefix'], run=config['run_info'].keys())
+
 
 # ----------------------------------------------------------------------------
 # Make lookup tables from ENS gene IDs to other ids. Which ones to make depends

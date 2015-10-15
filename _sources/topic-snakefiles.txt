@@ -41,7 +41,7 @@ Adding a new feature set
 Edit `config.yaml`. Choose a name for the feature set, and add an entry to the
 `features` dictionary. The entry must have the filename of a Snakemake pipeline
 and the name of an output file. If there are several output files, then use
-a list of output files. Both paths are *relative to the runall.snakefile
+a list of output files. Both paths are *relative to the Snakefile
 directory*.
 
 The current configuration uses "{prefix}" as a placeholder for the top-level
@@ -55,19 +55,19 @@ the new `config.yaml` entry.
 
 Creating the snakefiles
 -----------------------
-`runall.snakefile` simply `include` s each child snakefile. This means that you
-can use anything in the namespace of runall.snakefile -- including the config
+`Snakefile` simply `include` s each child snakefile. This means that you
+can use anything in the namespace of Snakefile -- including the config
 obj and the helper functions. In fact, it would be a good idea to use
 `config["features"][featureset_name]["output"]` as the output for the final
-rule in the child snakefile, ensuring that `runall.snakefile` and the child
+rule in the child snakefile, ensuring that `Snakefile` and the child
 snakefile are expecting the same file to be created.
 
 
-runall.snakefile automatically includes any snakefiles configured in
+Snakefile automatically includes any snakefiles configured in
 'config.yaml'.
 
 In those child snakefiles, you can use anything in the namespace of
-runall.snakefile -- including the config obj and the helper functions.
+Snakefile -- including the config obj and the helper functions.
 
 The child snakefiles are included verbatim, so beware rule name
 collisions.

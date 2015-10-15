@@ -96,7 +96,7 @@ included in this list.</p>
 analysis. It is a text file with one sample name per line.</p>
 <p>The final set of features will be subsetted to only include data from the
 sample IDs specified in this file.</p>
-<p>This file is parsed into a list of sample IDs within the <cite>runall.snakefile</cite>
+<p>This file is parsed into a list of sample IDs within the <cite>Snakefile</cite>
 workflow such that each child workflow can access the list of samples. This is
 especially convenient when sample IDs are encoded in filenames and you want to
 grab all files for all samples.</p>
@@ -131,7 +131,8 @@ defined here:</p>
 
     <span class="l-Scalar-Plain">exome_variants</span><span class="p-Indicator">:</span>
         <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/variants.snakefile</span>
-        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/exome_variants/exome_variants_by_gene.tab&quot;</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
+            <span class="l-Scalar-Plain">by_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/exome_variants/exome_variants_by_gene.tab&quot;</span>
 </pre></div>
 </div>
 <p>This is where new feature sets are defined. In this example, there are two
@@ -145,12 +146,14 @@ are two fields: <code class="docutils literal"><span class="pre">snakefile</span
 Snakemake workflow that creates these features. This snakefile can do
 whatever it needs to do in order to create the output file[s].</td>
 </tr>
-<tr class="field-even field"><th class="field-name">output:</th><td class="field-body">This field can either be a single string (as in the <code class="docutils literal"><span class="pre">exome_variants</span></code>) or
-can be a dictionary with multiple output files, each with a unique name (as
-in <code class="docutils literal"><span class="pre">cnv</span></code>).  These output files can use the <code class="docutils literal"><span class="pre">{prefix}</span></code> placeholder which
-will be filled in with the <a class="reference internal" href="#config-prefix"><span>prefix</span></a> field. It is expected that
-these files will be created by the snakefile specified for this feature
-set.</td>
+<tr class="field-even field"><th class="field-name">output:</th><td class="field-body">This field is a dictionary with at least one output file. The combination
+of feature label and output label must be unique (e.g., (<cite>exome_variants</cite>,
+<cite>by_gene</cite>) is unique).  These output files can use the <code class="docutils literal"><span class="pre">{prefix}</span></code>
+placeholder which will be filled in with the <a class="reference internal" href="#config-prefix"><span>prefix</span></a> field. It
+is expected that these files will be created by the snakefile specified for
+this feature set. In this example, <cite>featurex/cnv.snakefile</cite> is expected to
+create the three output files listed and <cite>features/variants.snakefile</cite> is
+expected to create one output file.</td>
 </tr>
 </tbody>
 </table>
@@ -159,6 +162,64 @@ set.</td>
 <p class="last">Most of the effort in adding a new feature set is in writing the actual
 snakefile that does the work.  See <a class="reference internal" href="topic-snakefiles.html#snakefiles"><span>Pipeline design</span></a> for more on this.</p>
 </div>
+</div>
+<div class="section" id="run-info">
+<h3><cite>run_info</cite><a class="headerlink" href="#run-info" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">run_info</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">run_1</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">feature_filter</span><span class="p-Indicator">:</span> <span class="s">&quot;filterfuncs.run1&quot;</span>
+        <span class="l-Scalar-Plain">sample_list</span><span class="p-Indicator">:</span> <span class="s">&quot;celllines.txt&quot;</span>
+        <span class="l-Scalar-Plain">response_list</span><span class="p-Indicator">:</span> <span class="s">&quot;SIDs.txt&quot;</span>
+        <span class="l-Scalar-Plain">response_column</span><span class="p-Indicator">:</span> <span class="s">&quot;DATA0&quot;</span>
+        <span class="l-Scalar-Plain">response_template</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/processed/drug_response/{sample}_drugResponse.tab&quot;</span>
+        <span class="l-Scalar-Plain">SL_library_file</span><span class="p-Indicator">:</span> <span class="s">&quot;tools/default_SL_library.R&quot;</span>
+</pre></div>
+</div>
+<p><cite>run_info</cite> is a dictionary that defines multiple runs. It is intended as the entry
+point for configuring and tweaking filtering and learning parameters.  Each
+entry (here, there is a single run labeled <cite>run_1</cite>) defines a unique set of
+feature filtering, response filtering, and learning parameters. Each run
+has the following keys:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">feature_filter:</th><td class="field-body">This is a dotted-notation specification of a Python filter function to use. See
+<a class="reference internal" href="filtering.html#filtering"><span>Filtering features and responses</span></a> for more details. In this example, we need a function
+called <cite>run1</cite> in a Python module called <cite>filterfuncs.py</cite>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">sample_list:</th><td class="field-body">A file containing one sample ID per line. You can control the samples that
+make it into the training by modifying this file.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">response_list:</th><td class="field-body">A file containing one response ID (i.e., drug SID) per line. It is can be
+used to determine which drugs make it into the training.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">response_template:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">There may be many options for which response data <em>values</em> to use, but only
+one can be used for training. This template defines which file to use. It
+should start with <cite>{prefix}</cite> and have the <cite>{sample}</cite> placeholder. Note that to figure
+out the sample, the underlying code will split the basename of the filename
+on <cite>_drug</cite> and take the first part, so the response pre-processing should
+output files of the form <cite>{sample}_drugResponse.tab</cite></td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">response_column:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Each response file specified in the <cite>response_template</cite> field may have
+several variables. Specify the column name here.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">SL_library_file:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">This is an R script that defines a library for SuperLearner. This file is
+sourced right before calling <cite>SuperLearner()</cite>, and, upon being sourced,
+this script must define a variable <cite>SL.library</cite> which will be provided to
+the <cite>SuperLearner()</cite> function. The simplest case is a character vector of
+algorithms to use. In the example above, the file
+<cite>tools/default_SL_library.R</cite> simply contains the single line, <code class="docutils literal"><span class="pre">SL.library</span>
+<span class="pre">&lt;-</span> <span class="pre">c(&quot;SL.randomForest&quot;,</span> <span class="pre">&quot;SL.glmnet&quot;,</span> <span class="pre">&quot;SL.mean&quot;)</span></code>. However, it is possible
+to write custom wrappers in this script for SuperLearner to use.
+See the <a class="reference external" href="https://cran.r-project.org/web/packages/SuperLearner/SuperLearner.pdf">SuperLearner docs</a></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section" id="example-config-yaml">
@@ -171,7 +232,6 @@ snakefile that does the work.  See <a class="reference internal" href="topic-sna
 <span class="c1"># configured below.</span>
 <span class="l-Scalar-Plain">features_to_use</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">go</span><span class="p-Indicator">,</span> <span class="nv">normed_counts</span><span class="p-Indicator">,</span> <span class="nv">zscores</span><span class="p-Indicator">,</span> <span class="nv">msigdb</span><span class="p-Indicator">,</span> <span class="nv">cpdb</span><span class="p-Indicator">,</span> <span class="nv">exome_variants</span><span class="p-Indicator">,</span> <span class="nv">cnv</span><span class="p-Indicator">]</span>
 
-<span class="l-Scalar-Plain">samples</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">celllines.txt</span>
 
 <span class="c1"># Explicitly defines path to Rscript to avoid conflict with other existing</span>
 <span class="c1"># installations</span>
@@ -193,40 +253,70 @@ snakefile that does the work.  See <a class="reference internal" href="topic-sna
     <span class="l-Scalar-Plain">cnv</span><span class="p-Indicator">:</span>
         <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/cnv.snakefile</span>
         <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
-            <span class="l-Scalar-Plain">clusters</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/cnv/cluster_scores.tab&quot;</span>
-            <span class="l-Scalar-Plain">max_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/cnv/cnv_gene_max_scores.tab&quot;</span>
-            <span class="l-Scalar-Plain">longest_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/cnv/cnv_gene_longest_overlap_scores.tab&quot;</span>
+            <span class="l-Scalar-Plain">clusters</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/cnv/cluster_scores.tab&quot;</span>
+            <span class="l-Scalar-Plain">max_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/cnv/cnv_gene_max_scores.tab&quot;</span>
+            <span class="l-Scalar-Plain">longest_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/cnv/cnv_gene_longest_overlap_scores.tab&quot;</span>
 
     <span class="l-Scalar-Plain">exome_variants</span><span class="p-Indicator">:</span>
         <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/variants.snakefile</span>
-        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/exome_variants/exome_variants_by_gene.tab&quot;</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
+            <span class="l-Scalar-Plain">by_gene</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/exome_variants/exome_variants_by_gene.tab&quot;</span>
 
     <span class="l-Scalar-Plain">msigdb</span><span class="p-Indicator">:</span>
         <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/msigdb.snakefile</span>
         <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
-            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/msigdb/msigdb_zscores.csv&quot;</span>
-            <span class="l-Scalar-Plain">variants</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/msigdb/msigdb_variants.csv&quot;</span>
+            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/msigdb/msigdb_zscores.csv&quot;</span>
+            <span class="l-Scalar-Plain">variants</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/msigdb/msigdb_variants.csv&quot;</span>
     <span class="l-Scalar-Plain">go</span><span class="p-Indicator">:</span>
         <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/gene_ontology.snakefile</span>
         <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
-            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/go/go_zscores.csv&quot;</span>
-            <span class="l-Scalar-Plain">variants</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/go/go_variants.csv&quot;</span>
+            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/go/go_zscores.csv&quot;</span>
+            <span class="l-Scalar-Plain">variants</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/go/go_variants.csv&quot;</span>
 
     <span class="l-Scalar-Plain">cpdb</span><span class="p-Indicator">:</span>
         <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/cpdb.snakefile</span>
         <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
-            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/consensus_pathway/cpdb_zscores.csv&quot;</span>
-            <span class="l-Scalar-Plain">variants</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/consensus_pathway/cpdb_variants.csv&quot;</span>
+            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/consensus_pathway/cpdb_zscores.csv&quot;</span>
+            <span class="l-Scalar-Plain">variants</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/consensus_pathway/cpdb_variants.csv&quot;</span>
 
     <span class="l-Scalar-Plain">normed_counts</span><span class="p-Indicator">:</span>
         <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/normed_counts.snakefile</span>
-        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/rnaseq_expression/counts_matrix_normalized.csv&quot;</span>
+        <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
+            <span class="l-Scalar-Plain">normed_counts</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/rnaseq_expression/counts_matrix_normalized.csv&quot;</span>
 
     <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span>
         <span class="l-Scalar-Plain">snakefile</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">features/zscores.snakefile</span>
         <span class="l-Scalar-Plain">output</span><span class="p-Indicator">:</span>
-            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/rnaseq_expression/zscores.csv&quot;</span>
-            <span class="l-Scalar-Plain">zscore_estimates</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/filtered/rnaseq_expression/zscore_estimates.csv&quot;</span>
+            <span class="l-Scalar-Plain">zscores</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/cleaned/rnaseq_expression/zscores.csv&quot;</span>
+            <span class="c1">#zscore_estimates: &quot;{prefix}/cleaned/rnaseq_expression/zscore_estimates.csv&quot;</span>
+
+<span class="l-Scalar-Plain">run_info</span><span class="p-Indicator">:</span>
+    <span class="c1"># Each run defines a unique comination of feature filtering, response data,</span>
+    <span class="c1"># and learning parameters.</span>
+
+    <span class="l-Scalar-Plain">run_1</span><span class="p-Indicator">:</span>
+
+        <span class="c1"># The `run1` function, found in the Python module `filterfuncs.py`,</span>
+        <span class="c1"># will be called on each feature set in this run.</span>
+        <span class="l-Scalar-Plain">feature_filter</span><span class="p-Indicator">:</span> <span class="s">&quot;filterfuncs.run1&quot;</span>
+
+        <span class="c1"># One model will be trained for each reponse listed the `response_list`</span>
+        <span class="c1"># file.</span>
+        <span class="l-Scalar-Plain">response_list</span><span class="p-Indicator">:</span> <span class="s">&quot;SIDs.txt&quot;</span>
+
+        <span class="c1"># Specify the samples to use. This file can be used to globally filter</span>
+        <span class="c1"># out a particular sample for this run</span>
+        <span class="l-Scalar-Plain">sample_list</span><span class="p-Indicator">:</span> <span class="s">&quot;celllines.txt&quot;</span>
+
+        <span class="c1"># The &quot;process_response&quot; rule creates several output files for each</span>
+        <span class="c1"># sample. The `response_template` specifies which file to use, and must</span>
+        <span class="c1"># include a {sample} placeholder in the filename. `response_column`</span>
+        <span class="c1"># specifies which column in that file to use for the response data.</span>
+        <span class="l-Scalar-Plain">response_template</span><span class="p-Indicator">:</span> <span class="s">&quot;{prefix}/processed/drug_response/{sample}_drugResponse.tab&quot;</span>
+        <span class="l-Scalar-Plain">response_column</span><span class="p-Indicator">:</span> <span class="s">&quot;DATA0&quot;</span>
+
+        <span class="c1"># R script defining the &quot;SL.library&quot; to use for SuperLearner.</span>
+        <span class="l-Scalar-Plain">SL_library_file</span><span class="p-Indicator">:</span> <span class="s">&quot;tools/default_SL_library.R&quot;</span>
 </pre></div>
 </div>
 </div>
@@ -247,6 +337,7 @@ snakefile that does the work.  See <a class="reference internal" href="topic-sna
 <li><a class="reference internal" href="#samples"><cite>samples</cite></a></li>
 <li><a class="reference internal" href="#rscript"><cite>Rscript</cite></a></li>
 <li><a class="reference internal" href="#features"><cite>features</cite></a></li>
+<li><a class="reference internal" href="#run-info"><cite>run_info</cite></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#example-config-yaml">Example <cite>config.yaml</cite></a></li>

@@ -62,10 +62,81 @@
 can be easily parallelized to run across multiple CPUs.</p>
 <p><strong>Requirements</strong></p>
 <p>The <cite>deploy/</cite> directory contains requirements files for Python, R, and Ubuntu.
-These requirements have been included in the Docker container (&#64;TODO link here)
-The accompanying <cite>Dockerfile</cite> shows the setup to be performed (using the
-Bioconductor Docker container as a base) and the container will be eventually
-provided on docker hub.</p>
+These requirements have been included in the Docker container. To run the
+example in an isolated environment:</p>
+<ul>
+<li><p class="first">Install <a class="reference external" href="https://docs.docker.com/">docker</a>.</p>
+</li>
+<li><p class="first">Pull the docker container:</p>
+<div class="highlight-python"><div class="highlight"><pre>docker pull daler/p3
+</pre></div>
+</div>
+</li>
+<li><p class="first">Run the docker container:</p>
+<div class="highlight-python"><div class="highlight"><pre>docker run -i -t daler/p3 /bin/bash
+</pre></div>
+</div>
+</li>
+<li><p class="first">You should now be in the running docker container, in the <cite>/data</cite> directory,
+From inside the container, clone the git repository:</p>
+<div class="highlight-python"><div class="highlight"><pre>git clone https://github.com/NCBI-Hackathons/Pharmacogenomics_Prediction_Pipeline_P3.git
+</pre></div>
+</div>
+</li>
+<li><p class="first">Change to the source code directory:</p>
+<div class="highlight-python"><div class="highlight"><pre>cd Pharmacogenomics_Prediction_Pipeline_P3
+</pre></div>
+</div>
+</li>
+<li><p class="first">Run <cite>snakemake</cite> using the <cite>prepare_example_data</cite> rule to unzip the example
+data into the aptly-named <cite>example_data</cite> directory:</p>
+<div class="highlight-python"><div class="highlight"><pre>snakemake prepare_example_data
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Do a dry run to see what needs to be run:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">snakemake</span> <span class="o">-</span><span class="n">n</span>
+</pre></div>
+</div>
+<p>Run the pipeline, using <cite>-j</cite> to specify the number of processors to use:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">snakemake</span> <span class="o">-</span><span class="n">j8</span>
+</pre></div>
+</div>
+<p>Output will be in <cite>example_data/runs/run_1/output/</cite>. The final output
+consists of one <cite>.RData</cite> file for each configured sample. Each file can be
+loaded into R, and contains a single object called <cite>outSL</cite> that contains the
+output of the SuperLearner run for that sample.</p>
+<p>You can copy the results from the docker container to your machine. Easiest way
+to do this is to leave the docker container running, then open another
+terminal. Then:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="c"># In another terminal . . .</span>
+
+<span class="c"># Get the ID of the running container. This is also part of the prompt in the running</span>
+<span class="c"># container, so you can just copy that if you want.</span>
+<span class="nv">CONTAINER</span><span class="o">=</span><span class="k">$(</span>docker ps <span class="p">|</span> grep daler/p3 <span class="p">|</span> awk <span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span>
+
+<span class="c"># copy just the final output from the container</span>
+docker cp <span class="se">\</span>
+<span class="nv">$CONTAINER</span>:/data/Pharmacogenomics_Prediction_Pipeline_P3/example_data/runs/run_1/output <span class="se">\</span>
+final_output
+
+tree final_output
+<span class="c">#final_output/</span>
+<span class="c">#├── CX0030.log</span>
+<span class="c">#├── CX0030.RData</span>
+<span class="c">#├── CX0050.log</span>
+<span class="c">#├── CX0050.RData</span>
+<span class="c">#├── CX0051.log</span>
+<span class="c">#├── CX0051.RData</span>
+<span class="c">#├── CX0058.log</span>
+<span class="c">#├── CX0058.RData</span>
+<span class="c">#├── CX0065.log</span>
+<span class="c">#└── CX0065.RData</span>
+<span class="c">#</span>
+<span class="c">#0 directories, 10 files</span>
+</pre></div>
+</div>
 </div>
 
 

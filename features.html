@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
-    <link rel="next" title="Pipeline design" href="topic-snakefiles.html" />
+    <link rel="next" title="Filtering features and responses" href="filtering.html" />
     <link rel="prev" title="Configuration" href="configuration.html" />
    
   
@@ -40,7 +40,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="topic-snakefiles.html" title="Pipeline design"
+          <a href="filtering.html" title="Filtering features and responses"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="configuration.html" title="Configuration"
@@ -63,18 +63,25 @@ data.</p>
 <p>Each set of features requires a different set of pre-processing steps. To
 accommodate this, and to isolate the customization into discrete,
 easily-editable components, features are handled by separate workflows. In some
-cases, the workflows are interdepedent on each other. Each workflow is expected to
+cases, the workflows are interdependent on each other. Each workflow is expected to
 create the output files defined in the <code class="docutils literal"><span class="pre">config.yaml</span></code> file.</p>
 <p>Below, each sub-workflow is shown separately as a directed acyclic graph (DAG)
 of the tasks performed and the first few lines of the output file (or files)
 are shown. To illustrate interdepdencies among workflows, sub-workflows have
 been color coded.</p>
-<p id="all"><code class="docutils literal"><span class="pre">runall.snakefile</span></code></p>
+<p id="all"><code class="docutils literal"><span class="pre">Snakefile</span></code></p>
 <a class="reference external image-reference" href="images/all_dag.png"><img alt="_images/all_dag.png" src="_images/all_dag.png" /></a>
 <div class="section" id="norm-counts-snakefile">
 <span id="normcounts"></span><h2><code class="docutils literal"><span class="pre">norm_counts.snakefile</span></code><a class="headerlink" href="#norm-counts-snakefile" title="Permalink to this headline">¶</a></h2>
 <p>This workflow starts with <cite>htseq-count</cite> files, one for each sample. They have
 the following format:</p>
+<div class="highlight-python"><div class="highlight"><pre>GENE_ID	counts
+ENSG00000234515	8435
+ENSG00000264113	0
+ENSG00000243514	0
+ENSG00000103415	0
+</pre></div>
+</div>
 <p>The workflow is the following:</p>
 <img alt="_images/normed_counts_dag.png" src="_images/normed_counts_dag.png" />
 <p>The output file of <code class="docutils literal"><span class="pre">norm_counts.snakefile</span></code> is a table of gene-level
@@ -170,27 +177,27 @@ largest magnitude CNV that overlaps the gene (&#8220;max&#8221;), or the score o
 longest segment that overlaps the gene (&#8220;longest&#8221;):</p>
 <img alt="_images/gene-scores-diagram.png" src="_images/gene-scores-diagram.png" />
 <p>The final cluster scores output file looks like the following:</p>
-<div class="highlight-python"><div class="highlight"><pre>cluster_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
-1_746638_752741	0.0	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	-3.252	-3.3
-1_752741_1613780	0.3181	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	-3.252	-3.3
-1_1613780_1651398	0.3181	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	0.0	-3.3
-1_1651398_1664194	0.3181	-0.3851	1.1942	-0.6339	-1.3537	0.0095	-0.9704	0.563	-1.6732	-3.3
+<div class="highlight-python"><div class="highlight"><pre>cluster_id	LineI_9	LineH_8	LineJ_10	LineA_1	LineD_4	LineE_5	LineG_7	LineC_3	LineF_6	LineB_2
+1_746638_752741	-3.252	0.563	-3.3	0.0	-0.6339	-1.3537	-0.9704	1.1942	0.0095	-0.3851
+1_752741_1613780	-3.252	0.563	-3.3	0.3181	-0.6339	-1.3537	-0.9704	1.1942	0.0095	-0.3851
+1_1613780_1651398	0.0	0.563	-3.3	0.3181	-0.6339	-1.3537	-0.9704	1.1942	0.0095	-0.3851
+1_1651398_1664194	-1.6732	0.563	-3.3	0.3181	-0.6339	-1.3537	-0.9704	1.1942	0.0095	-0.3851
 </pre></div>
 </div>
 <p>And the &#8220;max&#8221; gene scores:</p>
-<div class="highlight-python"><div class="highlight"><pre>gene_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
-ENSG00000000003	0.8189	-0.0806	-1.3841	-1.6282	0.6118	0.0537	-0.6318	0.5661	0.0424	0.5658
-ENSG00000000005	0.8189	-0.0806	-1.3841	-1.6282	0.6118	0.0537	-0.6318	0.5661	0.0424	0.5658
-ENSG00000000419	0.3678	-0.517	0.3748	0.2662	1.3093	-1.0073	-4.5621	-1.3006	-0.9166	-1.4437
-ENSG00000000457	-0.9155	0.2732	0.6348	-0.5872	-0.5819	0.5559	-1.4232	-0.2612	-2.4134	-4.2292
+<div class="highlight-python"><div class="highlight"><pre>gene_id	LineI_9	LineH_8	LineJ_10	LineA_1	LineD_4	LineE_5	LineG_7	LineC_3	LineF_6	LineB_2
+ENSG00000000003	0.0424	0.5661	0.5658	0.8189	-1.6282	0.6118	-0.6318	-1.3841	0.0537	-0.0806
+ENSG00000000005	0.0424	0.5661	0.5658	0.8189	-1.6282	0.6118	-0.6318	-1.3841	0.0537	-0.0806
+ENSG00000000419	-0.9166	-1.3006	-1.4437	0.3678	0.2662	1.3093	-4.5621	0.3748	-1.0073	-0.517
+ENSG00000000457	-2.4134	-0.2612	-4.2292	-0.9155	-0.5872	-0.5819	-1.4232	0.6348	0.5559	0.2732
 </pre></div>
 </div>
 <p>And the &#8220;longest&#8221; gene scores:</p>
-<div class="highlight-python"><div class="highlight"><pre>gene_id	LineA_1	LineB_2	LineC_3	LineD_4	LineE_5	LineF_6	LineG_7	LineH_8	LineI_9	LineJ_10
-ENSG00000000003	0.8189	-0.0806	-1.3841	-1.6282	0.6118	0.0537	-0.6318	0.5661	0.0424	0.5658
-ENSG00000000005	0.8189	-0.0806	-1.3841	-1.6282	0.6118	0.0537	-0.6318	0.5661	0.0424	0.5658
-ENSG00000000419	0.3678	-0.517	0.3748	0.2662	1.3093	-1.0073	-4.5621	-1.3006	-0.9166	-1.4437
-ENSG00000000457	-0.9155	0.2732	0.6348	-0.5872	-0.5819	0.5559	-1.4232	-0.2612	-2.4134	-4.2292
+<div class="highlight-python"><div class="highlight"><pre>gene_id	LineI_9	LineH_8	LineJ_10	LineA_1	LineD_4	LineE_5	LineG_7	LineC_3	LineF_6	LineB_2
+ENSG00000000003	0.0424	0.5661	0.5658	0.8189	-1.6282	0.6118	-0.6318	-1.3841	0.0537	-0.0806
+ENSG00000000005	0.0424	0.5661	0.5658	0.8189	-1.6282	0.6118	-0.6318	-1.3841	0.0537	-0.0806
+ENSG00000000419	-0.9166	-1.3006	-1.4437	0.3678	0.2662	1.3093	-4.5621	0.3748	-1.0073	-0.517
+ENSG00000000457	-2.4134	-0.2612	-4.2292	-0.9155	-0.5872	-0.5819	-1.4232	0.6348	0.5559	0.2732
 </pre></div>
 </div>
 </div>
@@ -302,8 +309,8 @@ KEGG_CYTOKINE_CYTOKINE_RECEPTOR_INTERACTION_sum_pos	0.131088071579741		1.2441124
   <p class="topless"><a href="configuration.html"
                         title="previous chapter">Configuration</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="topic-snakefiles.html"
-                        title="next chapter">Pipeline design</a></p>
+  <p class="topless"><a href="filtering.html"
+                        title="next chapter">Filtering features and responses</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">

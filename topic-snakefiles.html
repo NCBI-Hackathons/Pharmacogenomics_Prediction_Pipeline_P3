@@ -26,7 +26,7 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
     <link rel="next" title="Obtaining pathway scores" href="topic-pivot.html" />
-    <link rel="prev" title="P3 features" href="features.html" />
+    <link rel="prev" title="Filtering features and responses" href="filtering.html" />
    
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
@@ -43,7 +43,7 @@
           <a href="topic-pivot.html" title="Obtaining pathway scores"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="features.html" title="P3 features"
+          <a href="filtering.html" title="Filtering features and responses"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -90,7 +90,7 @@ telling the main workflow about it. This is accomplished using the
 <p>Edit <cite>config.yaml</cite>. Choose a name for the feature set, and add an entry to the
 <cite>features</cite> dictionary. The entry must have the filename of a Snakemake pipeline
 and the name of an output file. If there are several output files, then use
-a list of output files. Both paths are <em>relative to the runall.snakefile
+a list of output files. Both paths are <em>relative to the Snakefile
 directory</em>.</p>
 <p>The current configuration uses &#8220;{prefix}&#8221; as a placeholder for the top-level
 data directory. This makes it straightforward to swap the data directory across
@@ -102,16 +102,16 @@ the new <cite>config.yaml</cite> entry.</p>
 </div>
 <div class="section" id="creating-the-snakefiles">
 <h2>Creating the snakefiles<a class="headerlink" href="#creating-the-snakefiles" title="Permalink to this headline">¶</a></h2>
-<p><cite>runall.snakefile</cite> simply <cite>include</cite> s each child snakefile. This means that you
-can use anything in the namespace of runall.snakefile &#8211; including the config
+<p><cite>Snakefile</cite> simply <cite>include</cite> s each child snakefile. This means that you
+can use anything in the namespace of Snakefile &#8211; including the config
 obj and the helper functions. In fact, it would be a good idea to use
 <cite>config[&#8220;features&#8221;][featureset_name][&#8220;output&#8221;]</cite> as the output for the final
-rule in the child snakefile, ensuring that <cite>runall.snakefile</cite> and the child
+rule in the child snakefile, ensuring that <cite>Snakefile</cite> and the child
 snakefile are expecting the same file to be created.</p>
-<p>runall.snakefile automatically includes any snakefiles configured in
+<p>Snakefile automatically includes any snakefiles configured in
 &#8216;config.yaml&#8217;.</p>
 <p>In those child snakefiles, you can use anything in the namespace of
-runall.snakefile &#8211; including the config obj and the helper functions.</p>
+Snakefile &#8211; including the config obj and the helper functions.</p>
 <p>The child snakefiles are included verbatim, so beware rule name
 collisions.</p>
 <p>TODO: refactor all scripts to use input/output specified on commandline.</p>
@@ -135,8 +135,8 @@ collisions.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="features.html"
-                        title="previous chapter">P3 features</a></p>
+  <p class="topless"><a href="filtering.html"
+                        title="previous chapter">Filtering features and responses</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="topic-pivot.html"
                         title="next chapter">Obtaining pathway scores</a></p>

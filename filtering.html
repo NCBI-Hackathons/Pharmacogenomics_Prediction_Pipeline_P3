@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Filtering features and responses &mdash; Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
+    <link rel="next" title="Pipeline design" href="topic-snakefiles.html" />
+    <link rel="prev" title="P3 features" href="features.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="topic-snakefiles.html" title="Pipeline design"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="features.html" title="P3 features"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="filtering-features-and-responses">
+<span id="filtering"></span><h1>Filtering features and responses<a class="headerlink" href="#filtering-features-and-responses" title="Permalink to this headline">¶</a></h1>
+<p>Depending on the learning algorithm chosen, it can be important to filter
+features. Even when using random forests or penalized regression which are not
+as sensitive to the input features, training will be more efficient after
+removing uninformative features that have the same value across all samples
+(i.e. features with zero variance).</p>
+<p>It is expected that some experimentation will be needed to decide on the
+optimal feature set. Therefore, the <code class="docutils literal"><span class="pre">config.yaml</span></code> file provides a mechanism
+for specifying different <strong>runs</strong>. One run consists of a unique set of the
+following operations:</p>
+<blockquote>
+<div><ul class="simple">
+<li>filtering features</li>
+<li>filtering response</li>
+<li>a set of samples</li>
+<li>a set of responses</li>
+<li>learning parameters</li>
+</ul>
+</div></blockquote>
+<p>For example, one run might use a basic zero variance filter across all
+features, while a second run might try using a more stringent filter for
+variant data. A third run could tweak which samples make it into the model.</p>
+<p>In practice, feature filtering is performed by writing a custom Python
+function. That function must accept 3 arguments: the input file for cleaned
+features, the feature label, and the output label. It must return
+a pandas.DataFrame object.  To illustrate, let&#8217;s assume we have features for GO
+terms variants in the following example <code class="docutils literal"><span class="pre">config.yaml</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>prefix: &quot;/data/&quot;
+features:
+    go:
+        snakefile: features/gene_ontology.snakefile
+        output:
+            zscores: &quot;{prefix}/cleaned/go/go_zscores.csv&quot;
+            variants: &quot;{prefix}/cleaned/go/go_variants.csv&quot;
+
+run_info:
+    run_1:
+        feature_filter: filterfuncs.run1
+        response_filter: filterfuncs.response1
+</pre></div>
+</div>
+<p>Since we defined the <cite>feature_filter</cite> to be <cite>filterfuncs.run1</cite>, we need to
+create a filter function in the file <code class="docutils literal"><span class="pre">filterfuncs.py</span></code> called <cite>run1</cite>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">run1</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">features_label</span><span class="p">,</span> <span class="n">output_label</span><span class="p">):</span>
+    <span class="c"># read the input file</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c"># The example config above only has one set of features, &quot;go&quot;, so we</span>
+    <span class="c"># don&#39;t really have to check `features_label`...but this shows how it</span>
+    <span class="c"># would be done with more complex setups.</span>
+    <span class="c">#</span>
+    <span class="k">if</span> <span class="n">features_label</span> <span class="o">==</span> <span class="s">&#39;go&#39;</span> <span class="ow">and</span> <span class="n">output_label</span> <span class="o">==</span> <span class="s">&#39;zscores&#39;</span><span class="p">:</span>
+        <span class="n">nonzero_var</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">nonzero_var</span><span class="p">]</span>
+
+    <span class="c"># only keep features where &gt;10% of samples have variant data</span>
+    <span class="k">elif</span> <span class="n">features_label</span> <span class="o">==</span> <span class="s">&#39;go&#39;</span> <span class="ow">and</span> <span class="n">output_label</span> <span class="o">==</span> <span class="s">&#39;variants&#39;</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">n_nonzero</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">too_low</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_nonzero</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">nfrac</span>
+        <span class="n">too_high</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_nonzero</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">nfrac</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="o">~</span><span class="p">(</span><span class="n">too_low</span> <span class="o">|</span> <span class="n">too_high</span><span class="p">)]</span>
+
+    <span class="c"># regardless of how we filtered, also get rid of rows with NA.</span>
+    <span class="k">return</span> <span class="n">d</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Over the course of the workflow, this function will be called once for each
+output file defined in each feature set. In the above config, there is one
+feature set, <code class="docutils literal"><span class="pre">go</span></code>, which has two expected output files,
+<cite>/data/cleaned/go/go_zscores.csv</cite> and <cite>/data/cleaned/go/go_variants.csv</cite>. So
+this function will be called twice during the filtering stage of the pipeline.
+The pipeline will save the resulting files in a run-specific directory, named
+after the feature and output label. So the pipeline will run the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">run1</span><span class="p">(</span><span class="s">&quot;/data/cleaned/go/go_zscores.csv&quot;</span><span class="p">,</span> <span class="s">&quot;go&quot;</span><span class="p">,</span> <span class="s">&quot;zscores&quot;</span><span class="p">)</span>
+<span class="c"># output saved to /data/runs/run_1/filtered/go/zscores_filtered.tab</span>
+
+<span class="n">run1</span><span class="p">(</span><span class="s">&quot;/data/cleaned/go/go_variants.csv&quot;</span><span class="p">,</span> <span class="s">&quot;go&quot;</span><span class="p">,</span> <span class="s">&quot;variants&quot;</span><span class="p">)</span>
+<span class="c"># output saved to /data/runs/run_1/filtered/go/variants_filtered.tab</span>
+</pre></div>
+</div>
+<div class="section" id="filtering-samples-and-responses">
+<h2>Filtering samples and responses<a class="headerlink" href="#filtering-samples-and-responses" title="Permalink to this headline">¶</a></h2>
+<p>Filter which samples should be included in the model by editing the file
+referred to in the <cite>sample_list</cite> config value in the <cite>run_info</cite> section.</p>
+<p>Filter which responses (i.e. drugs) should be included in the model by editing
+the file referred to in the <cite>response_list</cite> value in the <cite>run_info</cite> section.</p>
+<p>In contrast, features are filtered using the custom functions referred to in
+the <cite>feature_filter</cite> config value.</p>
+<p>The reason for this is that the pipeline will ultimately be creating one model
+for each drug. Due to the way Snakemake works, this means that we need to know
+in advance which drugs will be used so that we can tell Snakemake which files
+should be created.</p>
+<p>In practice, deciding which drugs to include may involve some data analysis
+outside of the pipeline to decide which drugs to add to the <cite>response_list</cite>.
+For example, a drug may have no effect on any samples, in which case it is
+uninteresting and can be removed. Some pre-processing of the data would be
+required to figure this out, and the corresponding drug can be removed from the
+<cite>response_list</cite>.</p>
+<p>In contrast, we do not have output files created for each feature, so we don&#8217;t
+need to tell Snakemake about filenames. This allows us to perform the feature
+filtering from within the pipeline. In addition, there are generally far more
+features than responses, so using a hypothetical <cite>feature_list</cite> mechanism would
+be awkward and difficult to maintain.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Filtering features and responses</a><ul>
+<li><a class="reference internal" href="#filtering-samples-and-responses">Filtering samples and responses</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="features.html"
+                        title="previous chapter">P3 features</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="topic-snakefiles.html"
+                        title="next chapter">Pipeline design</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/filtering.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, various.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="_sources/filtering.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

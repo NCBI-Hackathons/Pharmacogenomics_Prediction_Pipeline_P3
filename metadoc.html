@@ -67,8 +67,8 @@ first the example pipeline must have been successfully run. Here&#8217;s how to 
 that on the biowulf cluster:</p>
 <div class="highlight-bash"><div class="highlight"><pre>./clean-example-data.sh
 module load bedtools R  <span class="c"># on biowulf</span>
-snakemake -npr -s runall.snakefile  <span class="c"># dry run</span>
-snakemake -pr -s runall.snakefile  <span class="c"># run everything</span>
+snakemake -npr -s Snakefile  <span class="c"># dry run</span>
+snakemake -pr -s Snakefile  <span class="c"># run everything</span>
 </pre></div>
 </div>
 <p>If you have made any changes to the documentation, make sure you commit them
@@ -97,9 +97,8 @@ that you can view it at:</p>
 </pre></div>
 </div>
 <p>If you would like to build and upload for another repo that you have write
-access to &#8211; say, to update the
-docs in the main repo &#8211; then pass that repo as the first argument to
-<cite>build-docs.sh</cite>.  E.g.,:</p>
+access to &#8211; say, to update the docs in the main repo &#8211; then pass that repo as
+the first argument to <cite>build-docs.sh</cite>.  E.g.,:</p>
 <div class="highlight-python"><div class="highlight"><pre>./build-docs.sh git@github.com:NCBI-Hackathons/Pharmacogenomics_Prediction_Pipeline_P3.git
 </pre></div>
 </div>

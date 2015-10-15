@@ -1,0 +1,5 @@
+snakemake==3.4.2
+bedtools==2.24.0
+pandas==0.16.2
+python==3.4
+graphviz==2.38.0

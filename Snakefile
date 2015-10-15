@@ -79,19 +79,40 @@ drug_response_targets += expand(
 filtered_targets = pipeline_helpers.filtered_targets_from_config('config.yaml')
 
 filtered_targets += expand('{prefix}/runs/{run}/filtered/aggregated_features.tab', run=config['run_info'].keys(), prefix=config['prefix'])
+
+model_targets = []
+for run, block in config['run_info'].items():
+    responses_for_run = [i.strip() for i in open(block['response_list'])]
+    model_targets.extend(
+        expand('{prefix}/runs/{run}/output/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run))
+
+
 # ----------------------------------------------------------------------------
 # Create all output files. Since this is the first rule in the file, it will be
 # the one run by default.
 rule all:
-    input:
-        (feature_targets + lookup_targets + drug_response_targets
-         + filtered_targets)
+    input: model_targets
 
 
 # ----------------------------------------------------------------------------
-# A rule just for creating the feature output files
-rule all_features:
-    input: feature_targets + lookup_targets
+# The following rules provide intermediate targets so we can run just part of
+# the pipeline if needed.
+rule preprocess_features:
+    input: feature_targets
+
+rule preprocess_response:
+    input: drug_response_targets
+
+rule filtered_response:
+    input:
+        expand('{prefix}/runs/{run}/filtered/aggregated_response.tab',
+                  prefix=config['prefix'], run=config['run_info'].keys())
+
+rule filtered_features:
+    input:
+        expand('{prefix}/runs/{run}/filtered/aggregated_features.tab',
+                  prefix=config['prefix'], run=config['run_info'].keys())
+
 
 # ----------------------------------------------------------------------------
 # Make lookup tables from ENS gene IDs to other ids. Which ones to make depends
@@ -163,6 +184,7 @@ rule do_filter:
     input: get_input_from_filtered_output_wildcards
     output: '{prefix}/runs/{run}/filtered/{features_label}/{output_label}_filtered.tab'
     run:
+        samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]
         dotted_path = config['run_info'][wildcards.run]['feature_filter']
         function = pipeline_helpers.resolve_name(dotted_path)
 
@@ -171,7 +193,7 @@ rule do_filter:
         d = function(infile=str(input[0]),
                  features_label=wildcards.features_label,
                  output_label=wildcards.output_label)
-        d.to_csv(str(output[0]), sep='\t')
+        d[samples].to_csv(str(output[0]), sep='\t')
 
 # ----------------------------------------------------------------------------
 # Aggregate all features together into one file in preparation for model
@@ -200,7 +222,8 @@ rule aggregate_filtered_features:
     run:
         samples = [i.strip() for i in open(config['run_info'][wildcards.run]['sample_list'])]
         d = pipeline_helpers.aggregate_filtered_features(input)
-        d[samples].to_csv(str(output[0]), sep='\t')
+        d[samples].T.dropna().to_csv(str(output[0]), sep='\t',
+                                     index_label='sample')
 
 # ----------------------------------------------------------------------------
 # Aggregate responses together; uses aggregate_responses_input() function to
@@ -238,7 +261,24 @@ rule aggregate_responses:
             sample_from_filename_func=f,
             index_col=0,
             data_col=data_col)
-        d.to_csv(str(output[0]), sep='\t')
+        d.T.to_csv(str(output[0]), sep='\t', index_label='sample')
+
+rule learn_model:
+    input:
+        features=rules.aggregate_filtered_features.output[0],
+        response=rules.aggregate_responses.output[0],
+        SL_library_file=lambda wc: config['run_info'][wc.run]['SL_library_file']
+    output: '{prefix}/runs/{run}/output/{response}.RData'
+    log: '{prefix}/runs/{run}/output/{response}.log'
+    shell:
+        """
+        {Rscript} tools/run_prediction.R \
+            {input.features} \
+            {input.response} \
+            {wildcards.response} \
+            {input.SL_library_file} \
+            {output} > {log} 2> {log}
+        """
 
 
 # vim: ft=python

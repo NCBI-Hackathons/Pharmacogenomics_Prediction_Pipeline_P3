@@ -12,9 +12,10 @@ def run1(infile, features_label, output_label):
     """
     if (features_label == 'exome_variants' or 'variants' in output_label):
         d = pipeline_helpers.remove_nfrac_variants(infile, nfrac=0.1)
-    elif features_label == 'cnv':
-        return pd.read_table(infile, index_col=0)
     else:
         d = pipeline_helpers.remove_zero_variance(infile)
-    return d.dropna()
+    d = d.dropna()
+    if len(d) == 0:
+        return d
+    return d.sample(min(len(d), 100))
 

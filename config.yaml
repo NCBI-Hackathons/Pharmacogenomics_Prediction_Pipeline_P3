@@ -61,18 +61,32 @@ features:
         snakefile: features/zscores.snakefile
         output:
             zscores: "{prefix}/cleaned/rnaseq_expression/zscores.csv"
-            zscore_estimates: "{prefix}/cleaned/rnaseq_expression/zscore_estimates.csv"
+            #zscore_estimates: "{prefix}/cleaned/rnaseq_expression/zscore_estimates.csv"
 
 run_info:
+    # Each run defines a unique comination of feature filtering, response data,
+    # and learning parameters.
+
     run_1:
+
+        # The `run1` function, found in the Python module `filterfuncs.py`,
+        # will be called on each feature set in this run.
         feature_filter: "filterfuncs.run1"
 
-        # The pipeline will create a NxM matrix, where N is the number of drugs
-        # listed in `response_list`, M is the number of samples listed in the
-        # `sample_list`.  The values in the matrix will be extracted from the
-        # column called "response_column" from the files matching the template
-        # in "response_template"
+        # One model will be trained for each reponse listed the `response_list`
+        # file.
         response_list: "SIDs.txt"
+
+        # Specify the samples to use. This file can be used to globally filter
+        # out a particular sample for this run
         sample_list: "celllines.txt"
+
+        # The "process_response" rule creates several output files for each
+        # sample. The `response_template` specifies which file to use, and must
+        # include a {sample} placeholder in the filename. `response_column`
+        # specifies which column in that file to use for the response data.
         response_template: "{prefix}/processed/drug_response/{sample}_drugResponse.tab"
         response_column: "DATA0"
+
+        # R script defining the "SL.library" to use for SuperLearner.
+        SL_library_file: "tools/default_SL_library.R"

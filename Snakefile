@@ -122,6 +122,26 @@ for run, block in config['run_info'].items():
         expand('{prefix}/runs/{run}/output/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run))
 
 
+# Create all log output directories. This is required when running on a SLURM
+# cluster using the wrapper. Otherwise, if the directory to which stdout/stderr
+# will be written does not exist, the scheduler will hang.
+
+def install_dag_hook(callback):
+    from snakemake.dag import DAG
+    def postprocess_hook(self, __origmeth=DAG.postprocess):
+        __origmeth(self)
+        callback(self)
+    DAG.postprocess = postprocess_hook
+
+def dag_finalized(dag):
+    for j in dag.jobs:
+        for output in j.output:
+            makedirs(os.path.dirname(output))
+            makedirs(os.path.join('logs', os.path.dirname(output)))
+
+install_dag_hook(dag_finalized)
+
+
 # ----------------------------------------------------------------------------
 # Create all output files. Since this is the first rule in the file, it will be
 # the one run by default.

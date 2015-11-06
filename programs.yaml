@@ -1,6 +1,6 @@
 Rscript:
     prelude: "module load R"
-    path: "R"
+    path: "Rscript"
 
 bedtools:
     prelude: "module load bedtools"

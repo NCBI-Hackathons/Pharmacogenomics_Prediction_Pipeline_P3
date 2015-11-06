@@ -60,7 +60,7 @@ class Programs(object):
             setattr(self, k, Program(v))
 
 
-programs = helpers.Programs(yaml.load(open(config['programs'])))
+programs = Programs(yaml.load(open(config['programs'])))
 
 # Each run can define its own list of samples. Here we get the unique set of
 # samples used across all runs so that we can generate the features for them.

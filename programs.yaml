@@ -1,0 +1,7 @@
+Rscript:
+    prelude: "module load R"
+    path: "R"
+
+bedtools:
+    prelude: "module load bedtools"
+    path: "bedtools"

@@ -10,7 +10,7 @@ anything in this file. Things useful in sub-workflows might be:
   - the imported pipeline_helpers module
   - the `config` object
   - the `samples` list
-  - the `Rscript` path.
+  - the `programs` object
 
 """
 
@@ -19,10 +19,48 @@ from tools import pipeline_helpers
 import os
 import pandas
 from textwrap import dedent
-
+from snakemake.utils import makedirs
+shell.prefix('set -o pipefail; set -e;')
 localrules: make_lookups
 
 config = yaml.load(open('config.yaml'))
+
+class Program(object):
+    """
+    Represents a program from `programs.yaml` stanza which has a format like::
+
+        samtools:
+            prelude: module load samtools
+            path: samtools
+            version_string: samtools | grep Version | cut -f 1
+    """
+    def __init__(self, d):
+        if d['prelude'] is None:
+            self.prelude = ""
+        else:
+            self.prelude = d['prelude']
+        self.path = d['path']
+
+
+class Programs(object):
+    """
+    Represents the entire `programs.yaml` file, where each program
+    and associated info can be accessed via chained dot notation.
+
+    E.g.,::
+
+        p = programs('programs.yaml')
+
+        # construct a command like this::
+        #
+        "{p.samtools.prelude} && {p.samtools.path} view a.bam".format(p=p)
+    """
+    def __init__(self, d):
+        for k, v in d.items():
+            setattr(self, k, Program(v))
+
+
+programs = helpers.Programs(yaml.load(open(config['programs'])))
 
 # Each run can define its own list of samples. Here we get the unique set of
 # samples used across all runs so that we can generate the features for them.

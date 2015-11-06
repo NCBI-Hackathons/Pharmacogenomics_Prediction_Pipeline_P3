@@ -2,6 +2,8 @@ import os
 import numpy as np
 import pandas as pd
 
+# ----------------------------------------------------------------------------
+# Convert SEG-format files to sorted BED format
 rule seg_to_bed:
     input: '{prefix}/raw/cnv/{sample}_cnv.seg'
     output: '{prefix}/cleaned/cnv/{sample}_cnv.bed'
@@ -12,6 +14,46 @@ rule seg_to_bed:
             | {programs.bedtools.path} sort -i stdin > {output}
         """
 
+# ----------------------------------------------------------------------------
+# Use the bedtools multiinter algorithm to cluster into segments of unique
+# blocks. Here is the result of running `bedtools multiinter -examples` to show
+# what it's doing:
+#
+# == Input files: ==
+#
+#  $ cat a.bed
+#  chr1  6   12
+#  chr1  10  20
+#  chr1  22  27
+#  chr1  24  30
+#
+#  $ cat b.bed
+#  chr1  12  32
+#  chr1  14  30
+#
+#  $ cat c.bed
+#  chr1  8   15
+#  chr1  10  14
+#  chr1  32  34
+#
+#  $ cat sizes.txt
+#  chr1  5000
+#
+# == Multi-intersect the files: ==
+#
+#  $ multiIntersectBed -i a.bed b.bed c.bed
+# chr1    6    8    1   1      1    0    0
+# chr1    8    12   2   1,3    1    0    1
+# chr1    12   15   3   1,2,3  1    1    1
+# chr1    15   20   2   1,2    1    1    0
+# chr1    20   22   1   2      0    1    0
+# chr1    22   30   2   1,2    1    1    0
+# chr1    30   32   1   2      0    1    0
+# chr1    32   34   1   3      0    0    1
+#
+#
+# Note that this rule runs once, using all BED files created above. Also we
+# only grab the first 3 fields of the output to use later.
 rule multi_intersect:
     input: expand('{{prefix}}/cleaned/cnv/{sample}_cnv.bed', sample=samples)
     output: '{prefix}/cleaned/cnv/clustered.bed'
@@ -22,6 +64,16 @@ rule multi_intersect:
             | {programs.bedtools.path} sort -i stdin > {output}
         """
 
+# ----------------------------------------------------------------------------
+# Intersect the clustered output with the CNV data in BED format.
+#
+# Runs once for each sample.
+#
+# The output has some double tab characters that need to be removed.
+#
+# The output is a 2-column, tab-delimited file where the first column is
+# a constructed identifier of the cluster (of the form "chrom_start_stop")
+# followed by the score for that sample within that cluster.
 rule create_cluster_scores:
     input:
         clusters=rules.multi_intersect.output[0],
@@ -36,6 +88,10 @@ rule create_cluster_scores:
         """
 
 
+# ----------------------------------------------------------------------------
+# Stitch together all of the cluster scores based on the constructed identifier
+# for each cluster.
+#
 rule cluster_matrix:
     input: expand("{{prefix}}/cleaned/cnv/{sample}_cnv_cluster_overlaps.bed", sample=samples)
     output: '{prefix}/cleaned/cnv/cluster_scores.tab'
@@ -48,6 +104,13 @@ rule cluster_matrix:
         df = df.fillna(0)
         df.to_csv(str(output[0]), sep='\t', index_label='cluster_id')
 
+# ----------------------------------------------------------------------------
+# Compute a CNV score for each gene.
+#
+# This runs once for each sample.
+#
+# Two ways of computing scores are shown here: "max" and "longest". See the
+# docs for more info.
 rule create_gene_scores:
     input:
         genes="example_data/metadata/genes.bed",

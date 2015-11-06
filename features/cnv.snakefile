@@ -78,7 +78,7 @@ rule create_cluster_scores:
     input:
         clusters=rules.multi_intersect.output[0],
         cnv_bed=rules.seg_to_bed.output
-    output: '{prefix}/cleaned/cnv/{sample}_cnv_cluster_overlaps.bed'
+    output: '{prefix}/cleaned/cnv/{sample}_cnv_cluster_overlaps.tab'
     shell:
         """
         {programs.bedtools.prelude}
@@ -93,12 +93,12 @@ rule create_cluster_scores:
 # for each cluster.
 #
 rule cluster_matrix:
-    input: expand("{{prefix}}/cleaned/cnv/{sample}_cnv_cluster_overlaps.bed", sample=samples)
+    input: expand("{{prefix}}/cleaned/cnv/{sample}_cnv_cluster_overlaps.tab", sample=samples)
     output: '{prefix}/cleaned/cnv/cluster_scores.tab'
     run:
         df = pipeline_helpers.stitch(
             input,
-            lambda x: os.path.basename(x).replace('_cnv_cluster_overlaps.bed', ''),
+            lambda x: os.path.basename(x).replace('_cnv_cluster_overlaps.tab', ''),
             na_values=['.', '-1'],
         )
         df = df.fillna(0)

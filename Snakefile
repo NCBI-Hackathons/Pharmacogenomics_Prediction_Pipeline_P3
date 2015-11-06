@@ -89,9 +89,6 @@ for name in config['features_to_use']:
     for output in outputs:
         feature_targets.append(output.format(prefix=config['prefix']))
 
-# Whenever the placeholder string "{Rscript}" shows up in the body of a rule,
-# this configured path will be filled in.
-Rscript = config['Rscript']
 
 # These are gene-related lookup files to be generated. Note that here `prefix`
 # is filled in with the value provided in config.yaml.
@@ -159,7 +156,8 @@ rule make_lookups:
     output: '{prefix}/metadata/ENSG2{map}.tab'
     shell:
         """
-        {Rscript} tools/make_lookups.R {wildcards.map} {output}
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/make_lookups.R {wildcards.map} {output}
         """
 
 # ----------------------------------------------------------------------------
@@ -168,7 +166,8 @@ rule make_genes:
     output: '{prefix}/metadata/genes.bed'
     shell:
         """
-        {Rscript} tools/make_gene_lookup.R {output}
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/make_gene_lookup.R {output}
         sed -i "s/^chr//g" {output}
         """
 
@@ -185,7 +184,8 @@ rule process_response:
     params: uniqueID='SID'
     shell:
         """
-        {Rscript} tools/drug_response_process.R {input} \
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/drug_response_process.R {input} \
         {output.drugIds_file} {output.drugResponse_file} {output.drugDoses_file} \
         {output.drugDrc_file} {params.uniqueID}
         """
@@ -310,13 +310,13 @@ rule learn_model:
     log: '{prefix}/runs/{run}/output/{response}.log'
     shell:
         """
-        {Rscript} tools/run_prediction.R \
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/run_prediction.R \
             {input.features} \
             {input.response} \
             {wildcards.response} \
             {input.SL_library_file} \
             {output} > {log} 2> {log}
         """
-
 
 # vim: ft=python

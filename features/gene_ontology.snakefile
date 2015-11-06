@@ -4,7 +4,8 @@ rule download_go:
     output: '{prefix}/raw/gene_ontology/ensembl_go_mapping.tab'
     shell:
         """
-        {Rscript} tools/generate_ensembl_go_mapping.R {output}
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/generate_ensembl_go_mapping.R {output}
         """
 
 rule go_term_zscores:

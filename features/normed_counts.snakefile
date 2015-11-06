@@ -23,6 +23,7 @@ rule rnaseq_data_prep:
         config['features']['normed_counts']['output']['normed_counts']
     shell:
         """
-        {Rscript} tools/rnaseq_data_preparation.R {input} {output}
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/rnaseq_data_preparation.R {input} {output}
         """
 

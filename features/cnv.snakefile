@@ -7,8 +7,9 @@ rule seg_to_bed:
     output: '{prefix}/cleaned/cnv/{sample}_cnv.bed'
     shell:
         """
+        {programs.bedtools.prelude}
         tail -n +2 {input} | awk -F "\\t" '{{OFS="\\t"; print $2,$3,$4,$6}}' \\
-            | bedtools sort -i stdin > {output}
+            | {programs.bedtools.path} sort -i stdin > {output}
         """
 
 rule multi_intersect:
@@ -16,8 +17,9 @@ rule multi_intersect:
     output: '{prefix}/cleaned/cnv/clustered.bed'
     shell:
         """
-        bedtools multiinter -i {input} | awk -F "\\t" '{{OFS="\\t"; print $1,$2,$3}}' \\
-            | bedtools sort -i stdin > {output}
+        {programs.bedtools.prelude}
+        {programs.bedtools.path} multiinter -i {input} | awk -F "\\t" '{{OFS="\\t"; print $1,$2,$3}}' \\
+            | {programs.bedtools.path} sort -i stdin > {output}
         """
 
 rule create_cluster_scores:
@@ -27,7 +29,8 @@ rule create_cluster_scores:
     output: '{prefix}/cleaned/cnv/{sample}_cnv_cluster_overlaps.bed'
     shell:
         """
-        bedtools intersect -a {input.clusters} -b {input.cnv_bed} -wao  \\
+        {programs.bedtools.prelude}
+        {programs.bedtools.path} intersect -a {input.clusters} -b {input.cnv_bed} -sorted -wao  \\
             | sed "s/\\t\\t/\\t/g" \\
             | awk -F "\\t" '{{OFS="\\t"; print $1"_"$2"_"$3, $7}}' > {output}
         """
@@ -45,7 +48,6 @@ rule cluster_matrix:
         df = df.fillna(0)
         df.to_csv(str(output[0]), sep='\t', index_label='cluster_id')
 
-
 rule create_gene_scores:
     input:
         genes="example_data/metadata/genes.bed",
@@ -55,9 +57,11 @@ rule create_gene_scores:
         gene_max='{prefix}/cleaned/cnv/{sample}_cnv_gene_max_scores.bed',
         gene_longest='{prefix}/cleaned/cnv/{sample}_cnv_gene_longest_overlap_scores.bed'
     run:
+        # Intersect the BED file of this cel
         shell("""
-        bedtools intersect -a {input.cnv_bed} -b {input.genes} -wao \\
-            | sed "s/\\t\\t/\\t/g" > {output.intersected}
+              {programs.bedtools.prelude}
+              {programs.bedtools.path} intersect -a {input.cnv_bed} -b {input.genes} -wao \\
+              | sed "s/\\t\\t/\\t/g" > {output.intersected}
         """)
         df = pd.read_table(
             str(output.intersected),

@@ -1,9 +1,6 @@
 # Top-level data dir
 prefix: example_data
 
-# List of feature sets to use while training. Anything selected here must be
-# configured below.
-features_to_use: [go, normed_counts, zscores, msigdb, cpdb, exome_variants, cnv]
 
 # The value of "programs" should point to a YAML-formatted file that specifies
 # preludes and paths to each program used throughout the pipeline.

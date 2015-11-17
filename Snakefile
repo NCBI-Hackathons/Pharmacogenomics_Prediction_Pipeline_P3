@@ -74,8 +74,7 @@ config['sample_list'] = sorted(list(samples))
 # Output[s] for each feature set defined in the config will added to the
 # feature_targets list.
 feature_targets = []
-for name in config['features_to_use']:
-    cfg = config['features'][name]
+for name, cfg in config['features'].items():
 
     # Includes the defined snakefile into the current workflow.
     workflow.include(cfg['snakefile'])
@@ -255,7 +254,7 @@ rule do_filter:
 
 # ----------------------------------------------------------------------------
 # Aggregate all features together into one file in preparation for model
-# training. Uses the function below, "all_filtered_output_from_run(), to
+# training. Uses the function below, "all_filtered_output_from_run()", to
 # identify which features to aggregate.
 def all_filtered_output_from_run(wildcards):
     """

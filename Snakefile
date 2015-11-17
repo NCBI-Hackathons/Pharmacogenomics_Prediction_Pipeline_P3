@@ -318,7 +318,7 @@ rule aggregate_responses:
             sample_from_filename_func=f,
             index_col=0,
             data_col=data_col)
-        d.T.to_csv(str(output[0]), sep='\t', index_label='sample')
+        d.T.ix[samples].to_csv(str(output[0]), sep='\t', index_label='sample')
 
 rule learn_model:
     input:

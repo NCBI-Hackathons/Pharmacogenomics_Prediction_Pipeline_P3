@@ -130,11 +130,22 @@ rule create_gene_scores:
             str(output.intersected),
             names=['smp_chrom', 'smp_start', 'smp_end', 'smp_score', 'g_chrom',
                    'g_start', 'g_end', 'g_name', 'g_smp_overlap'],
-            na_values=['.', '-1']
+            na_values=['.', '-1'],
         )
-        df[['g_name', 'smp_score']].groupby('g_name').agg(np.max).to_csv(str(output.gene_max), sep='\t')
-        df[['g_name', 'smp_score', 'g_smp_overlap']].groupby('g_name').agg(
-            lambda x: x['smp_score'][x['g_smp_overlap'].argmax()])[['smp_score']].to_csv(str(output.gene_longest), sep='\t')
+
+        # These two lines can be sped up 10-100x by writing Cython functions
+        # instead of inline plain Python lambda functions. For now we just
+        # leave them as plain Python and accept the time hit.
+        #
+        # An alternative is to use numba for JIT compiling
+        df[['g_name', 'smp_score']]\
+            .groupby('g_name')\
+            .agg(lambda x: x[np.argmax(np.abs(x))])\
+            .to_csv(str(output.gene_max), sep='\t')
+        df[['g_name', 'smp_score', 'g_smp_overlap']]\
+            .groupby('g_name')\
+            .agg(lambda x: x['smp_score'][x['g_smp_overlap'].argmax()])[['smp_score']]\
+            .to_csv(str(output.gene_longest), sep='\t')
 
 
 rule gene_longest_overlap_scores_matrix:

@@ -18,7 +18,11 @@ if (length(args) < 5) stop("Script needs 4 inputs: features, response, SID, SL.l
 
 features.file <- args[1]
 response.file <- args[2]
-sid <- args[3]
+
+# e.g., if "NCGC00346485-01" is provided on the command line, make sure it
+# matches the name-mangled column name "NCGC00346485.01", which is what
+#R creates when reading in the table.
+sid <- make.names(args[3])
 SL.library.file <- args[4]
 output.file <- args[5]
 

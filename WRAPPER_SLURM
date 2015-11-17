@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#PBS -N smk
+
+if [ -z $SNAKEFILE ]; then
+    SNAKEFILE=$1
+fi
+
+if [ -z $EXTRA ]; then
+    EXTRA=$2
+fi
+
+(time snakemake \
+    -p \
+    -s $SNAKEFILE \
+    --directory $PWD \
+    -T \
+    --rerun-incomplete \
+    --jobname "s.{rulename}.{jobid}.sh" \
+    -j 999 \
+    --cluster-config slurm_cluster_config.yaml \
+    --verbose \
+    --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads} --output=logs/{output[0]}.%j --error=logs/{output[0]}.%j' \
+    --latency-wait=60 \
+    $EXTRA \
+    ) > "${SNAKEFILE}.log" 2>&1
+
+mail -s "$SNAKEFILE finished" $USER < "${SNAKEFILE}.log"

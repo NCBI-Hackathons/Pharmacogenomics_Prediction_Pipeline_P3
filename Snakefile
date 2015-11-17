@@ -137,7 +137,7 @@ def dag_finalized(dag):
     for j in dag.jobs:
         for output in j.output:
             makedirs(os.path.dirname(output))
-            makedirs(os.path.join('logs', os.path.dirname(output)))
+            makedirs(os.path.join('logs', os.path.basename(os.path.dirname(output)).lstrip('/')))
 
 install_dag_hook(dag_finalized)
 

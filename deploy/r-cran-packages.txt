@@ -9,9 +9,11 @@ gam
 gbm
 genefilter
 ggplot2
+gplots
 glmnet
 Hmisc
 ipred
+knitr
 lattice
 LogicReg
 MASS
@@ -24,6 +26,8 @@ party
 polspline
 quadprog
 randomForest
+RColorBrewer
+reshape2
 ROCR
 rpart
 SIS

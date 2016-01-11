@@ -99,13 +99,13 @@ heatmap.2(as.matrix(dist(t(mat))), trace='none', col=heatmap_colors)
 
 #### Sample heatmap (pearson correlation)
 
-```{r sample_heatmap_cor, echo=FALSE}
+```{r sample_heatmap_cor_pearson, echo=FALSE}
 heatmap.2(cor(mat), trace='none')
 ```
 
 #### Sample Heatmap (spearman correlation)
 
-```{r sample_heatmap_cor, echo=FALSE}
+```{r sample_heatmap_cor_spearman, echo=FALSE}
 heatmap.2(cor(mat, method='spearman'), trace='none')
 ```
 

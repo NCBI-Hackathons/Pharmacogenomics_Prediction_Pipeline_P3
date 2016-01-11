@@ -1,5 +1,5 @@
 Rscript:
-    prelude: "module load R"
+    prelude: "module load R pandoc"
     path: "Rscript"
 
 bedtools:

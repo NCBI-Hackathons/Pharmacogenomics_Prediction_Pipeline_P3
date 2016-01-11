@@ -10,7 +10,7 @@ anything in this file. Things useful in sub-workflows might be:
   - the imported pipeline_helpers module
   - the `config` object
   - the `samples` list
-  - the `Rscript` path.
+  - the `programs` object
 
 """
 
@@ -19,10 +19,48 @@ from tools import pipeline_helpers
 import os
 import pandas
 from textwrap import dedent
-
+from snakemake.utils import makedirs
+shell.prefix('set -o pipefail; set -e;')
 localrules: make_lookups
 
 config = yaml.load(open('config.yaml'))
+
+class Program(object):
+    """
+    Represents a program from `programs.yaml` stanza which has a format like::
+
+        samtools:
+            prelude: module load samtools
+            path: samtools
+            version_string: samtools | grep Version | cut -f 1
+    """
+    def __init__(self, d):
+        if d['prelude'] is None:
+            self.prelude = ""
+        else:
+            self.prelude = d['prelude']
+        self.path = d['path']
+
+
+class Programs(object):
+    """
+    Represents the entire `programs.yaml` file, where each program
+    and associated info can be accessed via chained dot notation.
+
+    E.g.,::
+
+        p = programs('programs.yaml')
+
+        # construct a command like this::
+        #
+        "{p.samtools.prelude} && {p.samtools.path} view a.bam".format(p=p)
+    """
+    def __init__(self, d):
+        for k, v in d.items():
+            setattr(self, k, Program(v))
+
+
+programs = Programs(yaml.load(open(config['programs'])))
 
 # Each run can define its own list of samples. Here we get the unique set of
 # samples used across all runs so that we can generate the features for them.
@@ -36,8 +74,7 @@ config['sample_list'] = sorted(list(samples))
 # Output[s] for each feature set defined in the config will added to the
 # feature_targets list.
 feature_targets = []
-for name in config['features_to_use']:
-    cfg = config['features'][name]
+for name, cfg in config['features'].items():
 
     # Includes the defined snakefile into the current workflow.
     workflow.include(cfg['snakefile'])
@@ -51,9 +88,6 @@ for name in config['features_to_use']:
     for output in outputs:
         feature_targets.append(output.format(prefix=config['prefix']))
 
-# Whenever the placeholder string "{Rscript}" shows up in the body of a rule,
-# this configured path will be filled in.
-Rscript = config['Rscript']
 
 # These are gene-related lookup files to be generated. Note that here `prefix`
 # is filled in with the value provided in config.yaml.
@@ -85,6 +119,26 @@ for run, block in config['run_info'].items():
     responses_for_run = [i.strip() for i in open(block['response_list'])]
     model_targets.extend(
         expand('{prefix}/runs/{run}/output/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run))
+
+
+# Create all log output directories. This is required when running on a SLURM
+# cluster using the wrapper. Otherwise, if the directory to which stdout/stderr
+# will be written does not exist, the scheduler will hang.
+
+def install_dag_hook(callback):
+    from snakemake.dag import DAG
+    def postprocess_hook(self, __origmeth=DAG.postprocess):
+        __origmeth(self)
+        callback(self)
+    DAG.postprocess = postprocess_hook
+
+def dag_finalized(dag):
+    for j in dag.jobs:
+        for output in j.output:
+            makedirs(os.path.dirname(output))
+            makedirs(os.path.join('logs', os.path.basename(os.path.dirname(output)).lstrip('/')))
+
+install_dag_hook(dag_finalized)
 
 
 # ----------------------------------------------------------------------------
@@ -121,7 +175,8 @@ rule make_lookups:
     output: '{prefix}/metadata/ENSG2{map}.tab'
     shell:
         """
-        {Rscript} tools/make_lookups.R {wildcards.map} {output}
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/make_lookups.R {wildcards.map} {output}
         """
 
 # ----------------------------------------------------------------------------
@@ -130,7 +185,8 @@ rule make_genes:
     output: '{prefix}/metadata/genes.bed'
     shell:
         """
-        {Rscript} tools/make_gene_lookup.R {output}
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/make_gene_lookup.R {output}
         sed -i "s/^chr//g" {output}
         """
 
@@ -147,7 +203,8 @@ rule process_response:
     params: uniqueID='SID'
     shell:
         """
-        {Rscript} tools/drug_response_process.R {input} \
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/drug_response_process.R {input} \
         {output.drugIds_file} {output.drugResponse_file} {output.drugDoses_file} \
         {output.drugDrc_file} {params.uniqueID}
         """
@@ -197,7 +254,7 @@ rule do_filter:
 
 # ----------------------------------------------------------------------------
 # Aggregate all features together into one file in preparation for model
-# training. Uses the function below, "all_filtered_output_from_run(), to
+# training. Uses the function below, "all_filtered_output_from_run()", to
 # identify which features to aggregate.
 def all_filtered_output_from_run(wildcards):
     """
@@ -261,7 +318,7 @@ rule aggregate_responses:
             sample_from_filename_func=f,
             index_col=0,
             data_col=data_col)
-        d.T.to_csv(str(output[0]), sep='\t', index_label='sample')
+        d.T.ix[samples].to_csv(str(output[0]), sep='\t', index_label='sample')
 
 rule learn_model:
     input:
@@ -272,13 +329,13 @@ rule learn_model:
     log: '{prefix}/runs/{run}/output/{response}.log'
     shell:
         """
-        {Rscript} tools/run_prediction.R \
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/run_prediction.R \
             {input.features} \
             {input.response} \
             {wildcards.response} \
             {input.SL_library_file} \
             {output} > {log} 2> {log}
         """
-
 
 # vim: ft=python

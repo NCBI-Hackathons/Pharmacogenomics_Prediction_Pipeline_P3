@@ -5,7 +5,8 @@ rule compute_zscores:
         estimates="{prefix}/cleaned/rnaseq_expression/zscore_estimates.csv"
     shell:
         """
-        {Rscript} tools/rnaseq_data_zscore_calculation.R \
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/rnaseq_data_zscore_calculation.R \
                 {input} \
                 {output.zscores} \
                 {output.estimates}

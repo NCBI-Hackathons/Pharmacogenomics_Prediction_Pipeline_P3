@@ -20,7 +20,8 @@ rule rnaseq_visualization_raw:
     output: '{prefix}/reports/raw_rnaseq.html'
     shell:
         """
-        {Rscript} tools/rnaseq_data_preparation.R {input} {output} 'raw'
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/visualize_rnaseq.R {input} {output} 'raw'
         """
 rule rnaseq_data_prep:
     input:

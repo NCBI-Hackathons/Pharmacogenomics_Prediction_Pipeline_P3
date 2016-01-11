@@ -5,3 +5,6 @@ example_data
 *.html
 *.pyc
 *__pycache__*
+slurm-*.out
+logs
+Snakefile.log

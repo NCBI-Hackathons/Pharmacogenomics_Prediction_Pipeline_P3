@@ -15,7 +15,14 @@ rule rnaseq_counts_matrix:
         )
         df.to_csv(output[0], sep='\t')
 
-
+rule rnaseq_visualization_raw:
+    input: '{prefix}/raw/rnaseq_expression/counts_matrix.tsv'
+    output: '{prefix}/reports/raw_rnaseq.html'
+    shell:
+        """
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/visualize_rnaseq.R {input} {output} 'raw'
+        """
 rule rnaseq_data_prep:
     input:
         "{prefix}/raw/rnaseq_expression/counts_matrix.tsv"
@@ -23,6 +30,7 @@ rule rnaseq_data_prep:
         config['features']['normed_counts']['output']['normed_counts']
     shell:
         """
-        {Rscript} tools/rnaseq_data_preparation.R {input} {output}
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/rnaseq_data_preparation.R {input} {output}
         """
 

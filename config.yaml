@@ -1,14 +1,30 @@
 # Top-level data dir
 prefix: example_data
 
-# List of feature sets to use while training. Anything selected here must be
-# configured below.
-features_to_use: [go, normed_counts, zscores, msigdb, cpdb, exome_variants, cnv]
 
-
-# Explicitly defines path to Rscript to avoid conflict with other existing
-# installations
-Rscript: Rscript
+# The value of "programs" should point to a YAML-formatted file that specifies
+# preludes and paths to each program used throughout the pipeline.
+#
+# This mechanism allows us to support different systems where executables may
+# not be on the default path. Furthermore, if a GNU Module needs to be loaded,
+# it is done in the prelude. For example, on the cluster imagine we have to
+# first load the module for bedtools before calling it, but once the module is
+# loaded it is available on the path. In this case, the programs config file
+# would have an entry like this:
+#
+# bedtools:
+#   prelude: "module load bedtools"
+#   path: "bedtools"
+#
+# If it's already on the default path, `prelude` can be empty. You can be as
+# specific as you need to in the `path` entry.
+#
+# In any Snakemake rule using bedtools, use the following placeholders to fill
+# in the configured prelude and path as follows:
+#
+# {programs.bedtools.prelude}
+# {programs.bedtools.path} intersect -a a.bed -b b.bed
+programs: programs.yaml
 
 # Each set of features:
 #   - has a unique name that can be used in the "features_to_use" list

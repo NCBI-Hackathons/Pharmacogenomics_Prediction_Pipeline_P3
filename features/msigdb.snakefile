@@ -14,6 +14,10 @@ rule msigdb_preprocessing:
         MSIG requires a confirmation page, so its download cannot be well automated. So
         here we expect the presence of the already-downloaded file.
 
+        The URL is:
+
+            http://software.broadinstitute.org/gsea/msigdb/download_file.jsp?filePath=/resources/msigdb/5.0/c2.cp.v5.0.entrez.gmt
+
         This downloaded file has an awkward format: pathway name, url, followed by an
         arbitrary number of Entrez IDs annotated for that pathway. This script uses the
         MyGene.info service to lookup entrez to ensemble IDs, and then creates an

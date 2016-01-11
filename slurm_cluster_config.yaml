@@ -1,0 +1,5 @@
+__default__:
+    prefix: "--time=12:00:00"
+
+learn_model:
+    prefix: "--time=5-00:00:00"

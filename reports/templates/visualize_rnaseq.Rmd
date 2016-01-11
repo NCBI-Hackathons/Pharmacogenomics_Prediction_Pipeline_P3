@@ -6,13 +6,14 @@ TODO:
 3. Add support for coloring samples by a specified field.
 -->
 
+
 ```{r, echo=FALSE, message=FALSE}
 library('knitr')
 library('ggplot2')
 library('gplots')
 library('reshape2')
 library('RColorBrewer')
-source('shared/visualization.R')
+source('../../tools/shared/visualization.R')
 
 set.seed(1)
 

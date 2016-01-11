@@ -121,6 +121,8 @@ for run, block in config['run_info'].items():
         expand('{prefix}/runs/{run}/output/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run))
 
 
+report_targets = expand('{prefix}/reports/{label}.html', prefix=config['prefix'], label=['raw_rnaseq'])
+
 # Create all log output directories. This is required when running on a SLURM
 # cluster using the wrapper. Otherwise, if the directory to which stdout/stderr
 # will be written does not exist, the scheduler will hang.
@@ -145,7 +147,7 @@ install_dag_hook(dag_finalized)
 # Create all output files. Since this is the first rule in the file, it will be
 # the one run by default.
 rule all:
-    input: model_targets
+    input: model_targets + report_targets
 
 
 # ----------------------------------------------------------------------------

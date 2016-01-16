@@ -1,0 +1,53 @@
+---
+params:
+    infile: ""
+    data_type: "RNA-Seq"
+    data_level: "Normalized"
+---
+
+```{r child='child/generic_header.Rmd'}
+```
+
+Overview
+--------
+
+```{r load_data, echo=FALSE}
+dat <- read.delim(params$infile, row.names=1)
+mat <- as.matrix(dat)
+```
+
+```{r child='child/rnaseq_overview.Rmd'}
+```
+
+Samples
+-------
+
+```{r child='child/rnaseq_sample_sizes.Rmd'}
+```
+
+### Count distributions
+
+```{r child='child/rnaseq_sample_densities.Rmd'}
+```
+
+### Samples
+
+```{r child='child/generic_sample_heatmaps.Rmd'}
+```
+
+```{r child='child/generic_sample_pca.Rmd'}
+```
+
+Genes
+-----
+
+```{r child='child/rnaseq_gene_heatmap.Rmd'}
+```
+
+System info
+-----------
+
+```{r, echo=FALSE}
+date()
+sessionInfo()
+```

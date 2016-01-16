@@ -1,0 +1,10 @@
+#### Counts
+
+```{r rnaseq_count_dists, echo=FALSE}
+counts_long <- melt(mat + 1)
+colnames(counts_long) <- c('gene_id', 'sample', 'value')
+
+ggplot(counts_long, aes(x=value, color=sample)) + 
+    geom_density() + 
+    theme(legend.position="none")
+```

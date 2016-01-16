@@ -29,5 +29,11 @@ if (!dir.exists(dirname(outfile))) {
 }
 
 # render knitr report
-render('reports/templates/visualize_rnaseq.Rmd', output_file=outfile,
-       params=input_params)
+if (input_params$data_level == 'Raw') {
+    template <- 'reports/templates/visualize_rnaseq_raw.Rmd'
+} else {
+    template <- 'reports/templates/visualize_rnaseq_normed.Rmd'
+}
+
+# build report
+render(template, output_file=outfile, params=input_params)

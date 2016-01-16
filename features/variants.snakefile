@@ -35,4 +35,14 @@ rule transcript_variant_matrix_to_gene_variant_matrix:
         results = x.groupby('ENSEMBL').agg(numpy.sum)
         results.to_csv(output[0], sep='\t')
 
+rule gene_snp_visualization:
+    input: 
+        config['features']['exome_variants']['output']['by_gene']
+    output: '{prefix}/reports/cleaned_snps.html'
+    shell:
+        """
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/visualize_exome_data.R {input} {output} 'SNPs' 'Cleaned'
+        """
+
 # vim: ft=python

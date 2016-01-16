@@ -7,7 +7,7 @@
 # Usage:
 # ------
 #
-# ./visualize_rnaseq INPUT.tsv <title>
+# ./visualize_rnaseq_data.R INPUT.tsv OUTPUT.html <data_type> <data_level>
 # 
 ################################################################################
 library(rmarkdown)

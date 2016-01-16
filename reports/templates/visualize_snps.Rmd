@@ -1,0 +1,53 @@
+---
+params:
+    infile: ""
+    data_type: "SNPs"
+    data_level: "Cleaned"
+---
+
+```{r child='child/generic_header.Rmd'}
+```
+
+Overview
+--------
+
+```{r load_data, echo=FALSE}
+dat <- read.delim(params$infile, row.names=1)
+mat <- as.matrix(dat)
+
+# number of SNPs in each sample
+snp_totals <- colSums(mat)
+```
+
+```{r overview, results='asis', echo=FALSE}
+cat(sprintf('\n- Number of samples: **%d**\n', ncol(dat)))
+cat(sprintf('\n- Number of genes containing SNPs in one or more samples: **%d**\n', 
+            nrow(dat)))
+
+cat(sprintf('\n- Minimum # SNPs in a sample: **%0.2f**\n', min(snp_totals)))
+cat(sprintf('\n- Mean # SNPs in a sample: **%0.2f**\n', mean(snp_totals)))
+cat(sprintf('\n- Median # SNPs in a sample: **%0.2f**\n', median(snp_totals)))
+cat(sprintf('\n- Maximum # SNPs in a sample: **%0.2f**\n', max(snp_totals)))
+```
+
+Samples
+-------
+
+```{r child='child/exome_snp_totals.Rmd'}
+```
+
+### Samples
+
+```{r child='child/generic_sample_heatmaps.Rmd'}
+```
+
+```{r child='child/generic_sample_pca.Rmd'}
+```
+
+System info
+-----------
+
+```{r, echo=FALSE}
+date()
+sessionInfo()
+```

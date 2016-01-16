@@ -1,0 +1,14 @@
+### Library size
+
+```{r rnaseq_sample_sizes, echo=FALSE}
+sample_sizes <- data.frame(
+    name=colnames(dat),
+    size=colSums(dat)
+)
+
+ggplot(sample_sizes, aes(x=name, y=size)) + 
+    geom_bar(stat="identity") +
+    xlab("Sample") + ylab("Library size (# reads)") +
+    theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+

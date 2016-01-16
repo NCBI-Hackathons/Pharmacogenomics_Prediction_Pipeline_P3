@@ -1,0 +1,10 @@
+```{r rnaseq, results='asis', echo=FALSE}
+dat <- read.delim(infile, row.names=1)
+mat <- as.matrix(dat)
+
+cat(sprintf('\n- Number of samples: **%d**\n', ncol(dat)))
+cat(sprintf('\n- Number of genes: **%d**\n', nrow(dat)))
+cat(sprintf('\n- Mean # reads: **%0.2f**\n', mean(mat)))
+cat(sprintf('\n- Median # reads: **%d**\n', median(mat)))
+cat(sprintf('\n- Maximum # reads: **%d**\n', max(mat)))
+```

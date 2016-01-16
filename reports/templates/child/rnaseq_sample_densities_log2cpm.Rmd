@@ -1,0 +1,26 @@
+#### Log2 counts
+
+```{r rnaseq_count_dists, echo=FALSE}
+log2_counts <- melt(log2(mat + 1))
+colnames(log2_counts) <- c('gene_id', 'sample', 'value')
+ggplot(log2_counts, aes(x=value, color=sample)) + 
+    geom_density() + 
+    theme(legend.position="none")
+```
+
+#### Log2-CPM counts
+
+```{r log2cpm_counts, echo=FALSE}
+# Counts-per-million (CPM)
+cpm <- function (x) {
+    sweep(x, 2, colSums(x), '/') * 1E6
+}
+log2cpm_counts <- log2(cpm(mat) + 1)
+log2cpm_counts_long <- melt(log2cpm_counts)
+
+colnames(log2cpm_counts_long) <- c('gene_id', 'sample', 'value')
+
+ggplot(log2cpm_counts_long, aes(x=value, color=sample)) + 
+    geom_density() +
+    theme(legend.position="none")
+```

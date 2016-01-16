@@ -1,0 +1,11 @@
+### Log2-CPM counts (low-count filtered)
+
+```{r rnaseq_gene_heatmap, echo=FALSE}
+# filter out low-count genes 
+log2cpm_counts_filtered <- filter_low_counts(log2cpm_counts)
+
+# sub-sample data
+ind <- sample(1:nrow(log2cpm_counts_filtered), 2000)
+heatmap.2(log2cpm_counts_filtered[ind,], trace='none', labRow=FALSE,
+          col=redgreen(75))
+```

@@ -1,36 +1,20 @@
-<!--
-TODO:
-1. Allow output verbosity to be controlled from P3 settings
-2. Create a wrapper R script which can be run from snakemake, sets relevant
-   variables and knits the report.
-3. Add support for coloring samples by a specified field.
--->
+---
+params:
+    infile: ""
+    data_type: "RNA-Seq"
+    data_level: "Raw"
+---
 
-
-```{r, echo=FALSE, message=FALSE}
-library('knitr')
-library('ggplot2')
-library('gplots')
-library('reshape2')
-library('RColorBrewer')
-source('../../tools/shared/visualization.R')
-
-set.seed(1)
-
-opts_chunk$set(fig.width=1080/96,
-               fig.height=1080/96,
-               dpi=96)
-```
-
-```{r output_header, results='asis', echo=FALSE}
-header <- sprintf("P3: RNA-Seq (%s)", analysis_title)
-cat(paste0(header, '\n', paste(rep('=', nchar(header)), collapse=''), '\n\n'))
-
-cat(format(Sys.time(), "Generated: <time>%Y-%m-%d</time>\n"))
+```{r child='child/generic_header.Rmd'}
 ```
 
 Overview
 --------
+
+```{r load_data, echo=FALSE}
+dat <- read.delim(params$infile, row.names=1)
+mat <- as.matrix(dat)
+```
 
 ```{r child='child/rnaseq_overview.Rmd'}
 ```

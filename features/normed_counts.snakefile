@@ -21,7 +21,7 @@ rule rnaseq_visualization_raw:
     shell:
         """
         {programs.Rscript.prelude}
-        {programs.Rscript.path} tools/visualize_rnaseq.R {input} {output} 'raw'
+        {programs.Rscript.path} tools/visualize_rnaseq.R {input} {output} 'RNA-Seq' 'raw'
         """
 rule rnaseq_data_prep:
     input:

@@ -1,0 +1,14 @@
+### SNP totals
+
+```{r exome_snp_totals, echo=FALSE}
+sample_snp_totals <- data.frame(
+    name=colnames(dat),
+    size=colSums(dat)
+)
+
+ggplot(sample_snp_totals, aes(x=name, y=size)) + 
+    geom_bar(stat="identity") +
+    xlab("Sample") + ylab("# SNPs") +
+    theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+

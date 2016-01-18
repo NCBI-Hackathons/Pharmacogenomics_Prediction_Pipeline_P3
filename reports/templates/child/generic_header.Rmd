@@ -1,0 +1,27 @@
+```{r load_libraries, echo=FALSE, message=FALSE}
+library('ggplot2')
+library('gplots')
+library('reshape2')
+library('RColorBrewer')
+source('../../../tools/shared/visualization.R')
+```
+
+```{r knit_setup, echo=FALSE}
+# knitr settings
+library('knitr')
+opts_chunk$set(fig.width=1080/96,
+               fig.height=1080/96,
+               dpi=96)
+```
+
+```{r, echo=FALSE}
+# set random seed
+set.seed(1)
+```
+
+```{r output_header, results='asis', echo=FALSE}
+header <- sprintf("P3: %s (%s)", params$data_type, params$data_level)
+cat(paste0(header, '\n', paste(rep('=', nchar(header)), collapse=''), '\n\n'))
+
+cat(format(Sys.time(), "Generated: <time>%Y-%m-%d</time>\n"))
+```

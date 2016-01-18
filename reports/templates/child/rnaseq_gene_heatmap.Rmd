@@ -1,0 +1,11 @@
+### Counts (low-count filtered)
+
+```{r rnaseq_gene_heatmap, echo=FALSE}
+# filter out low-count genes 
+counts_filtered <- filter_low_counts(mat)
+
+# sub-sample data
+ind <- sample(1:nrow(counts_filtered), 2000)
+heatmap.2(counts_filtered[ind,], trace='none', labRow=FALSE,
+          col=redgreen(75))
+```

@@ -1,0 +1,7 @@
+```{r rnaseq, results='asis', echo=FALSE}
+cat(sprintf('\n- Number of samples: **%d**\n', ncol(dat)))
+cat(sprintf('\n- Number of genes: **%d**\n', nrow(dat)))
+cat(sprintf('\n- Mean # reads: **%0.2f**\n', mean(mat)))
+cat(sprintf('\n- Median # reads: **%0.2f**\n', median(mat)))
+cat(sprintf('\n- Maximum # reads: **%0.2f**\n', max(mat)))
+```

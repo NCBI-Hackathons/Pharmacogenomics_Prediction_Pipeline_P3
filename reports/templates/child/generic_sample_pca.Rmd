@@ -1,0 +1,8 @@
+#### Sample PCA plot
+
+```{r sample_pca, echo=FALSE}
+# Filter zero-variance genes
+mat_var_filtered <- mat[apply(mat, 1, var) != 0,]
+plot_sample_pca(mat_var_filtered)
+```
+

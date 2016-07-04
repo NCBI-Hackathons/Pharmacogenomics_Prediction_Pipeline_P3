@@ -1,0 +1,222 @@
+---
+title: "P3: Visualization of Results"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+params:
+    results_glob_str: ""
+output:
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    number_sections: true
+  pdf_document:
+    dev: png
+    toc: true
+    latex_engine: xelatex
+---
+
+Setup
+=====
+
+First, let's load some libraries we will be using and create some resuable
+helper functions for parsing the output.
+
+```{r load_libs, message=FALSE, warning=FALSE}
+library('dplyr')
+library('knitr')
+library('ggplot2')
+library('gplots')
+library('reshape2')
+library('stringr')
+library('SuperLearner')
+library('RColorBrewer')
+library('DT')
+library('org.Hs.eg.db')
+sources('R/results_helper_functions.R')
+
+options(stringsAsFactors=FALSE,
+        knitr.duplicate.label='allow',
+        digits=4)
+```
+
+Results
+=======
+
+### Load SuperLearner results
+
+```{r run1, message=FALSE}
+# results_glob_str should look like '~/P3/renamed/runs/run_1/output/*.RData'
+run            <- parse_p3_results(Sys.glob(results_glob_str))
+coefs          <- run$coefs
+cv_risks       <- run$cv_risks
+var_importance <- run$var_importance
+```
+
+### Summary of SuperLearner predictor performance
+
+```{r predictor_performance, results='asis'}
+# CV risk averages across all drugs
+dat <- melt(cv_risks)
+colnames(dat) <- c('drug', 'learner', 'value')
+dat$learner <- as.character(dat$learner)
+
+cvrisk_averages <- dat %>% 
+    group_by(learner) %>% 
+    summarise(average_risk=mean(value, na.rm=TRUE))
+
+# Coefficient averages across all drugs
+dat2 <- melt(coefs)
+colnames(dat2) <- c('drug', 'learner', 'value')
+dat2$learner <- as.character(dat2$learner)
+
+coef_averages <- dat2 %>% 
+    group_by(learner) %>% 
+    summarise(average_coef=mean(value, na.rm=TRUE)) %>%
+    arrange(desc(average_coef))
+
+combined <- merge(cvrisk_averages, coef_averages, by='learner') %>%
+    arrange(desc(average_coef))
+
+#ggplot(dat, aes(value, color=learner, fill=learner)) + 
+#    geom_density(alpha=0.5)
+
+kable(combined)
+```
+
+### Feature importance
+
+First, let's create a vector of feature types so that we can group our 
+plots this way.
+
+```{r feature_types}
+# types of predictor features
+feature_types <- c('cnv_clusters', 'cnv_longest_gene', 'cnv_max_gene',
+                   'cpdb_variants', 'cpdb_zscores', 'exome_variants',
+                   'go_variants', 'go_zscores', 'msigdb_variants',
+                   'msigdb_zscores', 'normed_counts', 'zscores_zscores')
+
+ftype <- rep(NA, nrow(var_importance)) 
+for (cls in feature_types) {
+    ftype[grepl(cls, rownames(var_importance))] <- cls
+}
+```
+
+#### Distribution of feature average variable importance
+
+Median RF variable importance for each feature across all drugs.
+
+```{r variable_importance_dist, results='asis'}
+median_var_importance <- apply(var_importance, 1, median)  
+
+# Create a feature/type mapping
+median_type_importance <- as.data.frame(
+    cbind(median_var_importance=as.vector(median_var_importance), type=ftype)
+)
+
+# Density grouped by feature type
+ggplot(median_type_importance, aes(x=median_var_importance, 
+                                   fill=type, color=type, group=type)) +
+    geom_density(alpha=0.15) +
+    xlab('Median Random Forest Variable Importance')
+
+df <- median_type_importance %>% 
+        group_by(type) %>%
+        summarize(avg=mean(as.numeric(median_var_importance))) %>%
+        arrange(desc(avg))
+kable(df)
+```
+
+#### Distribution of feature maximum variable importance
+
+```{r variable_importance_dist}
+max_var_importance <- apply(var_importance, 1, max) 
+
+# Create a feature/type mapping
+max_type_importance <- as.data.frame(
+    cbind(max_var_importance=as.vector(max_var_importance), type=ftype)
+)
+
+# Density grouped by feature type
+ggplot(max_type_importance, aes(x=max_var_importance, 
+                                 fill=type, color=type, group=type)) +
+    geom_density(alpha=0.15) +
+    xlab('Maximum Random Forest Variable Importance')
+
+df <- max_type_importance %>% 
+        group_by(type) %>%
+        summarize(avg=mean(as.numeric(max_var_importance))) %>%
+        arrange(desc(avg))
+kable(df)
+```
+
+#### Features with highest average variable importance
+
+Features ranked by _median_ random forest variable importance across all drugs.
+
+```{r results='asis', message=FALSE}
+highest_median_var_importance <- as.data.frame(sort(median_var_importance, decreasing=TRUE))
+colnames(highest_median_var_importance) <- c('Importance')
+highest_median_var_importance <- add_rownames(highest_median_var_importance, 'Feature')
+
+# add human-readable annotations
+highest_median_var_importance$Description = get_feature_descriptions(highest_median_var_importance$Feature)
+
+xkable(highest_median_var_importance, 15, 
+       caption='Features ranked by median variable importance',
+       str_max_width=60)
+```
+
+#### Features with highest maximum variable importance
+
+Features ranked by _max_ random forest variable importance across all drugs.
+
+```{r results='asis', message=FALSE}
+highest_max_var_importance <- as.data.frame(sort(max_var_importance, decreasing=TRUE))
+colnames(highest_max_var_importance) <- c('Importance')
+highest_max_var_importance <- add_rownames(highest_max_var_importance, 'Feature')
+
+# add human-readable annotations
+highest_max_var_importance$Description = get_feature_descriptions(highest_max_var_importance$Feature)
+
+xkable(highest_max_var_importance, 15, 
+       caption='Features ranked by max variable importance',
+       str_max_width=60)
+```
+
+#### Features with the highest trimmed mean variable importance
+
+Features ranked by _mean_ of their top 25 variable importance scores. Since
+different features are likely to help predict responses for different drugs,
+this helps us to find features which performed well for at least some subset of
+the drugs.
+
+```{r results='asis', message=FALSE}
+top25 <- apply(var_importance, 1, function(x) { mean(head(sort(x, decreasing=TRUE), 25)) }) 
+trimmed_mean_import <- as.data.frame(sort(top25, decreasing=TRUE))
+colnames(trimmed_mean_import) <- c('Importance')
+trimmed_mean_import <- add_rownames(trimmed_mean_import, 'Feature')
+
+trimmed_mean_import$Description = get_feature_descriptions(trimmed_mean_import$Feature)
+
+xkable(trimmed_mean_import, 15, 
+       caption='Features ranked by trimmed-mean variable importance.',
+       str_max_width=60)
+```
+
+### Drugs with shared predictive features
+
+Next, we will see if there are any groups of drugs which are predicted by
+similar sets of features. To do this, we will cluster the drugs based on the
+their feature importance vectors.
+
+```{r drug_heatmap, fig.width=1080/96, fig.height=1080/96, dpi=96}
+heatmap_colors <- colorRampPalette(brewer.pal(9, "YlGnBu"))(100)
+dist_matrix <- cor(var_importance, method='spearman')
+
+dendrogram <- ifelse(nrow(dist_matrix) > 100, 'none', 'column')
+
+heatmap.2(dist_matrix, trace="none", labRow=NA, dendrogram=dendrogram,
+		  main="Drug prediction similarity", margins=c(12,8),
+		  xlab='Drug', ylab='Drug', col=heatmap_colors)
+```
+

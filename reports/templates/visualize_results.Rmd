@@ -22,6 +22,7 @@ First, let's load some libraries we will be using and create some resuable
 helper functions for parsing the output.
 
 ```{r load_libs, message=FALSE, warning=FALSE}
+library('DT')
 library('dplyr')
 library('knitr')
 library('ggplot2')
@@ -30,9 +31,9 @@ library('reshape2')
 library('stringr')
 library('SuperLearner')
 library('RColorBrewer')
-library('DT')
 library('org.Hs.eg.db')
-sources('R/results_helper_functions.R')
+library('GO.db')
+source('R/results_helper_functions.R')
 
 options(stringsAsFactors=FALSE,
         knitr.duplicate.label='allow',

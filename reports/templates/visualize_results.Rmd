@@ -15,13 +15,7 @@ output:
     latex_engine: xelatex
 ---
 
-Setup
-=====
-
-First, let's load some libraries we will be using and create some resuable
-helper functions for parsing the output.
-
-```{r load_libs, message=FALSE, warning=FALSE}
+```{r load_libs, message=FALSE, warning=FALSE, include=FALSE}
 library('DT')
 library('dplyr')
 library('knitr')
@@ -38,6 +32,27 @@ source('R/results_helper_functions.R')
 options(stringsAsFactors=FALSE,
         knitr.duplicate.label='allow',
         digits=4)
+
+# If rmarkdown.pandoc.to not specified (for example, when kniting
+# piece-by-piece in Vim-R), have it default to 'latex' output.
+if (is.null(opts_knit$get("rmarkdown.pandoc.to"))) {
+    opts_knit$set(rmarkdown.pandoc.to='latex')
+}
+
+# For images containing unicode text, we will use cairo for PDF output
+if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
+    opts_chunk$set(dev='cairo_pdf', 
+  				   dev.args=list(cairo_pdf=list(family="DejaVu Sans")),
+                   fig.width=1920/192,
+                   fig.height=1920/192,
+                   dpi=192)
+} else {
+    # HTML output
+    opts_chunk$set(dev='png',
+                   fig.width=1080/192,
+                   fig.height=1080/192,
+                   dpi=192, fig.retina=2)
+}
 ```
 
 Results
@@ -83,7 +98,7 @@ combined <- merge(cvrisk_averages, coef_averages, by='learner') %>%
 #ggplot(dat, aes(value, color=learner, fill=learner)) + 
 #    geom_density(alpha=0.5)
 
-kable(combined)
+xkable(combined)
 ```
 
 #### Relative CV risk
@@ -94,25 +109,34 @@ kable(combined)
 rel_risks <- 1 - (cv_risks/cv_risks[,'mean']) 
 rel_risks <- rel_risks[,colnames(rel_risks) != 'mean']
 
-summary_df <- cbind(min=apply(rel_risks, 2, min), 
-                    median=apply(rel_risks, 2, median),
-                    max=apply(rel_risks, 2, max))
-kable(summary_df, caption='Relative CV risk by algorithm')
+summary_df <- as.data.frame(cbind(min=apply(rel_risks, 2, min), 
+                                  median=apply(rel_risks, 2, median),
+                                  max=apply(rel_risks, 2, max))) %>%
+                arrange(desc(median))
+xkable(summary_df, caption='Relative CV risk by algorithm')
 
 long_df <- melt(rel_risks)
 colnames(long_df) <- c('drug', 'learner', 'value')
 
 ggplot(long_df, aes(x=value, fill=learner)) + 
     geom_density(alpha=0.75) +
-    geom_vline(xintercept=0, colour="red", linetype = "longdash")
+    geom_vline(xintercept=0, colour="red", linetype = "longdash") +
+    xlim(-0.5, 0.5)
 ```
 
 ##### Number of relative risk scores > 0.10 for each learner
 
-```{r}
+```{r, results='asis'}
 interesting_hits <- as.data.frame(apply(rel_risks, 2, function (x) { sum(x > 0.10) }))
 colnames(interesting_hits) <- 'num'
-kable(interesting_hits)
+xkable(interesting_hits)
+```
+
+##### Number of NA's in CV risk output
+
+```{r}
+has_nas <- apply(cv_risks, 2, function(x) { sum(is.na(x)) })
+has_nas[has_nas > 0]
 ```
 
 ### Feature importance
@@ -155,7 +179,7 @@ df <- median_type_importance %>%
         group_by(type) %>%
         summarize(avg=mean(as.numeric(median_var_importance))) %>%
         arrange(desc(avg))
-kable(df)
+xkable(df)
 ```
 
 #### Distribution of feature maximum variable importance
@@ -178,7 +202,7 @@ df <- max_type_importance %>%
         group_by(type) %>%
         summarize(avg=mean(as.numeric(max_var_importance))) %>%
         arrange(desc(avg))
-kable(df)
+xkable(df)
 ```
 
 #### Features with highest average variable importance

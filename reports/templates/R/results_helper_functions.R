@@ -10,10 +10,11 @@
 #          variable importance.
 parse_p3_results <- function(infiles) {
     # create placeholder variables
-    drugs          <- c()
-    coefs          <- NA
-    cv_risks       <- NA
-    var_importance <- NA
+    drugs           <- c()
+    coefs           <- NA
+    cv_risks        <- NA
+    var_importance  <- NA
+    prediction_var  <- c()
 
     # iterate over P3 outputs
     for (i in 1:length(infiles)) {
@@ -26,6 +27,9 @@ parse_p3_results <- function(infiles) {
         drug <- sub('.RData', '', basename(infile))
         drugs <- c(drugs, drug)
 
+        # prediction variance
+        prediction_var <- c(prediction_var, var(out.SL$SL.predict[,1]))
+
         # random forest variable importantce
         importance <- out.SL$fitLibrary$SL.randomForest_All$object$importance
 
@@ -33,7 +37,7 @@ parse_p3_results <- function(infiles) {
         if (i == 1) {
             # on first iteration of loop, overwrite placeholder variables
             coefs    <- out.SL$coef
-            cv_risks <- out.SL$cv_risks
+            cv_risks <- out.SL$cvRisk
             var_importance <- importance
         } else {
             coefs    <- rbind(coefs, out.SL$coef)
@@ -45,6 +49,7 @@ parse_p3_results <- function(infiles) {
     colnames(coefs) <- sub('_All', '', sub('SL.', '', colnames(coefs)))
     colnames(cv_risks) <- sub('_All', '', sub('SL.', '', colnames(cv_risks)))
     rownames(coefs) <- drugs
+    rownames(cv_risks) <- drugs
 
     list(
         coefs=coefs,

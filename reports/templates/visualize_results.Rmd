@@ -55,6 +55,8 @@ var_importance <- run$var_importance
 
 ### Summary of SuperLearner predictor performance
 
+#### Absolute CV risk
+
 ```{r predictor_performance, results='asis'}
 # CV risk averages across all drugs
 dat <- melt(cv_risks)
@@ -82,6 +84,35 @@ combined <- merge(cvrisk_averages, coef_averages, by='learner') %>%
 #    geom_density(alpha=0.5)
 
 kable(combined)
+```
+
+#### Relative CV risk
+
+##### Relative CV risk for each Learner
+
+```{r, results='asis', fig.cap='Distribution of relative CV risks'}
+rel_risks <- 1 - (cv_risks/cv_risks[,'mean']) 
+rel_risks <- rel_risks[,colnames(rel_risks) != 'mean']
+
+summary_df <- cbind(min=apply(rel_risks, 2, min), 
+                    median=apply(rel_risks, 2, median),
+                    max=apply(rel_risks, 2, max))
+kable(summary_df, caption='Relative CV risk by algorithm')
+
+long_df <- melt(rel_risks)
+colnames(long_df) <- c('drug', 'learner', 'value')
+
+ggplot(long_df, aes(x=value, fill=learner)) + 
+    geom_density(alpha=0.75) +
+    geom_vline(xintercept=0, colour="red", linetype = "longdash")
+```
+
+##### Number of relative risk scores > 0.10 for each learner
+
+```{r}
+interesting_hits <- as.data.frame(apply(rel_risks, 2, function (x) { sum(x > 0.10) }))
+colnames(interesting_hits) <- 'num'
+kable(interesting_hits)
 ```
 
 ### Feature importance
@@ -186,14 +217,17 @@ xkable(highest_max_var_importance, 15,
 
 #### Features with the highest trimmed mean variable importance
 
-Features ranked by _mean_ of their top 25 variable importance scores. Since
+Features ranked by _mean_ of their top N=10 variable importance scores. Since
 different features are likely to help predict responses for different drugs,
 this helps us to find features which performed well for at least some subset of
 the drugs.
 
 ```{r results='asis', message=FALSE}
-top25 <- apply(var_importance, 1, function(x) { mean(head(sort(x, decreasing=TRUE), 25)) }) 
-trimmed_mean_import <- as.data.frame(sort(top25, decreasing=TRUE))
+# Number of highest scoring drugs to average across
+n <- 10
+
+top_n <- apply(var_importance, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) }) 
+trimmed_mean_import <- as.data.frame(sort(top_n, decreasing=TRUE))
 colnames(trimmed_mean_import) <- c('Importance')
 trimmed_mean_import <- add_rownames(trimmed_mean_import, 'Feature')
 
@@ -204,7 +238,9 @@ xkable(trimmed_mean_import, 15,
        str_max_width=60)
 ```
 
-### Drugs with shared predictive features
+### Drug performance
+
+#### Drugs with shared predictive features
 
 Next, we will see if there are any groups of drugs which are predicted by
 similar sets of features. To do this, we will cluster the drugs based on the

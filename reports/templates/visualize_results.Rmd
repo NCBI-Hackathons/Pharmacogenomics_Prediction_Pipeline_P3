@@ -142,11 +142,20 @@ has_nas[has_nas > 0]
 abs_vs_rel <- cbind(cv_risks_long  %>% filter(learner != 'mean') %>%
                     dplyr::rename(absolute=value),
                     relative=rel_risks_long$value)
-ggplot(abs_vs_rel, aes(x=relative, y=absolute, color=learner)) + 
-    geom_point() +
-    geom_vline(xintercept=0, colour="#999999", linetype = "longdash", size=0.3) +
-    xlim(-0.5, 0.5) + 
-    facet_grid(.~learner)
+
+# Plot 4 at a time using facet grid
+learners <- unique(abs_vs_rel$learner)
+learner_groups <- split(learners, ceiling(seq_along(learners) / 4))
+
+for (learners in learner_groups) {
+    plt <- ggplot(abs_vs_rel %>% filter(learner %in% learners), 
+                  aes(x=relative, y=absolute, color=learner)) + 
+            geom_point() +
+            geom_vline(xintercept=0, colour="#999999", linetype="longdash", size=0.3) +
+            xlim(-0.5, 0.5) + 
+            facet_wrap(~learner, ncol=2)
+    print(plt)
+}
 ```
 
 ### Feature importance

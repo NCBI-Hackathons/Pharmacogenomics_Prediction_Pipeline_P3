@@ -75,30 +75,26 @@ var_importance <- run$var_importance
 
 ```{r predictor_performance, results='asis'}
 # CV risk averages across all drugs
-dat <- melt(cv_risks)
-colnames(dat) <- c('drug', 'learner', 'value')
-dat$learner <- as.character(dat$learner)
+cv_risks_long <- melt(cv_risks)
+colnames(cv_risks_long) <- c('drug', 'learner', 'value')
+cv_risks_long$learner <- as.character(cv_risks_long$learner)
 
-cvrisk_averages <- dat %>% 
+cvrisk_averages <- cv_risks_long %>% 
     group_by(learner) %>% 
     summarise(average_risk=mean(value, na.rm=TRUE))
 
 # Coefficient averages across all drugs
-dat2 <- melt(coefs)
-colnames(dat2) <- c('drug', 'learner', 'value')
-dat2$learner <- as.character(dat2$learner)
+coefs_long <- melt(coefs)
+colnames(coefs_long) <- c('drug', 'learner', 'value')
+coefs_long$learner <- as.character(coefs_long$learner)
 
-coef_averages <- dat2 %>% 
+coef_averages <- coefs_long %>% 
     group_by(learner) %>% 
     summarise(average_coef=mean(value, na.rm=TRUE)) %>%
     arrange(desc(average_coef))
 
 combined <- merge(cvrisk_averages, coef_averages, by='learner') %>%
     arrange(desc(average_coef))
-
-#ggplot(dat, aes(value, color=learner, fill=learner)) + 
-#    geom_density(alpha=0.5)
-
 xkable(combined)
 ```
 
@@ -116,10 +112,10 @@ summary_df <- as.data.frame(cbind(min=apply(rel_risks, 2, min),
                 arrange(desc(median))
 xkable(summary_df, caption='Relative CV risk by algorithm')
 
-long_df <- melt(rel_risks)
-colnames(long_df) <- c('drug', 'learner', 'value')
+rel_risks_long <- melt(rel_risks)
+colnames(rel_risks_long) <- c('drug', 'learner', 'value')
 
-ggplot(long_df, aes(x=value, fill=learner)) + 
+ggplot(rel_risks_long, aes(x=value, fill=learner)) + 
     geom_density(alpha=0.75) +
     geom_vline(xintercept=0, colour="red", linetype = "longdash") +
     xlim(-0.5, 0.5)
@@ -138,6 +134,19 @@ xkable(interesting_hits)
 ```{r}
 has_nas <- apply(cv_risks, 2, function(x) { sum(is.na(x)) })
 has_nas[has_nas > 0]
+```
+
+#### Absolute vs. Relative risk
+
+```{r}
+abs_vs_rel <- cbind(cv_risks_long  %>% filter(learner != 'mean') %>%
+                    dplyr::rename(absolute=value),
+                    relative=rel_risks_long$value)
+ggplot(abs_vs_rel, aes(x=relative, y=absolute, color=learner)) + 
+    geom_point() +
+    geom_vline(xintercept=0, colour="#999999", linetype = "longdash", size=0.3) +
+    xlim(-0.5, 0.5) + 
+    facet_grid(.~learner)
 ```
 
 ### Feature importance

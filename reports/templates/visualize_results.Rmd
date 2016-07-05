@@ -3,6 +3,7 @@ title: "P3: Visualization of Results"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 params:
     results_glob_str: ""
+    output_dir: ""
 output:
   html_document:
     theme: cosmo
@@ -220,6 +221,9 @@ highest_median_var_importance$Description = get_feature_descriptions(highest_med
 xkable(highest_median_var_importance, 15, 
        caption='Features ranked by median variable importance',
        str_max_width=60)
+
+write.table(highest_median_var_importance, sep='\t', quote=FALSE,
+            file=file.path(output_dir, 'highest_median_var_importance.tab'))
 ```
 
 #### Features with highest maximum variable importance
@@ -237,6 +241,9 @@ highest_max_var_importance$Description = get_feature_descriptions(highest_max_va
 xkable(highest_max_var_importance, 15, 
        caption='Features ranked by max variable importance',
        str_max_width=60)
+
+write.table(highest_max_var_importance, sep='\t', quote=FALSE,
+            file=file.path(output_dir, 'highest_max_var_importance.tab'))
 ```
 
 #### Features with the highest trimmed mean variable importance
@@ -260,6 +267,9 @@ trimmed_mean_import$Description = get_feature_descriptions(trimmed_mean_import$F
 xkable(trimmed_mean_import, 15, 
        caption='Features ranked by trimmed-mean variable importance.',
        str_max_width=60)
+
+write.table(trimmed_mean_import, sep='\t', quote=FALSE,
+            file=file.path(output_dir, 'trimmed_mean_importance.tab'))
 ```
 
 ### Drug performance

@@ -7,7 +7,7 @@
 # Usage:
 # ------
 #
-# ./visualize_results.R path/to/results/*.RData OUTPUT.html
+# ./visualize_results.R path/to/results/*.RData path/to/outdir
 # 
 ################################################################################
 library(rmarkdown)
@@ -15,16 +15,19 @@ library(rmarkdown)
 # parse command-line arguments
 args <- commandArgs(trailing=TRUE)
 
+output_dir <- args[2]
+
 input_params <- list(
-    results_glob_str = args[1]
+    results_glob_str = args[1],
+    output_dir       = output_dir
 )
 
 # Output filepath
-outfile <- args[2]
+outfile <- file.path(output_dir, 'results.html')
 
 # create output directory if it doesn't already exist
-if (!dir.exists(dirname(outfile))) {
-    dir.create(dirname(outfile, recursive=TRUE))
+if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive=TRUE)
 }
 
 # render knitr report

@@ -63,7 +63,7 @@ Results
 
 ```{r run1, message=FALSE}
 # results_glob_str should look like '~/P3/renamed/runs/run_1/output/*.RData'
-run            <- parse_p3_results(Sys.glob(results_glob_str))
+run            <- parse_p3_results(Sys.glob(params$results_glob_str))
 coefs          <- run$coefs
 cv_risks       <- run$cv_risks
 var_importance <- run$var_importance

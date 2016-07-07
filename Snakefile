@@ -24,6 +24,7 @@ shell.prefix('set -o pipefail; set -e;')
 localrules: make_lookups
 
 config = yaml.load(open('config.yaml'))
+config['prefix'] = os.path.abspath(config['prefix'])
 
 class Program(object):
     """

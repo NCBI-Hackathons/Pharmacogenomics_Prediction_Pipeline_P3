@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Reporting &mdash; Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Pharmacogenomics Prediction Pipeline (P3) 0.1 documentation" href="index.html" />
+    <link rel="next" title="Pipeline design" href="topic-snakefiles.html" />
+    <link rel="prev" title="Filtering features and responses" href="filtering.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="reporting">
+<h1>Reporting<a class="headerlink" href="#reporting" title="Permalink to this headline">¶</a></h1>
+<p>Reports are generated using RMarkdown. Each report has a relatively simple
+driver script (see <cite>tools/visualize_*.R</cite>) that is called from a relevant
+Snakefile rule, and that driver script renders an RMarkdown template file. The
+output is an HTML file whose filename was specified in the snakefile rule. That
+is:</p>
+<div class="highlight-python"><div class="highlight"><pre>snakefile rule -&gt;
+  driver script _&gt;
+    RMarkdown template -&gt;
+      output HTML report
+</pre></div>
+</div>
+<p>Or as a more specific example:</p>
+<div class="highlight-python"><div class="highlight"><pre>features/normed_counts.snakefile: &quot;rnaseq_visualization_normed&quot; rule -&gt;
+  tools/visualize_rnaseq_data.R -&gt;
+    reports/templates/visualize_rnaseq_normed.Rmd -&gt;
+      {prefix}/reports/normalized_rnaseq.html
+</pre></div>
+</div>
+<p>The job of the driver script is to:</p>
+<ul class="simple">
+<li>parse the arguments passed by the rule</li>
+<li>build a <cite>params</cite> object</li>
+<li>identify the output file</li>
+<li>specify the RMarkdown template file (typically hard-coded)</li>
+<li>pass them all to <cite>rmarkdown::render</cite></li>
+</ul>
+<p>Most of the actual reporting work is performed in the template RMarkdown file.
+These live in the <cite>reports/templates</cite> directory. For better re-usability and to
+reduce repeated code, RMarkdown templates can call child templates. For
+example, <cite>reports/templates/visualize_rnaseq_normed.Rmd</cite> mostly consists of
+rendering child templates. There is also a <cite>reports/templates/R</cite> directory from
+which common code can be source from within an RMarkdown file.</p>
+<div class="section" id="building-a-new-report">
+<h2>Building a new report<a class="headerlink" href="#building-a-new-report" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>write an RMarkdown file; decide what information it needs as input</li>
+<li>write a driver script to parse that information from a command-line call and
+put it into a <cite>params</cite> object</li>
+<li>add a rule to the relevant snakefile workflow that calls the driver script;
+specify your output file here as well</li>
+<li>add the output file to the final targets list</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Reporting</a><ul>
+<li><a class="reference internal" href="#building-a-new-report">Building a new report</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="filtering.html" title="previous chapter">Filtering features and responses</a></li>
+      <li>Next: <a href="topic-snakefiles.html" title="next chapter">Pipeline design</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/reports.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, various.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/reports.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

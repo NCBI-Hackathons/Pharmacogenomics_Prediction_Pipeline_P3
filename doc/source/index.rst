@@ -27,6 +27,7 @@ Contents:
     configuration
     features
     filtering
+    reports
     topic-snakefiles
     topic-pivot
     metadoc

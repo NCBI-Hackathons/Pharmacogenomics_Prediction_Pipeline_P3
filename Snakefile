@@ -141,10 +141,14 @@ def install_dag_hook(callback):
     DAG.postprocess = postprocess_hook
 
 def dag_finalized(dag):
+    outdirs = []
+    logdirs = []
     for j in dag.jobs:
         for output in j.output:
-            makedirs(os.path.dirname(output))
-            makedirs(os.path.join('logs', os.path.basename(os.path.dirname(output)).lstrip('/')))
+            outdirs.append(os.path.dirname(output))
+            logdirs.append(os.path.join('logs', os.path.dirname(output).lstrip(os.path.sep)))
+    makedirs(list(set(outdirs)))
+    makedirs(list(set(logdirs)))
 
 install_dag_hook(dag_finalized)
 

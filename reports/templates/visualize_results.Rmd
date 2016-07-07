@@ -42,8 +42,8 @@ if (is.null(opts_knit$get("rmarkdown.pandoc.to"))) {
 
 # For images containing unicode text, we will use cairo for PDF output
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    opts_chunk$set(dev='cairo_pdf', 
-  				   dev.args=list(cairo_pdf=list(family="DejaVu Sans")),
+    opts_chunk$set(dev='cairo_pdf',
+                   dev.args=list(cairo_pdf=list(family="DejaVu Sans")),
                    fig.width=1920/192,
                    fig.height=1920/192,
                    dpi=192)
@@ -79,8 +79,8 @@ cv_risks_long <- melt(cv_risks)
 colnames(cv_risks_long) <- c('drug', 'learner', 'value')
 cv_risks_long$learner <- as.character(cv_risks_long$learner)
 
-cvrisk_averages <- cv_risks_long %>% 
-    group_by(learner) %>% 
+cvrisk_averages <- cv_risks_long %>%
+    group_by(learner) %>%
     summarise(average_risk=mean(value, na.rm=TRUE))
 
 # Coefficient averages across all drugs
@@ -88,8 +88,8 @@ coefs_long <- melt(coefs)
 colnames(coefs_long) <- c('drug', 'learner', 'value')
 coefs_long$learner <- as.character(coefs_long$learner)
 
-coef_averages <- coefs_long %>% 
-    group_by(learner) %>% 
+coef_averages <- coefs_long %>%
+    group_by(learner) %>%
     summarise(average_coef=mean(value, na.rm=TRUE)) %>%
     arrange(desc(average_coef))
 
@@ -103,10 +103,10 @@ xkable(combined)
 ##### Relative CV risk for each Learner
 
 ```{r, results='asis', fig.cap='Distribution of relative CV risks'}
-rel_risks <- 1 - (cv_risks/cv_risks[,'mean']) 
+rel_risks <- 1 - (cv_risks/cv_risks[,'mean'])
 rel_risks <- rel_risks[,colnames(rel_risks) != 'mean']
 
-summary_df <- as.data.frame(cbind(min=apply(rel_risks, 2, min), 
+summary_df <- as.data.frame(cbind(min=apply(rel_risks, 2, min),
                                   median=apply(rel_risks, 2, median),
                                   max=apply(rel_risks, 2, max))) %>%
                 arrange(desc(median))
@@ -115,7 +115,7 @@ xkable(summary_df, caption='Relative CV risk by algorithm')
 rel_risks_long <- melt(rel_risks)
 colnames(rel_risks_long) <- c('drug', 'learner', 'value')
 
-ggplot(rel_risks_long, aes(x=value, fill=learner)) + 
+ggplot(rel_risks_long, aes(x=value, fill=learner)) +
     geom_density(alpha=0.75) +
     geom_vline(xintercept=0, colour="red", linetype = "longdash") +
     xlim(-0.5, 0.5)
@@ -148,11 +148,11 @@ learners <- unique(abs_vs_rel$learner)
 learner_groups <- split(learners, ceiling(seq_along(learners) / 4))
 
 for (learners in learner_groups) {
-    plt <- ggplot(abs_vs_rel %>% filter(learner %in% learners), 
-                  aes(x=relative, y=absolute, color=learner)) + 
+    plt <- ggplot(abs_vs_rel %>% filter(learner %in% learners),
+                  aes(x=relative, y=absolute, color=learner)) +
             geom_point() +
             geom_vline(xintercept=0, colour="#999999", linetype="longdash", size=0.3) +
-            xlim(-0.5, 0.5) + 
+            xlim(-0.5, 0.5) +
             facet_wrap(~learner, ncol=2)
     print(plt)
 }
@@ -160,7 +160,7 @@ for (learners in learner_groups) {
 
 ### Feature importance
 
-First, let's create a vector of feature types so that we can group our 
+First, let's create a vector of feature types so that we can group our
 plots this way.
 
 ```{r feature_types}
@@ -170,7 +170,7 @@ feature_types <- c('cnv_clusters', 'cnv_longest_gene', 'cnv_max_gene',
                    'go_variants', 'go_zscores', 'msigdb_variants',
                    'msigdb_zscores', 'normed_counts', 'zscores_zscores')
 
-ftype <- rep(NA, nrow(var_importance)) 
+ftype <- rep(NA, nrow(var_importance))
 for (cls in feature_types) {
     ftype[grepl(cls, rownames(var_importance))] <- cls
 }
@@ -181,7 +181,7 @@ for (cls in feature_types) {
 Median RF variable importance for each feature across all drugs.
 
 ```{r variable_importance_dist, results='asis'}
-median_var_importance <- apply(var_importance, 1, median)  
+median_var_importance <- apply(var_importance, 1, median)
 
 # Create a feature/type mapping
 median_type_importance <- as.data.frame(
@@ -189,12 +189,12 @@ median_type_importance <- as.data.frame(
 )
 
 # Density grouped by feature type
-ggplot(median_type_importance, aes(x=median_var_importance, 
+ggplot(median_type_importance, aes(x=median_var_importance,
                                    fill=type, color=type, group=type)) +
     geom_density(alpha=0.15) +
     xlab('Median Random Forest Variable Importance')
 
-df <- median_type_importance %>% 
+df <- median_type_importance %>%
         group_by(type) %>%
         summarize(avg=mean(as.numeric(median_var_importance))) %>%
         arrange(desc(avg))
@@ -203,8 +203,8 @@ xkable(df)
 
 #### Distribution of feature maximum variable importance
 
-```{r variable_importance_dist}
-max_var_importance <- apply(var_importance, 1, max) 
+```{r variable_importance_dist2}
+max_var_importance <- apply(var_importance, 1, max)
 
 # Create a feature/type mapping
 max_type_importance <- as.data.frame(
@@ -212,12 +212,12 @@ max_type_importance <- as.data.frame(
 )
 
 # Density grouped by feature type
-ggplot(max_type_importance, aes(x=max_var_importance, 
+ggplot(max_type_importance, aes(x=max_var_importance,
                                  fill=type, color=type, group=type)) +
     geom_density(alpha=0.15) +
     xlab('Maximum Random Forest Variable Importance')
 
-df <- max_type_importance %>% 
+df <- max_type_importance %>%
         group_by(type) %>%
         summarize(avg=mean(as.numeric(max_var_importance))) %>%
         arrange(desc(avg))
@@ -236,7 +236,7 @@ highest_median_var_importance <- add_rownames(highest_median_var_importance, 'Fe
 # add human-readable annotations
 highest_median_var_importance$Description = get_feature_descriptions(highest_median_var_importance$Feature)
 
-xkable(highest_median_var_importance, 15, 
+xkable(highest_median_var_importance, 15,
        caption='Features ranked by median variable importance',
        str_max_width=60)
 
@@ -256,7 +256,7 @@ highest_max_var_importance <- add_rownames(highest_max_var_importance, 'Feature'
 # add human-readable annotations
 highest_max_var_importance$Description = get_feature_descriptions(highest_max_var_importance$Feature)
 
-xkable(highest_max_var_importance, 15, 
+xkable(highest_max_var_importance, 15,
        caption='Features ranked by max variable importance',
        str_max_width=60)
 
@@ -275,14 +275,14 @@ the drugs.
 # Number of highest scoring drugs to average across
 n <- 10
 
-top_n <- apply(var_importance, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) }) 
+top_n <- apply(var_importance, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) })
 trimmed_mean_import <- as.data.frame(sort(top_n, decreasing=TRUE))
 colnames(trimmed_mean_import) <- c('Importance')
 trimmed_mean_import <- add_rownames(trimmed_mean_import, 'Feature')
 
 trimmed_mean_import$Description = get_feature_descriptions(trimmed_mean_import$Feature)
 
-xkable(trimmed_mean_import, 15, 
+xkable(trimmed_mean_import, 15,
        caption='Features ranked by trimmed-mean variable importance.',
        str_max_width=60)
 
@@ -305,7 +305,7 @@ dist_matrix <- cor(var_importance, method='spearman')
 dendrogram <- ifelse(nrow(dist_matrix) > 100, 'none', 'column')
 
 heatmap.2(dist_matrix, trace="none", labRow=NA, dendrogram=dendrogram,
-		  main="Drug prediction similarity", margins=c(12,8),
-		  xlab='Drug', ylab='Drug', col=heatmap_colors)
+          main="Drug prediction similarity", margins=c(12,8),
+          xlab='Drug', ylab='Drug', col=heatmap_colors)
 ```
 

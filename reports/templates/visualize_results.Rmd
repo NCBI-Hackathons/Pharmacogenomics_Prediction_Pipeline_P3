@@ -50,9 +50,9 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
 } else {
     # HTML output
     opts_chunk$set(dev='png',
-                   fig.width=1080/192,
-                   fig.height=1080/192,
-                   dpi=192, fig.retina=2)
+                   fig.width=1600/192,
+                   fig.height=1600/192,
+                   dpi=192, fig.retina=1)
 }
 ```
 
@@ -98,33 +98,39 @@ combined <- merge(cvrisk_averages, coef_averages, by='learner') %>%
 xkable(combined)
 ```
 
-#### Relative CV risk
+#### Relative risk (~R^2)
 
-##### Relative CV risk for each Learner
+##### R^2 for each Learner
 
-```{r, results='asis', fig.cap='Distribution of relative CV risks'}
+```{r, results='asis', fig.cap='Distribution of relative CV risks', fig.width=1920/192, fig.height=1920/192}
 rel_risks <- 1 - (cv_risks/cv_risks[,'mean'])
 rel_risks <- rel_risks[,colnames(rel_risks) != 'mean']
 
-summary_df <- as.data.frame(cbind(min=apply(rel_risks, 2, min),
-                                  median=apply(rel_risks, 2, median),
-                                  max=apply(rel_risks, 2, max))) %>%
-                arrange(desc(median))
-xkable(summary_df, caption='Relative CV risk by algorithm')
+# gbmOOB_* returned NA on rare occassions
+summary_df <- as.data.frame(cbind(min=apply(rel_risks, 2, min, na.rm=TRUE),
+                                  median=apply(rel_risks, 2, median, na.rm=TRUE),
+                                  max=apply(rel_risks, 2, max, na.rm=TRUE))) %>%
+                arrange(desc(max))
+rownames(summary_df) <- colnames(rel_risks)
+xkable(summary_df, caption='R^2 risk by algorithm')
 
 rel_risks_long <- melt(rel_risks)
 colnames(rel_risks_long) <- c('drug', 'learner', 'value')
 
-ggplot(rel_risks_long, aes(x=value, fill=learner)) +
-    geom_density(alpha=0.75) +
+# Excluding outlier gbmOOB for now (high peak at 0 messes up y limits)
+ggplot(rel_risks_long %>% filter(learner != 'gbmOOB'), aes(x=value, fill=learner)) +
+    geom_density(alpha=0.25) +
     geom_vline(xintercept=0, colour="red", linetype = "longdash") +
+    theme(legend.justification=c(1,1), legend.position=c(1,1),
+          legend.background=element_rect(fill=alpha('#333333', 0.4)),
+          legend.text=element_text(size=10)) +
     xlim(-0.5, 0.5)
 ```
 
 ##### Number of relative risk scores > 0.10 for each learner
 
 ```{r, results='asis'}
-interesting_hits <- as.data.frame(apply(rel_risks, 2, function (x) { sum(x > 0.10) }))
+interesting_hits <- as.data.frame(apply(rel_risks, 2, function (x) { sum(x > 0.10, na.rm=TRUE) }))
 colnames(interesting_hits) <- 'num'
 xkable(interesting_hits)
 ```
@@ -132,13 +138,17 @@ xkable(interesting_hits)
 ##### Number of NA's in CV risk output
 
 ```{r}
+# learners
 has_nas <- apply(cv_risks, 2, function(x) { sum(is.na(x)) })
 has_nas[has_nas > 0]
+
+# drugs
+rownames(cv_risks)[apply(cv_risks, 1, function(x) { sum(is.na(x)) }) > 0]
 ```
 
 #### Absolute vs. Relative risk
 
-```{r}
+```{r, warning=FALSE}
 abs_vs_rel <- cbind(cv_risks_long  %>% filter(learner != 'mean') %>%
                     dplyr::rename(absolute=value),
                     relative=rel_risks_long$value)
@@ -150,10 +160,11 @@ learner_groups <- split(learners, ceiling(seq_along(learners) / 4))
 for (learners in learner_groups) {
     plt <- ggplot(abs_vs_rel %>% filter(learner %in% learners),
                   aes(x=relative, y=absolute, color=learner)) +
-            geom_point() +
+            geom_point(size=0.5) +
             geom_vline(xintercept=0, colour="#999999", linetype="longdash", size=0.3) +
             xlim(-0.5, 0.5) +
-            facet_wrap(~learner, ncol=2)
+            facet_wrap(~learner, ncol=2) +
+            theme(legend.position="none")
     print(plt)
 }
 ```
@@ -192,7 +203,11 @@ median_type_importance <- as.data.frame(
 ggplot(median_type_importance, aes(x=median_var_importance,
                                    fill=type, color=type, group=type)) +
     geom_density(alpha=0.15) +
-    xlab('Median Random Forest Variable Importance')
+    theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
+          legend.background=element_rect(fill=alpha('#ffffff', 0)),
+          legend.justification=c(1,1), legend.position=c(1,1)) +
+    xlab('Median Random Forest Variable Importance') +
+    guides(fill=guide_legend(ncol=2))
 
 df <- median_type_importance %>%
         group_by(type) %>%
@@ -203,7 +218,7 @@ xkable(df)
 
 #### Distribution of feature maximum variable importance
 
-```{r variable_importance_dist2}
+```{r variable_importance_dist}
 max_var_importance <- apply(var_importance, 1, max)
 
 # Create a feature/type mapping
@@ -215,7 +230,11 @@ max_type_importance <- as.data.frame(
 ggplot(max_type_importance, aes(x=max_var_importance,
                                  fill=type, color=type, group=type)) +
     geom_density(alpha=0.15) +
-    xlab('Maximum Random Forest Variable Importance')
+    theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
+          legend.background=element_rect(fill=alpha('#ffffff', 0)),
+          legend.justification=c(1,1), legend.position=c(1,1)) +
+    xlab('Maximum Random Forest Variable Importance') +
+    guides(fill=guide_legend(ncol=2))
 
 df <- max_type_importance %>%
         group_by(type) %>%

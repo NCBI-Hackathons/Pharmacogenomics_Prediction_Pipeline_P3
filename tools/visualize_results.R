@@ -25,11 +25,6 @@ input_params <- list(
 # Output filepath
 outfile <- file.path(output_dir, 'results.html')
 
-# create output directory if it doesn't already exist
-if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive=TRUE)
-}
-
 # render knitr report
 template <- 'reports/templates/visualize_results.Rmd'
 

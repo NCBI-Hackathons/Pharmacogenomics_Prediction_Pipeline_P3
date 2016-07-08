@@ -218,7 +218,7 @@ xkable(df)
 
 #### Distribution of feature maximum variable importance
 
-```{r variable_importance_dist}
+```{r variable_importance_dist2}
 max_var_importance <- apply(var_importance, 1, max)
 
 # Create a feature/type mapping

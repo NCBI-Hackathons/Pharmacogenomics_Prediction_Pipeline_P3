@@ -61,12 +61,11 @@ Results
 
 ### Load SuperLearner results
 
-```{r run1, message=FALSE}
-# results_glob_str should look like '~/P3/renamed/runs/run_1/output/*.RData'
+```{r message=FALSE}
 run            <- parse_p3_results(Sys.glob(params$results_glob_str))
 coefs          <- run$coefs
 cv_risks       <- run$cv_risks
-var_importance <- run$var_importance
+feature_importance <- run$feature_importance
 ```
 
 ### Summary of SuperLearner predictor performance
@@ -181,9 +180,9 @@ feature_types <- c('cnv_clusters', 'cnv_longest_gene', 'cnv_max_gene',
                    'go_variants', 'go_zscores', 'msigdb_variants',
                    'msigdb_zscores', 'normed_counts', 'zscores_zscores')
 
-ftype <- rep(NA, nrow(var_importance))
+ftype <- rep(NA, nrow(feature_importance))
 for (cls in feature_types) {
-    ftype[grepl(cls, rownames(var_importance))] <- cls
+    ftype[grepl(cls, rownames(feature_importance))] <- cls
 }
 ```
 
@@ -192,15 +191,15 @@ for (cls in feature_types) {
 Median RF variable importance for each feature across all drugs.
 
 ```{r variable_importance_dist, results='asis'}
-median_var_importance <- apply(var_importance, 1, median)
+median_feature_importance <- apply(feature_importance, 1, median)
 
 # Create a feature/type mapping
 median_type_importance <- as.data.frame(
-    cbind(median_var_importance=as.vector(median_var_importance), type=ftype)
+    cbind(median_feature_importance=as.vector(median_feature_importance), type=ftype)
 )
 
 # Density grouped by feature type
-ggplot(median_type_importance, aes(x=median_var_importance,
+ggplot(median_type_importance, aes(x=median_feature_importance,
                                    fill=type, color=type, group=type)) +
     geom_density(alpha=0.15) +
     theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
@@ -211,7 +210,7 @@ ggplot(median_type_importance, aes(x=median_var_importance,
 
 df <- median_type_importance %>%
         group_by(type) %>%
-        summarize(avg=mean(as.numeric(median_var_importance))) %>%
+        summarize(avg=mean(as.numeric(median_feature_importance))) %>%
         arrange(desc(avg))
 xkable(df)
 ```
@@ -219,15 +218,15 @@ xkable(df)
 #### Distribution of feature maximum variable importance
 
 ```{r variable_importance_dist2}
-max_var_importance <- apply(var_importance, 1, max)
+max_feature_importance <- apply(feature_importance, 1, max)
 
 # Create a feature/type mapping
 max_type_importance <- as.data.frame(
-    cbind(max_var_importance=as.vector(max_var_importance), type=ftype)
+    cbind(max_feature_importance=as.vector(max_feature_importance), type=ftype)
 )
 
 # Density grouped by feature type
-ggplot(max_type_importance, aes(x=max_var_importance,
+ggplot(max_type_importance, aes(x=max_feature_importance,
                                  fill=type, color=type, group=type)) +
     geom_density(alpha=0.15) +
     theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
@@ -238,7 +237,7 @@ ggplot(max_type_importance, aes(x=max_var_importance,
 
 df <- max_type_importance %>%
         group_by(type) %>%
-        summarize(avg=mean(as.numeric(max_var_importance))) %>%
+        summarize(avg=mean(as.numeric(max_feature_importance))) %>%
         arrange(desc(avg))
 xkable(df)
 ```
@@ -248,19 +247,20 @@ xkable(df)
 Features ranked by _median_ random forest variable importance across all drugs.
 
 ```{r results='asis', message=FALSE}
-highest_median_var_importance <- as.data.frame(sort(median_var_importance, decreasing=TRUE))
-colnames(highest_median_var_importance) <- c('Importance')
-highest_median_var_importance <- add_rownames(highest_median_var_importance, 'Feature')
+highest_median_feature_importance <- as.data.frame(sort(median_feature_importance, decreasing=TRUE))
+colnames(highest_median_feature_importance) <- c('Importance')
+highest_median_feature_importance <-
+    add_rownames(highest_median_feature_importance, 'Feature')
 
 # add human-readable annotations
-highest_median_var_importance$Description = get_feature_descriptions(highest_median_var_importance$Feature)
+highest_median_feature_importance$Description = get_feature_descriptions(highest_median_feature_importance$Feature)
 
-xkable(highest_median_var_importance, 15,
+xkable(highest_median_feature_importance, 15,
        caption='Features ranked by median variable importance',
        str_max_width=60)
 
-write.table(highest_median_var_importance, sep='\t', quote=FALSE,
-            file=file.path(output_dir, 'highest_median_var_importance.tab'))
+write.table(highest_median_feature_importance, sep='\t', quote=FALSE,
+            file=file.path(output_dir, 'highest_median_feature_importance.tab'))
 ```
 
 #### Features with highest maximum variable importance
@@ -268,19 +268,19 @@ write.table(highest_median_var_importance, sep='\t', quote=FALSE,
 Features ranked by _max_ random forest variable importance across all drugs.
 
 ```{r results='asis', message=FALSE}
-highest_max_var_importance <- as.data.frame(sort(max_var_importance, decreasing=TRUE))
-colnames(highest_max_var_importance) <- c('Importance')
-highest_max_var_importance <- add_rownames(highest_max_var_importance, 'Feature')
+highest_max_feature_importance <- as.data.frame(sort(max_feature_importance, decreasing=TRUE))
+colnames(highest_max_feature_importance) <- c('Importance')
+highest_max_feature_importance <- add_rownames(highest_max_feature_importance, 'Feature')
 
 # add human-readable annotations
-highest_max_var_importance$Description = get_feature_descriptions(highest_max_var_importance$Feature)
+highest_max_feature_importance$Description = get_feature_descriptions(highest_max_feature_importance$Feature)
 
-xkable(highest_max_var_importance, 15,
+xkable(highest_max_feature_importance, 15,
        caption='Features ranked by max variable importance',
        str_max_width=60)
 
-write.table(highest_max_var_importance, sep='\t', quote=FALSE,
-            file=file.path(output_dir, 'highest_max_var_importance.tab'))
+write.table(highest_max_feature_importance, sep='\t', quote=FALSE,
+            file=file.path(output_dir, 'highest_max_feature_importance.tab'))
 ```
 
 #### Features with the highest trimmed mean variable importance
@@ -294,7 +294,7 @@ the drugs.
 # Number of highest scoring drugs to average across
 n <- 10
 
-top_n <- apply(var_importance, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) })
+top_n <- apply(feature_importance, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) })
 trimmed_mean_import <- as.data.frame(sort(top_n, decreasing=TRUE))
 colnames(trimmed_mean_import) <- c('Importance')
 trimmed_mean_import <- add_rownames(trimmed_mean_import, 'Feature')
@@ -319,7 +319,7 @@ their feature importance vectors.
 
 ```{r drug_heatmap, fig.width=1080/96, fig.height=1080/96, dpi=96}
 heatmap_colors <- colorRampPalette(brewer.pal(9, "YlGnBu"))(100)
-dist_matrix <- cor(var_importance, method='spearman')
+dist_matrix <- cor(feature_importance, method='spearman')
 
 dendrogram <- ifelse(nrow(dist_matrix) > 100, 'none', 'column')
 

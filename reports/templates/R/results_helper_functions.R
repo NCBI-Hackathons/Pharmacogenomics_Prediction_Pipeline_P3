@@ -4,17 +4,17 @@
 #'
 #' @author Keith Hughitt <khughitt@umd.edu>
 #'
-#' @param infiles Vector of RData results files
-#' @return List of parsed SuperLearner learners, broken up into three parts:
-#          learn coefficients, cross-validation risks, and random forest
-#          variable importance.
+#' @param infiles Vector of post-processed P3 RData results files
+#' @return List of parsed SuperLearner learners, broken up into four parts:
+#          learner coefficients, cross-validation risks, random forest
+#          variable importance, and prediction variance.
 parse_p3_results <- function(infiles) {
     # create placeholder variables
-    drugs           <- c()
-    coefs           <- NA
-    cv_risks        <- NA
-    var_importance  <- NA
-    prediction_var  <- c()
+    drugs              <- c()
+    coefs              <- NA
+    cv_risks           <- NA
+    feature_importance <- NA
+    prediction_var     <- c()
 
     # iterate over P3 outputs
     for (i in 1:length(infiles)) {
@@ -24,28 +24,25 @@ parse_p3_results <- function(infiles) {
         load(infile)
 
         # drug name
-        drug <- sub('.RData', '', basename(infile))
-        drugs <- c(drugs, drug)
+        drugs <- c(drugs, p3_result$drug)
 
         # prediction variance
-        prediction_var <- c(prediction_var, var(out.SL$SL.predict[,1]))
-
-        # random forest variable importantce
-        importance <- out.SL$fitLibrary$SL.randomForest_All$object$importance
+        prediction_var <- c(prediction_var, p3_result$prediction_variance)
 
         # update outputs
         if (i == 1) {
             # on first iteration of loop, overwrite placeholder variables
-            coefs    <- out.SL$coef
-            cv_risks <- out.SL$cvRisk
-            var_importance <- importance
+            coefs    <- p3_result$superlearner_coefs
+            cv_risks <- p3_result$superlearner_risks
+            feature_importance <- p3_result$feature_importance 
         } else {
-            coefs    <- rbind(coefs, out.SL$coef)
-            cv_risks <- rbind(cv_risks, out.SL$cvRisk)
-            var_importance <- cbind(var_importance, importance)
+            coefs    <- rbind(coefs, p3_result$superlearner_coefs)
+            cv_risks <- rbind(cv_risks, p3_result$superlearner_risks)
+            feature_importance <- cbind(feature_importance, p3_result$feature_importance)
         }
     }
-    colnames(var_importance) <- drugs
+
+    colnames(feature_importance) <- drugs
     colnames(coefs) <- sub('_All', '', sub('SL.', '', colnames(coefs)))
     colnames(cv_risks) <- sub('_All', '', sub('SL.', '', colnames(cv_risks)))
     rownames(coefs) <- drugs
@@ -54,7 +51,8 @@ parse_p3_results <- function(infiles) {
     list(
         coefs=coefs,
         cv_risks=cv_risks,
-        var_importance=var_importance
+        feature_importance=feature_importance,
+        prediction_variance=prediction_var
     )
 }
 

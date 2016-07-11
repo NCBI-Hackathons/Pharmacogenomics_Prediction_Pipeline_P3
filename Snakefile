@@ -146,7 +146,9 @@ def dag_finalized(dag):
     for j in dag.jobs:
         for output in j.output:
             outdirs.append(os.path.abspath(os.path.dirname(output)))
-            logdirs.append(os.path.join('logs', os.path.abspath(os.path.dirname(output).lstrip(os.path.sep))))
+            logdirs.append(os.path.join('logs', os.path.abspath(os.path.dirname(output)).lstrip(os.path.sep)))
+    outdirs = sorted(list(set(outdirs)))
+    logdirs = sorted(list(set(logdirs)))
     makedirs(list(set(outdirs)))
     makedirs(list(set(logdirs)))
 

@@ -5,3 +5,5 @@ learn_model:
   prefix: "--time=5-00:00:00 --mem=32g"
 model_visualization:
   prefix: "--mem=96g --time=5-00:00:00"
+post_process:
+  prefix: '--mem=32g'

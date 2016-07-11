@@ -120,7 +120,7 @@ report_targets = []
 for run, block in config['run_info'].items():
     responses_for_run = [i.strip() for i in open(block['response_list'])]
     model_targets.extend(
-        expand('{prefix}/runs/{run}/output/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run))
+        expand('{prefix}/runs/{run}/post-processed/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run))
     report_targets.append('{prefix}/reports/runs/{run}/results.html'.format(prefix=config['prefix'], run=run))
 
 
@@ -355,12 +355,14 @@ rule learn_model:
 
 rule post_process:
     input: '{prefix}/runs/{run}/output/{response}.RData'
-    output: '{prefix}/runs/{run}/postprocess/{response}.postprocessed.RData'
-    log: '{prefix}/runs/{run}/postprocess/{response}.postprocessed.log'
+    output: '{prefix}/runs/{run}/post-processed/{response}.RData'
+    params:
+        script='tools/post_processing.R'
+    log: '{prefix}/runs/{run}/post-processed/{response}.log'
     shell:
         """
         {programs.Rscript.prelude}
-        {programs.Rscript.path} tools/post_process_prediction.R \
+        {programs.Rscript.path} {params.script} \
         {input} \
         {output} > {log} 2> {log}
         """
@@ -370,12 +372,14 @@ def RData_for_run(wildcards):
     run = wildcards.run
     block = config['run_info'][run]
     responses_for_run = [i.strip() for i in open(block['response_list'])]
-    return expand('{prefix}/runs/{run}/postprocessed/{response}.postprocessed.RData', prefix=config['prefix'], run=run, response=responses_for_run)
+    return expand('{prefix}/runs/{run}/post-processed/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run)
 
 
 rule model_visualization:
     input: RData_for_run
     output: '{prefix}/reports/runs/{run}/results.html'
+    log: '{prefix}/reports/runs/{run}/results.log'
+
     run:
         assert len(set([os.path.dirname(i) for i in input])) == 1
         assert all([os.path.basename(i).endswith('.RData') for i in input])
@@ -383,7 +387,7 @@ rule model_visualization:
         outdir = os.path.dirname(output[0])
         shell("""
         {programs.Rscript.prelude}
-        {programs.Rscript.path} tools/visualize_results.R "{pattern}" {outdir}
+        {programs.Rscript.path} tools/visualize_results.R "{pattern}" {outdir} > {log} 2> {log}
         """)
 
 # vim: ft=python

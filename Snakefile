@@ -353,11 +353,24 @@ rule learn_model:
         """
 
 
+rule post_process:
+    input: '{prefix}/runs/{run}/output/{response}.RData'
+    output: '{prefix}/runs/{run}/postprocess/{response}.postprocessed.RData'
+    log: '{prefix}/runs/{run}/postprocess/{response}.postprocessed.log'
+    shell:
+        """
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/post_process_prediction.R \
+        {input} \
+        {output} > {log} 2> {log}
+        """
+
+
 def RData_for_run(wildcards):
     run = wildcards.run
     block = config['run_info'][run]
     responses_for_run = [i.strip() for i in open(block['response_list'])]
-    return expand('{prefix}/runs/{run}/output/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run)
+    return expand('{prefix}/runs/{run}/postprocessed/{response}.postprocessed.RData', prefix=config['prefix'], run=run, response=responses_for_run)
 
 
 rule model_visualization:

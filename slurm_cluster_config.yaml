@@ -6,4 +6,4 @@ learn_model:
 model_visualization:
   prefix: "--mem=96g --time=5-00:00:00"
 post_process:
-  prefix: '--mem=32g'
+  prefix: '--mem=64g'

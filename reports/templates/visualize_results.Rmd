@@ -25,8 +25,10 @@ library('dplyr')
 library('knitr')
 library('ggplot2')
 library('gplots')
+library('heatmaply')
 library('reshape2')
 library('stringr')
+library('tibble')
 library('SuperLearner')
 library('RColorBrewer')
 library('org.Hs.eg.db')
@@ -57,12 +59,10 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
                    fig.height=1600/192,
                    dpi=192, fig.retina=1)
 }
+
+# fix namespace for dplyr functions
+assign('select', dplyr::select, envir=.GlobalEnv)
 ```
-
-Results
--------
-
-### Load SuperLearner results
 
 ```{r message=FALSE}
 run            <- parse_p3_results(Sys.glob(params$results_glob_str))
@@ -71,7 +71,10 @@ cv_risks       <- run$cv_risks
 feature_importance <- run$feature_importance
 ```
 
-### Summary of SuperLearner predictor performance
+Results
+-------
+
+### SuperLearner algorithm performance
 
 #### Absolute CV risk
 
@@ -180,7 +183,7 @@ for (learners in learner_groups) {
 }
 ```
 
-### Feature importance
+### Random forest feature importance
 
 First, let's create a vector of feature types so that we can group our
 plots this way.
@@ -316,7 +319,7 @@ write.table(highest_max_feature_importance, sep='\t', quote=FALSE,
             file=file.path(output_dir, 'highest_max_feature_importance.tab'))
 ```
 
-### Drug performance
+### Drug response prediction performance
 
 #### Compounds with R^2 >= 0.25
 
@@ -395,4 +398,19 @@ heatmap.2(dist_matrix, trace="none", labRow=NA, dendrogram=dendrogram,
           main="Drug prediction similarity", margins=c(12,8),
           xlab='Drug', ylab='Drug', col=heatmap_colors)
 ```
+
+### Compound vs. SuperLearner Algorithm Performance
+
+```{r}
+# created a filtered version of the R^2 scores for visualization
+dat <- rsquared %>% 
+    filter(max_rsquared >= 0.20) %>% 
+    select(-max_rsquared)
+
+# clip at [0,]
+dat[dat < 0] <- 0
+
+heatmaply(dat) %>% layout(margin=list(l=100, b=250))
+```
+
 

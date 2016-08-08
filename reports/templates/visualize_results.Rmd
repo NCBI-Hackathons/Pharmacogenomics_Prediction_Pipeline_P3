@@ -271,7 +271,7 @@ write.table(highest_trimmed_mean_feature_importance, sep='\t', quote=FALSE,
 
 ##### Distribution of maximum variable importance scores
 
-```{r variable_importance_dist}
+```{r variable_importance_dist2}
 max_feature_importance <- apply(feature_importance_filtered, 1, max) 
 
 # Create a feature/type mapping

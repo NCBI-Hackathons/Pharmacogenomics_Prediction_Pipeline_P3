@@ -16,6 +16,9 @@ output:
     latex_engine: xelatex
 ---
 
+Setup
+-----
+
 ```{r load_libs, message=FALSE, warning=FALSE, include=FALSE}
 library('DT')
 library('dplyr')
@@ -57,7 +60,7 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
 ```
 
 Results
-=======
+-------
 
 ### Load SuperLearner results
 
@@ -109,23 +112,24 @@ xkable(combined)
 
 ##### R^2 for each Learner
 
-```{r, results='asis', fig.cap='Distribution of relative CV risks', fig.width=1920/192, fig.height=1920/192}
-rel_risks <- 1 - (cv_risks/cv_risks[,'mean'])
-rel_risks <- rel_risks[,colnames(rel_risks) != 'mean']
+```{r, results='asis', fig.cap='Distribution of R^2 values', fig.width=1920/192, fig.height=1920/192}
+# compute coefficient of determination (R^2) for each prediction
+rsquared <- 1 - (cv_risks/cv_risks[,'mean'])
+rsquared <- rsquared[,colnames(rsquared) != 'mean']
 
 # gbmOOB_* returned NA on rare occassions
-summary_df <- as.data.frame(cbind(min=apply(rel_risks, 2, min, na.rm=TRUE),
-                                  median=apply(rel_risks, 2, median, na.rm=TRUE),
-                                  max=apply(rel_risks, 2, max, na.rm=TRUE))) %>%
+summary_df <- as.data.frame(cbind(min=apply(rsquared, 2, min, na.rm=TRUE),
+                                  median=apply(rsquared, 2, median, na.rm=TRUE),
+                                  max=apply(rsquared, 2, max, na.rm=TRUE))) %>%
                 arrange(desc(max))
-rownames(summary_df) <- colnames(rel_risks)
+rownames(summary_df) <- colnames(rsquared)
 xkable(summary_df, caption='R^2 risk by algorithm')
 
-rel_risks_long <- melt(rel_risks)
-colnames(rel_risks_long) <- c('drug', 'learner', 'value')
+rsquared_long <- melt(rsquared)
+colnames(rsquared_long) <- c('drug', 'learner', 'value')
 
 # Excluding outlier gbmOOB for now (high peak at 0 messes up y limits)
-ggplot(rel_risks_long %>% filter(learner != 'gbmOOB'), aes(x=value, fill=learner)) +
+ggplot(rsquared_long %>% filter(learner != 'gbmOOB'), aes(x=value, fill=learner)) + 
     geom_density(alpha=0.25) +
     geom_vline(xintercept=0, colour="red", linetype = "longdash") +
     theme(legend.justification=c(1,1), legend.position=c(1,1),
@@ -134,10 +138,10 @@ ggplot(rel_risks_long %>% filter(learner != 'gbmOOB'), aes(x=value, fill=learner
     xlim(-0.5, 0.5)
 ```
 
-##### Number of relative risk scores > 0.10 for each learner
+##### Number of R^2 values > 0.15 for each learner
 
 ```{r, results='asis'}
-interesting_hits <- as.data.frame(apply(rel_risks, 2, function (x) { sum(x > 0.10, na.rm=TRUE) }))
+interesting_hits <- as.data.frame(apply(rsquared, 2, function (x) { sum(x > 0.15, na.rm=TRUE) }))
 colnames(interesting_hits) <- 'num'
 xkable(interesting_hits)
 ```
@@ -153,12 +157,12 @@ has_nas[has_nas > 0]
 rownames(cv_risks)[apply(cv_risks, 1, function(x) { sum(is.na(x)) }) > 0]
 ```
 
-#### Absolute vs. Relative risk
+#### Absolute Risk vs. Relative Risk (R^2)
 
 ```{r, warning=FALSE}
 abs_vs_rel <- cbind(cv_risks_long  %>% filter(learner != 'mean') %>%
                     dplyr::rename(absolute=value),
-                    relative=rel_risks_long$value)
+                    relative=rsquared_long$value)
 
 # Plot 4 at a time using facet grid
 learners <- unique(abs_vs_rel$learner)
@@ -194,48 +198,81 @@ for (cls in feature_types) {
 }
 ```
 
-#### Distribution of feature average variable importance
-
-Median random forest (RF) variable importance for each feature across all drugs with a relative
-CV risk of at least 0.10 for RF.
+First, let's exclude all drugs for which none of the predictions were accurate.
 
 ```{r}
 # exclude low-performing drugs
-drugs_to_include <- rownames(rel_risks)[rel_risks[,'randomForest'] >= 0.1]
+drugs_to_include <- rownames(rsquared)[apply(rsquared, 1, max, na.rm=TRUE) >= 0.25]
 
 feature_importance_filtered <- feature_importance[,colnames(feature_importance) %in%
                                                    drugs_to_include]
 ```
 
+#### Trimmed mean variable importance
+
+Trimmed mean random forest (RF) variable importance for each feature across the top
+10 drugs with an R^2 value of at least 0.25 for one or more of the learners.
+
+##### Distribution of mean variable importance scores
+
+Features ranked by _mean_ of their top N=10 variable importance scores. Since
+different features are likely to help predict responses for different drugs,
+this helps us to find features which performed well for at least some subset of
+the drugs.
+
+```{r results='asis', message=FALSE}
+# Number of highest scoring drugs to average across
+n <- 10
+
+# get mean variable importance for top N compounds
+top_n <- apply(feature_importance_filtered, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) }) 
+
+# convert to a data frame and add feature type column
+trimmed_mean_import <- cbind(as.data.frame(top_n), type=ftype)
+colnames(trimmed_mean_import) <- c('Importance', 'type')
+
+trimmed_mean_import <- rownames_to_column(trimmed_mean_import, 'Feature') %>%
+    arrange(desc(Importance))
+
+trimmed_mean_import$Description = get_feature_descriptions(trimmed_mean_import$Feature)
+```
+
 ```{r variable_importance_dist, results='asis'}
-median_feature_importance <- apply(feature_importance_filtered, 1, median)
-
-# Create a feature/type mapping
-median_type_importance <- as.data.frame(
-    cbind(median_feature_importance=as.vector(median_feature_importance), type=ftype)
-)
-
 # Density grouped by feature type
-ggplot(median_type_importance, aes(x=median_feature_importance,
-                                   fill=type, color=type, group=type)) +
+mean_type_importance <- trimmed_mean_import %>% select(Importance, type)
+
+ggplot(mean_type_importance, aes(x=Importance, fill=type, color=type, group=type)) +
     geom_density(alpha=0.15) +
     theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
           legend.background=element_rect(fill=alpha('#ffffff', 0)),
           legend.justification=c(1,1), legend.position=c(1,1)) +
-    xlab('Median Random Forest Variable Importance') +
+    xlab('Trimmed Mean Random Forest Variable Importance') +
     guides(fill=guide_legend(ncol=2))
 
-df <- median_type_importance %>%
+df <- mean_type_importance %>% 
         group_by(type) %>%
-        summarize(avg=mean(as.numeric(median_feature_importance))) %>%
+        summarize(avg=mean(as.numeric(Importance))) %>%
         arrange(desc(avg))
 xkable(df)
 ```
 
-#### Distribution of feature maximum variable importance
+##### Features with the highest trimmed mean variable importance
 
-```{r variable_importance_dist2}
-max_feature_importance <- apply(feature_importance_filtered, 1, max)
+```{r results='asis'}
+xkable(trimmed_mean_import, 15, 
+       caption='Features ranked by trimmed-mean variable importance.',
+       str_max_width=60)
+
+write.table(highest_trimmed_mean_feature_importance, sep='\t', quote=FALSE,
+            file=file.path(output_dir, 'highest_trimmed_mean_feature_importance.tab'))
+```
+
+#### Maximum variable importance
+
+##### Distribution of maximum variable importance scores
+
+```{r variable_importance_dist}
+max_feature_importance <- apply(feature_importance_filtered, 1, max) 
 
 # Create a feature/type mapping
 max_type_importance <- as.data.frame(
@@ -249,7 +286,7 @@ ggplot(max_type_importance, aes(x=max_feature_importance,
     theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
           legend.background=element_rect(fill=alpha('#ffffff', 0)),
           legend.justification=c(1,1), legend.position=c(1,1)) +
-    xlab('Maximum Random Forest Variable Importance') +
+    xlab('Maximum Random Forest Variable Importance') + 
     guides(fill=guide_legend(ncol=2))
 
 df <- max_type_importance %>%
@@ -259,40 +296,19 @@ df <- max_type_importance %>%
 xkable(df)
 ```
 
-#### Features with highest average variable importance
-
-Features ranked by _median_ random forest variable importance across all drugs.
-
-```{r results='asis', message=FALSE}
-highest_median_feature_importance <- as.data.frame(sort(median_feature_importance, decreasing=TRUE))
-colnames(highest_median_feature_importance) <- c('Importance')
-highest_median_feature_importance <-
-    add_rownames(highest_median_feature_importance, 'Feature')
-
-# add human-readable annotations
-highest_median_feature_importance$Description = get_feature_descriptions(highest_median_feature_importance$Feature)
-
-xkable(highest_median_feature_importance, 15,
-       caption='Features ranked by median variable importance',
-       str_max_width=60)
-
-write.table(highest_median_feature_importance, sep='\t', quote=FALSE,
-            file=file.path(output_dir, 'highest_median_feature_importance.tab'))
-```
-
-#### Features with highest maximum variable importance
+##### Features with highest maximum variable importance
 
 Features ranked by _max_ random forest variable importance across all drugs.
 
 ```{r results='asis', message=FALSE}
 highest_max_feature_importance <- as.data.frame(sort(max_feature_importance, decreasing=TRUE))
 colnames(highest_max_feature_importance) <- c('Importance')
-highest_max_feature_importance <- add_rownames(highest_max_feature_importance, 'Feature')
+highest_max_feature_importance <- rownames_to_column(highest_max_feature_importance, 'Feature')
 
 # add human-readable annotations
 highest_max_feature_importance$Description = get_feature_descriptions(highest_max_feature_importance$Feature)
 
-xkable(highest_max_feature_importance, 15,
+xkable(highest_max_feature_importance, 15, 
        caption='Features ranked by max variable importance',
        str_max_width=60)
 
@@ -300,33 +316,68 @@ write.table(highest_max_feature_importance, sep='\t', quote=FALSE,
             file=file.path(output_dir, 'highest_max_feature_importance.tab'))
 ```
 
-#### Features with the highest trimmed mean variable importance
+### Drug performance
 
-Features ranked by _mean_ of their top N=10 variable importance scores. Since
-different features are likely to help predict responses for different drugs,
-this helps us to find features which performed well for at least some subset of
-the drugs.
+#### Compounds with R^2 >= 0.25
 
-```{r results='asis', message=FALSE}
-# Number of highest scoring drugs to average across
-n <- 10
+First, let's look at a list of the drugs/compounds for which P3 was able to
+predict the response with a R^2 >= 0.25.
 
-top_n <- apply(feature_importance_filtered, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) })
-trimmed_mean_import <- as.data.frame(sort(top_n, decreasing=TRUE))
-colnames(trimmed_mean_import) <- c('Importance')
-trimmed_mean_import <- add_rownames(trimmed_mean_import, 'Feature')
+```{r}
+# convert to dataframe and add max risk column
+rsquared <- data.frame(rsquared)
+rsquared$max_rsquared <- apply(rsquared, 1, max)
 
-trimmed_mean_import$Description = get_feature_descriptions(trimmed_mean_import$Feature)
-
-xkable(trimmed_mean_import, 15,
-       caption='Features ranked by trimmed-mean variable importance.',
-       str_max_width=60)
-
-write.table(trimmed_mean_import, sep='\t', quote=FALSE,
-            file=file.path(output_dir, 'trimmed_mean_importance.tab'))
+# get a table of the compounds with a R^2 of at least 0.25 for one
+# or more learners 
+rsquared %>% 
+    rownames_to_column(var='compound') %>%
+    filter(max_rsquared >= 0.25) %>%
+    arrange(desc(max_rsquared)) %>%
+    xkable
 ```
 
-### Drug performance
+#### Top 5 drug response predictions
+
+```{r, results='asis'}
+trimmed_mean <- function(x, n=10) {
+    mean(head(sort(x, decreasing=TRUE), n))
+}
+
+top_drugs <- names(head(sort(apply(rsquared %>% select(-max_rsquared), 1, trimmed_mean), 
+                   decreasing=TRUE), 5))
+
+for (i in seq_along(top_drugs)) {
+    drug <- top_drugs[i]
+    cat(sprintf("\n##### %d) %s\n\n", i, drug))
+
+    # top algorithms for compound
+    cat("###### Top Learners\n\n")
+
+    df <- as.data.frame(t(rsquared[drug,]))
+    colnames(df) <- 'rsquared'
+
+    df %>% 
+        rownames_to_column('learner') %>%
+        arrange(desc(rsquared)) %>%
+        head(15) %>%
+        kable %>%
+        print
+
+    # top features (according to RF) for the compound
+    cat("\n\n###### Top features\n\n")
+
+    df <- as.data.frame(feature_importance_filtered[,drug])
+    colnames(df) <- 'feature_importance'
+
+    df %>% 
+        rownames_to_column('feature') %>%
+        arrange(desc(feature_importance)) %>%
+        head(15) %>%
+        kable %>%
+        print
+}
+```
 
 #### Drugs with shared predictive features
 

@@ -155,7 +155,7 @@ get_feature_descriptions <- function(features) {
         go_ids <- sapply(features, extract_go_id)
 
         # retrieve GO term descriptions and return them
-        select(GO.db, go_ids, columns='TERM')$TERM
+        AnnotationDbi::select(GO.db, go_ids, columns='TERM')$TERM
     }
     descriptions[grepl('_GO_', features)] <- get_go_description(features[grepl('_GO_', features)])
 

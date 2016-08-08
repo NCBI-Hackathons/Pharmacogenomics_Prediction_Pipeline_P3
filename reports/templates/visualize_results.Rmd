@@ -92,8 +92,16 @@ coef_averages <- coefs_long %>%
     summarise(average_coef=mean(value, na.rm=TRUE)) %>%
     arrange(desc(average_coef))
 
-combined <- merge(cvrisk_averages, coef_averages, by='learner') %>%
-    arrange(desc(average_coef))
+# For each algorithm, how many compounds have nonzero coeficients?
+coef_nonzero <- coefs_long %>% 
+    group_by(learner) %>% 
+    summarise(ratio_nonzero=sum(value > 0) / length(value)) %>%
+    arrange(desc(ratio_nonzero))
+
+combined <- merge(cvrisk_averages, 
+                  merge(coef_averages, coef_nonzero, by='learner'),
+                  by='learner') %>%
+    arrange(desc(ratio_nonzero))
 xkable(combined)
 ```
 

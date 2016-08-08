@@ -196,10 +196,19 @@ for (cls in feature_types) {
 
 #### Distribution of feature average variable importance
 
-Median RF variable importance for each feature across all drugs.
+Median random forest (RF) variable importance for each feature across all drugs with a relative
+CV risk of at least 0.10 for RF.
+
+```{r}
+# exclude low-performing drugs
+drugs_to_include <- rownames(rel_risks)[rel_risks[,'randomForest'] >= 0.1]
+
+feature_importance_filtered <- feature_importance[,colnames(feature_importance) %in%
+                                                   drugs_to_include]
+```
 
 ```{r variable_importance_dist, results='asis'}
-median_feature_importance <- apply(feature_importance, 1, median)
+median_feature_importance <- apply(feature_importance_filtered, 1, median)
 
 # Create a feature/type mapping
 median_type_importance <- as.data.frame(
@@ -226,7 +235,7 @@ xkable(df)
 #### Distribution of feature maximum variable importance
 
 ```{r variable_importance_dist2}
-max_feature_importance <- apply(feature_importance, 1, max)
+max_feature_importance <- apply(feature_importance_filtered, 1, max)
 
 # Create a feature/type mapping
 max_type_importance <- as.data.frame(
@@ -302,7 +311,7 @@ the drugs.
 # Number of highest scoring drugs to average across
 n <- 10
 
-top_n <- apply(feature_importance, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) })
+top_n <- apply(feature_importance_filtered, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) })
 trimmed_mean_import <- as.data.frame(sort(top_n, decreasing=TRUE))
 colnames(trimmed_mean_import) <- c('Importance')
 trimmed_mean_import <- add_rownames(trimmed_mean_import, 'Feature')
@@ -327,7 +336,7 @@ their feature importance vectors.
 
 ```{r drug_heatmap, fig.width=1080/96, fig.height=1080/96, dpi=96}
 heatmap_colors <- colorRampPalette(brewer.pal(9, "YlGnBu"))(100)
-dist_matrix <- cor(feature_importance, method='spearman')
+dist_matrix <- cor(feature_importance_filtered, method='spearman')
 
 dendrogram <- ifelse(nrow(dist_matrix) > 100, 'none', 'column')
 

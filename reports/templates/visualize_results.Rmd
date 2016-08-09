@@ -172,11 +172,14 @@ learners <- unique(abs_vs_rel$learner)
 learner_groups <- split(learners, ceiling(seq_along(learners) / 4))
 
 for (learners in learner_groups) {
+    # ylimit set to avoid having a small number of extreme outliers from
+    # having a drastic effect on the dynamic range of the plots.
     plt <- ggplot(abs_vs_rel %>% filter(learner %in% learners),
                   aes(x=relative, y=absolute, color=learner)) +
             geom_point(size=0.5) +
             geom_vline(xintercept=0, colour="#999999", linetype="longdash", size=0.3) +
             xlim(-0.5, 0.5) +
+            ylim(0, 7.5) +
             facet_wrap(~learner, ncol=2) +
             theme(legend.position="none")
     print(plt)
@@ -204,11 +207,25 @@ for (cls in feature_types) {
 First, let's exclude all drugs for which none of the predictions were accurate.
 
 ```{r}
-# exclude low-performing drugs
-drugs_to_include <- rownames(rsquared)[apply(rsquared, 1, max, na.rm=TRUE) >= 0.25]
+# trimmed mean function
+trimmed_mean <- function(x, n=10) {
+    mean(head(sort(x, decreasing=TRUE), n))
+}
+
+# sort drugs by there max and trimmed mean R^2 scores
+drug_scores <- data_frame(drug=rownames(rsquared), 
+                          max_rsquared=apply(rsquared, 1, max, na.rm=TRUE),
+                          trimmed_mean_rsquared=apply(rsquared, 1, trimmed_mean)) %>%
+    arrange(desc(max_rsquared + trimmed_mean_rsquared))
+
+# exclude low-performing drugs;
+# to pass the filter, drug should have either or both a max R^2 >= 0.25, or
+# a trimmed mean (mean of top 10 R^2 values) >= 0.15.
+top_drug_hits <- (drug_scores %>% filter(max_rsquared >= 0.25 | 
+                                        trimmed_mean_rsquared >= 0.15))$drug
 
 feature_importance_filtered <- feature_importance[,colnames(feature_importance) %in%
-                                                   drugs_to_include]
+                                                   top_drug_hits]
 ```
 
 #### Trimmed mean variable importance
@@ -267,7 +284,8 @@ xkable(trimmed_mean_import, 15,
        str_max_width=60)
 
 write.table(trimmed_mean_import, sep='\t', quote=FALSE,
-            file=file.path(output_dir, 'trimmed_mean_featurtrimmed_mean_featuree_importance.tab'))
+            file=file.path(output_dir, 'trimmed_mean_featurtrimmed_mean_featuree_importance.tab'),
+            row.names=FALSE)
 ```
 
 #### Maximum variable importance
@@ -316,7 +334,8 @@ xkable(highest_max_feature_importance, 15,
        str_max_width=60)
 
 write.table(highest_max_feature_importance, sep='\t', quote=FALSE,
-            file=file.path(output_dir, 'highest_max_feature_importance.tab'))
+            file=file.path(output_dir, 'highest_max_feature_importance.tab'),
+            row.names=FALSE)
 ```
 
 ### Drug response prediction performance
@@ -343,15 +362,8 @@ rsquared %>%
 #### Top 5 drug response predictions
 
 ```{r, results='asis'}
-trimmed_mean <- function(x, n=10) {
-    mean(head(sort(x, decreasing=TRUE), n))
-}
-
-top_drugs <- names(head(sort(apply(rsquared %>% select(-max_rsquared), 1, trimmed_mean), 
-                   decreasing=TRUE), 5))
-
-for (i in seq_along(top_drugs)) {
-    drug <- top_drugs[i]
+for (i in seq_along(top_drug_hits)) {
+    drug <- top_drug_hits[i]
     cat(sprintf("\n##### %d) %s\n\n", i, drug))
 
     # top algorithms for compound
@@ -377,6 +389,7 @@ for (i in seq_along(top_drugs)) {
         rownames_to_column('feature') %>%
         arrange(desc(feature_importance)) %>%
         head(15) %>%
+        mutate(description=get_feature_descriptions(feature)) %>%
         kable %>%
         print
 }
@@ -401,7 +414,7 @@ heatmap.2(dist_matrix, trace="none", labRow=NA, dendrogram=dendrogram,
 
 ### Compound vs. SuperLearner Algorithm Performance
 
-```{r}
+```{r, dpi=120}
 # created a filtered version of the R^2 scores for visualization
 dat <- rsquared %>% 
     filter(max_rsquared >= 0.20) %>% 

@@ -207,11 +207,25 @@ for (cls in feature_types) {
 First, let's exclude all drugs for which none of the predictions were accurate.
 
 ```{r}
-# exclude low-performing drugs
-drugs_to_include <- rownames(rsquared)[apply(rsquared, 1, max, na.rm=TRUE) >= 0.25]
+# trimmed mean function
+trimmed_mean <- function(x, n=10) {
+    mean(head(sort(x, decreasing=TRUE), n))
+}
+
+# sort drugs by there max and trimmed mean R^2 scores
+drug_scores <- data_frame(drug=rownames(rsquared), 
+                          max_rsquared=apply(rsquared, 1, max, na.rm=TRUE),
+                          trimmed_mean_rsquared=apply(rsquared, 1, trimmed_mean)) %>%
+    arrange(desc(max_rsquared + trimmed_mean_rsquared))
+
+# exclude low-performing drugs;
+# to pass the filter, drug should have either or both a max R^2 >= 0.25, or
+# a trimmed mean (mean of top 10 R^2 values) >= 0.15.
+top_drug_hits <- (drug_scores %>% filter(max_rsquared >= 0.25 | 
+                                        trimmed_mean_rsquared >= 0.15))$drug
 
 feature_importance_filtered <- feature_importance[,colnames(feature_importance) %in%
-                                                   drugs_to_include]
+                                                   top_drug_hits]
 ```
 
 #### Trimmed mean variable importance
@@ -348,15 +362,8 @@ rsquared %>%
 #### Top 5 drug response predictions
 
 ```{r, results='asis'}
-trimmed_mean <- function(x, n=10) {
-    mean(head(sort(x, decreasing=TRUE), n))
-}
-
-top_drugs <- names(head(sort(apply(rsquared %>% select(-max_rsquared), 1, trimmed_mean), 
-                   decreasing=TRUE), 5))
-
-for (i in seq_along(top_drugs)) {
-    drug <- top_drugs[i]
+for (i in seq_along(top_drug_hits)) {
+    drug <- top_drug_hits[i]
     cat(sprintf("\n##### %d) %s\n\n", i, drug))
 
     # top algorithms for compound
@@ -407,7 +414,7 @@ heatmap.2(dist_matrix, trace="none", labRow=NA, dendrogram=dendrogram,
 
 ### Compound vs. SuperLearner Algorithm Performance
 
-```{r}
+```{r, dpi=120}
 # created a filtered version of the R^2 scores for visualization
 dat <- rsquared %>% 
     filter(max_rsquared >= 0.20) %>% 

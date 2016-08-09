@@ -172,11 +172,14 @@ learners <- unique(abs_vs_rel$learner)
 learner_groups <- split(learners, ceiling(seq_along(learners) / 4))
 
 for (learners in learner_groups) {
+    # ylimit set to avoid having a small number of extreme outliers from
+    # having a drastic effect on the dynamic range of the plots.
     plt <- ggplot(abs_vs_rel %>% filter(learner %in% learners),
                   aes(x=relative, y=absolute, color=learner)) +
             geom_point(size=0.5) +
             geom_vline(xintercept=0, colour="#999999", linetype="longdash", size=0.3) +
             xlim(-0.5, 0.5) +
+            ylim(0, 7.5) +
             facet_wrap(~learner, ncol=2) +
             theme(legend.position="none")
     print(plt)
@@ -267,7 +270,8 @@ xkable(trimmed_mean_import, 15,
        str_max_width=60)
 
 write.table(trimmed_mean_import, sep='\t', quote=FALSE,
-            file=file.path(output_dir, 'trimmed_mean_featurtrimmed_mean_featuree_importance.tab'))
+            file=file.path(output_dir, 'trimmed_mean_featurtrimmed_mean_featuree_importance.tab'),
+            row.names=FALSE)
 ```
 
 #### Maximum variable importance
@@ -316,7 +320,8 @@ xkable(highest_max_feature_importance, 15,
        str_max_width=60)
 
 write.table(highest_max_feature_importance, sep='\t', quote=FALSE,
-            file=file.path(output_dir, 'highest_max_feature_importance.tab'))
+            file=file.path(output_dir, 'highest_max_feature_importance.tab'),
+            row.names=FALSE)
 ```
 
 ### Drug response prediction performance

@@ -24,7 +24,7 @@ parse_p3_results <- function(infiles) {
         load(infile)
 
         # drug name
-        drugs <- c(drugs, p3_result$drug)
+        drugs <- c(drugs, p3_result$drug_name)
 
         # prediction variance
         prediction_var <- c(prediction_var, p3_result$prediction_variance)

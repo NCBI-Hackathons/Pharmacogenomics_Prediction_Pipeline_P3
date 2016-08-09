@@ -382,6 +382,7 @@ for (i in seq_along(top_drugs)) {
         rownames_to_column('feature') %>%
         arrange(desc(feature_importance)) %>%
         head(15) %>%
+        mutate(description=get_feature_descriptions(feature)) %>%
         kable %>%
         print
 }

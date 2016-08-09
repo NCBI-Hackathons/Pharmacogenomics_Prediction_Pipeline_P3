@@ -266,8 +266,8 @@ xkable(trimmed_mean_import, 15,
        caption='Features ranked by trimmed-mean variable importance.',
        str_max_width=60)
 
-write.table(highest_trimmed_mean_feature_importance, sep='\t', quote=FALSE,
-            file=file.path(output_dir, 'highest_trimmed_mean_feature_importance.tab'))
+write.table(trimmed_mean_import, sep='\t', quote=FALSE,
+            file=file.path(output_dir, 'trimmed_mean_featurtrimmed_mean_featuree_importance.tab'))
 ```
 
 #### Maximum variable importance

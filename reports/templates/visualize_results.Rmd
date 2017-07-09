@@ -1,0 +1,429 @@
+---
+title: "P3: Visualization of Results"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+params:
+    results_glob_str: ""
+    output_dir: ""
+output:
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    number_sections: true
+  pdf_document:
+    dev: png
+    toc: true
+    latex_engine: xelatex
+---
+
+Setup
+-----
+
+```{r load_libs, message=FALSE, warning=FALSE, include=FALSE}
+library('DT')
+library('dplyr')
+library('knitr')
+library('ggplot2')
+library('gplots')
+library('heatmaply')
+library('reshape2')
+library('stringr')
+library('tibble')
+library('SuperLearner')
+library('RColorBrewer')
+library('org.Hs.eg.db')
+library('GO.db')
+source('R/results_helper_functions.R')
+
+options(stringsAsFactors=FALSE,
+        knitr.duplicate.label='allow',
+        digits=4)
+
+# If rmarkdown.pandoc.to not specified (for example, when kniting
+# piece-by-piece in Vim-R), have it default to 'latex' output.
+if (is.null(opts_knit$get("rmarkdown.pandoc.to"))) {
+    opts_knit$set(rmarkdown.pandoc.to='latex')
+}
+
+# For images containing unicode text, we will use cairo for PDF output
+if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
+    opts_chunk$set(dev='cairo_pdf',
+                   dev.args=list(cairo_pdf=list(family="DejaVu Sans")),
+                   fig.width=1920/192,
+                   fig.height=1920/192,
+                   dpi=192)
+} else {
+    # HTML output
+    opts_chunk$set(dev='png',
+                   fig.width=1600/192,
+                   fig.height=1600/192,
+                   dpi=192, fig.retina=1)
+}
+
+# fix namespace for dplyr functions
+assign('select', dplyr::select, envir=.GlobalEnv)
+```
+
+```{r message=FALSE}
+run            <- parse_p3_results(Sys.glob(params$results_glob_str))
+coefs          <- run$coefs
+cv_risks       <- run$cv_risks
+feature_importance <- run$feature_importance
+```
+
+Results
+-------
+
+### SuperLearner algorithm performance
+
+#### Absolute CV risk
+
+```{r predictor_performance, results='asis'}
+# CV risk averages across all drugs
+cv_risks_long <- melt(cv_risks)
+colnames(cv_risks_long) <- c('drug', 'learner', 'value')
+cv_risks_long$learner <- as.character(cv_risks_long$learner)
+
+cvrisk_averages <- cv_risks_long %>%
+    group_by(learner) %>%
+    summarise(average_risk=mean(value, na.rm=TRUE))
+
+# Coefficient averages across all drugs
+coefs_long <- melt(coefs)
+colnames(coefs_long) <- c('drug', 'learner', 'value')
+coefs_long$learner <- as.character(coefs_long$learner)
+
+coef_averages <- coefs_long %>%
+    group_by(learner) %>%
+    summarise(average_coef=mean(value, na.rm=TRUE)) %>%
+    arrange(desc(average_coef))
+
+# For each algorithm, how many compounds have nonzero coeficients?
+coef_nonzero <- coefs_long %>% 
+    group_by(learner) %>% 
+    summarise(ratio_nonzero=sum(value > 0) / length(value)) %>%
+    arrange(desc(ratio_nonzero))
+
+combined <- merge(cvrisk_averages, 
+                  merge(coef_averages, coef_nonzero, by='learner'),
+                  by='learner') %>%
+    arrange(desc(ratio_nonzero))
+xkable(combined)
+```
+
+#### Relative risk (~R^2)
+
+##### R^2 for each Learner
+
+```{r, results='asis', fig.cap='Distribution of R^2 values', fig.width=1920/192, fig.height=1920/192}
+# compute coefficient of determination (R^2) for each prediction
+rsquared <- 1 - (cv_risks/cv_risks[,'mean'])
+rsquared <- rsquared[,colnames(rsquared) != 'mean']
+
+# gbmOOB_* returned NA on rare occassions
+summary_df <- as.data.frame(cbind(min=apply(rsquared, 2, min, na.rm=TRUE),
+                                  median=apply(rsquared, 2, median, na.rm=TRUE),
+                                  max=apply(rsquared, 2, max, na.rm=TRUE))) %>%
+                arrange(desc(max))
+rownames(summary_df) <- colnames(rsquared)
+xkable(summary_df, caption='R^2 risk by algorithm')
+
+rsquared_long <- melt(rsquared)
+colnames(rsquared_long) <- c('drug', 'learner', 'value')
+
+# Excluding outlier gbmOOB for now (high peak at 0 messes up y limits)
+ggplot(rsquared_long %>% filter(learner != 'gbmOOB'), aes(x=value, fill=learner)) + 
+    geom_density(alpha=0.25) +
+    geom_vline(xintercept=0, colour="red", linetype = "longdash") +
+    theme(legend.justification=c(1,1), legend.position=c(1,1),
+          legend.background=element_rect(fill=alpha('#333333', 0.4)),
+          legend.text=element_text(size=10)) +
+    xlim(-0.5, 0.5)
+```
+
+##### Number of R^2 values > 0.15 for each learner
+
+```{r, results='asis'}
+interesting_hits <- as.data.frame(apply(rsquared, 2, function (x) { sum(x > 0.15, na.rm=TRUE) }))
+colnames(interesting_hits) <- 'num'
+xkable(interesting_hits)
+```
+
+##### Number of NA's in CV risk output
+
+```{r}
+# learners
+has_nas <- apply(cv_risks, 2, function(x) { sum(is.na(x)) })
+has_nas[has_nas > 0]
+
+# drugs
+rownames(cv_risks)[apply(cv_risks, 1, function(x) { sum(is.na(x)) }) > 0]
+```
+
+#### Absolute Risk vs. Relative Risk (R^2)
+
+```{r, warning=FALSE}
+abs_vs_rel <- cbind(cv_risks_long  %>% filter(learner != 'mean') %>%
+                    dplyr::rename(absolute=value),
+                    relative=rsquared_long$value)
+
+# Plot 4 at a time using facet grid
+learners <- unique(abs_vs_rel$learner)
+learner_groups <- split(learners, ceiling(seq_along(learners) / 4))
+
+for (learners in learner_groups) {
+    # ylimit set to avoid having a small number of extreme outliers from
+    # having a drastic effect on the dynamic range of the plots.
+    plt <- ggplot(abs_vs_rel %>% filter(learner %in% learners),
+                  aes(x=relative, y=absolute, color=learner)) +
+            geom_point(size=0.5) +
+            geom_vline(xintercept=0, colour="#999999", linetype="longdash", size=0.3) +
+            xlim(-0.5, 0.5) +
+            ylim(0, 7.5) +
+            facet_wrap(~learner, ncol=2) +
+            theme(legend.position="none")
+    print(plt)
+}
+```
+
+### Random forest feature importance
+
+First, let's create a vector of feature types so that we can group our
+plots this way.
+
+```{r feature_types}
+# types of predictor features
+feature_types <- c('cnv_clusters', 'cnv_longest_gene', 'cnv_max_gene',
+                   'cpdb_variants', 'cpdb_zscores', 'exome_variants',
+                   'go_variants', 'go_zscores', 'msigdb_variants',
+                   'msigdb_zscores', 'normed_counts', 'zscores_zscores')
+
+ftype <- rep(NA, nrow(feature_importance))
+for (cls in feature_types) {
+    ftype[grepl(cls, rownames(feature_importance))] <- cls
+}
+```
+
+First, let's exclude all drugs for which none of the predictions were accurate.
+
+```{r}
+# trimmed mean function
+trimmed_mean <- function(x, n=10) {
+    mean(head(sort(x, decreasing=TRUE), n))
+}
+
+# sort drugs by there max and trimmed mean R^2 scores
+drug_scores <- data_frame(drug=rownames(rsquared), 
+                          max_rsquared=apply(rsquared, 1, max, na.rm=TRUE),
+                          trimmed_mean_rsquared=apply(rsquared, 1, trimmed_mean)) %>%
+    arrange(desc(max_rsquared + trimmed_mean_rsquared))
+
+# exclude low-performing drugs;
+# to pass the filter, drug should have either or both a max R^2 >= 0.25, or
+# a trimmed mean (mean of top 10 R^2 values) >= 0.15.
+top_drug_hits <- (drug_scores %>% filter(max_rsquared >= 0.25 | 
+                                        trimmed_mean_rsquared >= 0.15))$drug
+
+feature_importance_filtered <- feature_importance[,colnames(feature_importance) %in%
+                                                   top_drug_hits]
+```
+
+#### Trimmed mean variable importance
+
+Trimmed mean random forest (RF) variable importance for each feature across the top
+10 drugs with an R^2 value of at least 0.25 for one or more of the learners.
+
+##### Distribution of mean variable importance scores
+
+Features ranked by _mean_ of their top N=10 variable importance scores. Since
+different features are likely to help predict responses for different drugs,
+this helps us to find features which performed well for at least some subset of
+the drugs.
+
+```{r results='asis', message=FALSE}
+# Number of highest scoring drugs to average across
+n <- 10
+
+# get mean variable importance for top N compounds
+top_n <- apply(feature_importance_filtered, 1, function(x) { mean(head(sort(x, decreasing=TRUE), n)) }) 
+
+# convert to a data frame and add feature type column
+trimmed_mean_import <- cbind(as.data.frame(top_n), type=ftype)
+colnames(trimmed_mean_import) <- c('Importance', 'type')
+
+trimmed_mean_import <- rownames_to_column(trimmed_mean_import, 'Feature') %>%
+    arrange(desc(Importance))
+
+trimmed_mean_import$Description = get_feature_descriptions(trimmed_mean_import$Feature)
+```
+
+```{r variable_importance_dist, results='asis'}
+# Density grouped by feature type
+mean_type_importance <- trimmed_mean_import %>% select(Importance, type)
+
+ggplot(mean_type_importance, aes(x=Importance, fill=type, color=type, group=type)) +
+    geom_density(alpha=0.15) +
+    theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
+          legend.background=element_rect(fill=alpha('#ffffff', 0)),
+          legend.justification=c(1,1), legend.position=c(1,1)) +
+    xlab('Trimmed Mean Random Forest Variable Importance') +
+    guides(fill=guide_legend(ncol=2))
+
+df <- mean_type_importance %>% 
+        group_by(type) %>%
+        summarize(avg=mean(as.numeric(Importance))) %>%
+        arrange(desc(avg))
+xkable(df)
+```
+
+##### Features with the highest trimmed mean variable importance
+
+```{r results='asis'}
+xkable(trimmed_mean_import, 15, 
+       caption='Features ranked by trimmed-mean variable importance.',
+       str_max_width=60)
+
+write.table(trimmed_mean_import, sep='\t', quote=FALSE,
+            file=file.path(output_dir, 'trimmed_mean_featurtrimmed_mean_featuree_importance.tab'),
+            row.names=FALSE)
+```
+
+#### Maximum variable importance
+
+##### Distribution of maximum variable importance scores
+
+```{r variable_importance_dist2}
+max_feature_importance <- apply(feature_importance_filtered, 1, max) 
+
+# Create a feature/type mapping
+max_type_importance <- as.data.frame(
+    cbind(max_feature_importance=as.vector(max_feature_importance), type=ftype)
+)
+
+# Density grouped by feature type
+ggplot(max_type_importance, aes(x=max_feature_importance,
+                                 fill=type, color=type, group=type)) +
+    geom_density(alpha=0.15) +
+    theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
+          legend.background=element_rect(fill=alpha('#ffffff', 0)),
+          legend.justification=c(1,1), legend.position=c(1,1)) +
+    xlab('Maximum Random Forest Variable Importance') + 
+    guides(fill=guide_legend(ncol=2))
+
+df <- max_type_importance %>%
+        group_by(type) %>%
+        summarize(avg=mean(as.numeric(max_feature_importance))) %>%
+        arrange(desc(avg))
+xkable(df)
+```
+
+##### Features with highest maximum variable importance
+
+Features ranked by _max_ random forest variable importance across all drugs.
+
+```{r results='asis', message=FALSE}
+highest_max_feature_importance <- as.data.frame(sort(max_feature_importance, decreasing=TRUE))
+colnames(highest_max_feature_importance) <- c('Importance')
+highest_max_feature_importance <- rownames_to_column(highest_max_feature_importance, 'Feature')
+
+# add human-readable annotations
+highest_max_feature_importance$Description = get_feature_descriptions(highest_max_feature_importance$Feature)
+
+xkable(highest_max_feature_importance, 15, 
+       caption='Features ranked by max variable importance',
+       str_max_width=60)
+
+write.table(highest_max_feature_importance, sep='\t', quote=FALSE,
+            file=file.path(output_dir, 'highest_max_feature_importance.tab'),
+            row.names=FALSE)
+```
+
+### Drug response prediction performance
+
+#### Compounds with R^2 >= 0.25
+
+First, let's look at a list of the drugs/compounds for which P3 was able to
+predict the response with a R^2 >= 0.25.
+
+```{r}
+# convert to dataframe and add max risk column
+rsquared <- data.frame(rsquared)
+rsquared$max_rsquared <- apply(rsquared, 1, max)
+
+# get a table of the compounds with a R^2 of at least 0.25 for one
+# or more learners 
+rsquared %>% 
+    rownames_to_column(var='compound') %>%
+    filter(max_rsquared >= 0.25) %>%
+    arrange(desc(max_rsquared)) %>%
+    xkable
+```
+
+#### Top 5 drug response predictions
+
+```{r, results='asis'}
+for (i in seq_along(top_drug_hits)) {
+    drug <- top_drug_hits[i]
+    cat(sprintf("\n##### %d) %s\n\n", i, drug))
+
+    # top algorithms for compound
+    cat("###### Top Learners\n\n")
+
+    df <- as.data.frame(t(rsquared[drug,]))
+    colnames(df) <- 'rsquared'
+
+    df %>% 
+        rownames_to_column('learner') %>%
+        arrange(desc(rsquared)) %>%
+        head(15) %>%
+        kable %>%
+        print
+
+    # top features (according to RF) for the compound
+    cat("\n\n###### Top features\n\n")
+
+    df <- as.data.frame(feature_importance_filtered[,drug])
+    colnames(df) <- 'feature_importance'
+
+    df %>% 
+        rownames_to_column('feature') %>%
+        arrange(desc(feature_importance)) %>%
+        head(15) %>%
+        mutate(description=get_feature_descriptions(feature)) %>%
+        kable %>%
+        print
+}
+```
+
+#### Drugs with shared predictive features
+
+Next, we will see if there are any groups of drugs which are predicted by
+similar sets of features. To do this, we will cluster the drugs based on the
+their feature importance vectors.
+
+```{r drug_heatmap, fig.width=1080/96, fig.height=1080/96, dpi=96}
+heatmap_colors <- colorRampPalette(brewer.pal(9, "YlGnBu"))(100)
+dist_matrix <- cor(feature_importance_filtered, method='spearman')
+
+dendrogram <- ifelse(nrow(dist_matrix) > 100, 'none', 'column')
+
+heatmap.2(dist_matrix, trace="none", labRow=NA, dendrogram=dendrogram,
+          main="Drug prediction similarity", margins=c(12,8),
+          xlab='Drug', ylab='Drug', col=heatmap_colors)
+```
+
+### Compound vs. SuperLearner Algorithm Performance
+
+```{r, dpi=120}
+# created a filtered version of the R^2 scores for visualization
+dat <- rsquared %>% 
+    filter(max_rsquared >= 0.20) %>% 
+    select(-max_rsquared)
+
+# clip at [0,]
+dat[dat < 0] <- 0
+
+heatmaply(dat) %>% layout(margin=list(l=100, b=250))
+```
+
+

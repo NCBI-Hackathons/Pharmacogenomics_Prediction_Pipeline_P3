@@ -24,6 +24,7 @@ shell.prefix('set -o pipefail; set -e;')
 localrules: make_lookups
 
 config = yaml.load(open('config.yaml'))
+config['prefix'] = os.path.abspath(config['prefix'])
 
 class Program(object):
     """
@@ -115,15 +116,18 @@ filtered_targets = pipeline_helpers.filtered_targets_from_config('config.yaml')
 filtered_targets += expand('{prefix}/runs/{run}/filtered/aggregated_features.tab', run=config['run_info'].keys(), prefix=config['prefix'])
 
 model_targets = []
+report_targets = []
 for run, block in config['run_info'].items():
     responses_for_run = [i.strip() for i in open(block['response_list'])]
     model_targets.extend(
-        expand('{prefix}/runs/{run}/output/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run))
+        expand('{prefix}/runs/{run}/post-processed/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run))
+    report_targets.append('{prefix}/reports/runs/{run}/results.html'.format(prefix=config['prefix'], run=run))
 
 
-report_targets = expand('{prefix}/reports/{label}.html',
+report_targets.extend(expand('{prefix}/reports/{label}.html',
                         prefix=config['prefix'],
-                        label=['normalized_rnaseq', 'raw_rnaseq', 'cleaned_snps'])
+                        label=['normalized_rnaseq', 'raw_rnaseq', 'cleaned_snps']))
+
 
 # Create all log output directories. This is required when running on a SLURM
 # cluster using the wrapper. Otherwise, if the directory to which stdout/stderr
@@ -137,10 +141,16 @@ def install_dag_hook(callback):
     DAG.postprocess = postprocess_hook
 
 def dag_finalized(dag):
+    outdirs = []
+    logdirs = []
     for j in dag.jobs:
         for output in j.output:
-            makedirs(os.path.dirname(output))
-            makedirs(os.path.join('logs', os.path.basename(os.path.dirname(output)).lstrip('/')))
+            outdirs.append(os.path.abspath(os.path.dirname(output)))
+            logdirs.append(os.path.join('logs', os.path.abspath(os.path.dirname(output)).lstrip(os.path.sep)))
+    outdirs = sorted(list(set(outdirs)))
+    logdirs = sorted(list(set(logdirs)))
+    makedirs(list(set(outdirs)))
+    makedirs(list(set(logdirs)))
 
 install_dag_hook(dag_finalized)
 
@@ -341,5 +351,43 @@ rule learn_model:
             {input.SL_library_file} \
             {output} > {log} 2> {log}
         """
+
+
+rule post_process:
+    input: '{prefix}/runs/{run}/output/{response}.RData'
+    output: '{prefix}/runs/{run}/post-processed/{response}.RData'
+    params:
+        script='tools/post_processing.R'
+    log: '{prefix}/runs/{run}/post-processed/{response}.log'
+    shell:
+        """
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} {params.script} \
+        {input} \
+        {output} > {log} 2> {log}
+        """
+
+
+def RData_for_run(wildcards):
+    run = wildcards.run
+    block = config['run_info'][run]
+    responses_for_run = [i.strip() for i in open(block['response_list'])]
+    return expand('{prefix}/runs/{run}/post-processed/{response}.RData', prefix=config['prefix'], run=run, response=responses_for_run)
+
+
+rule model_visualization:
+    input: RData_for_run
+    output: '{prefix}/reports/runs/{run}/results.html'
+    log: '{prefix}/reports/runs/{run}/results.log'
+
+    run:
+        assert len(set([os.path.dirname(i) for i in input])) == 1
+        assert all([os.path.basename(i).endswith('.RData') for i in input])
+        pattern = os.path.join(os.path.dirname(input[0]), '*.RData')
+        outdir = os.path.dirname(output[0])
+        shell("""
+        {programs.Rscript.prelude}
+        {programs.Rscript.path} tools/visualize_results.R "{pattern}" {outdir} > {log} 2> {log}
+        """)
 
 # vim: ft=python

@@ -59,7 +59,8 @@ N <- length(Y)
 # This file is required to create SL.library, which is then passed to
 # SuperLearner() below.
 source(SL.library.file)
-if (!exists(SL.library)) stop(paste("SL.library.file", SL.library.file, "did not create a variable called 'SL.library'"))
+
+if (!exists('SL.library')) stop(paste("SL.library.file", SL.library.file, "did not create a variable called 'SL.library'"))
 
 # Use full feature data frame (possibly including NAs) as newX.
 out.SL <- SuperLearner(Y=Y, X=X, newX=feature.data, SL.library=SL.library,

@@ -1,9 +1,10 @@
 #' Generates a sample-wise PCA plot
 #'
 #' @param dat Data matrix to use
+#' @param color_var Variable to color points by
 #' @param scale Whether or not variables should be scaled to have unit variance
 #               beore performing the PCA.
-plot_sample_pca <- function(dat, scale=FALSE) {
+plot_sample_pca <- function(dat, color_var=NULL, color_var_name='color', point_size=4, scale=FALSE) {
     # PCA
     pca <- prcomp(t(dat), scale=scale)
 
@@ -16,14 +17,24 @@ plot_sample_pca <- function(dat, scale=FALSE) {
 
     # Create a dataframe containing first two PCs
     df <- data.frame(sample_id=colnames(dat),
-                    pc1=pca$x[,1], pc2=pca$x[,2])
+                     pc1=pca$x[,1], pc2=pca$x[,2])
+
+    # Extend with color information
+    if (!is.null(color_var)) {
+        df[,color_var_name] <- color_var
+    }
 
     # Generate plot
     plt <- ggplot(df, aes(pc1, pc2)) +
-        geom_point(stat="identity", size=4) +
+        geom_point(stat="identity", size=point_size) +
         geom_text(aes(label=sample_id), angle=45, size=4, vjust=2) +
         xlab(xl) + ylab(yl) +
         theme(axis.ticks=element_blank(), axis.text.x=element_text(angle=-90))
+
+    if (!is.null(color_var)) {
+        plt <- plt + geom_point(stat='identity', size=point_size, aes(color=get(color_var_name)))
+    }
+
     plot(plt)
 }
 

@@ -3,7 +3,9 @@ import numpy as np
 import pandas as pd
 
 # ----------------------------------------------------------------------------
-# Convert SEG-format files to sorted BED format
+# Convert SEG-forma
+
+files to sorted BED format
 rule seg_to_bed:
     input: '{prefix}/raw/cnv/{sample}_cnv.seg'
     output: '{prefix}/cleaned/cnv/{sample}_cnv.bed'
